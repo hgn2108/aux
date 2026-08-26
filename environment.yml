@@ -1,0 +1,42 @@
+name: aux
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+
+  # System-level audio deps — the reason we chose conda over uv.
+  # librosa needs these present; conda-forge installs them into the env.
+  - ffmpeg
+  - libsndfile
+
+  # Core numerics / data
+  - numpy
+  - scipy
+  - pandas
+  - scikit-learn
+
+  # Audio feature extraction (Phase 3)
+  - librosa
+
+  # Experiment tracking (Phase 0.4 onward)
+  - mlflow
+
+  # Serving (Phase 6)
+  - fastapi
+  - uvicorn
+  - httpx
+  - pydantic
+  - pydantic-settings
+
+  # Dev tooling
+  - pytest
+  - pytest-cov
+  - ruff
+  - mypy
+  - pre-commit
+  - jupyterlab
+
+# Deliberately NOT pinned here yet:
+#   - vector DB      -> roadmap 6.1 decides which
+#   - torch          -> roadmap 3.2 decides if a learned encoder is even needed
+# Installing either now would prejudge a deferred decision.

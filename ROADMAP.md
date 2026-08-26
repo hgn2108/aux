@@ -19,12 +19,12 @@ until it holds. Two rules override convenience at every phase:
 
 Nothing here is ML. It exists so later phases are reproducible and legally clean.
 
-- [ ] **0.1 Repo scaffolding**
-  - [ ] 0.1.1 Package layout (`aux/` source, `tests/`, `notebooks/`, `data/`, `configs/`)
-  - [ ] 0.1.2 Dependency + env management (choose: uv / poetry / conda) and pin Python version
-  - [ ] 0.1.3 `.gitignore` for `data/`, model artifacts, `.env`, MLflow local store
-  - [ ] 0.1.4 Lint/format/typecheck (ruff + mypy) and pre-commit hooks
-  - [ ] 0.1.5 `pytest` wired up with one trivial passing test
+- [x] **0.1 Repo scaffolding**
+  - [x] 0.1.1 Package layout (`aux/` source, `tests/`, `notebooks/`, `data/`, `configs/`)
+  - [x] 0.1.2 Dependency + env management (choose: uv / poetry / conda) and pin Python version
+  - [x] 0.1.3 `.gitignore` for `data/`, model artifacts, `.env`, MLflow local store
+  - [x] 0.1.4 Lint/format/typecheck (ruff + mypy) and pre-commit hooks
+  - [x] 0.1.5 `pytest` wired up with one trivial passing test
 - [ ] **0.2 Secrets and config**
   - [ ] 0.2.1 `.env.example` listing every credential (Last.fm API key, etc.)
   - [ ] 0.2.2 Config loader with typed settings; no credentials in code or notebooks
