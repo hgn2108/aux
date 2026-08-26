@@ -23,8 +23,11 @@ One thin end-to-end path: real data → model → measured answer → served →
 Everything after this deepens a link in a chain that already works.
 
 - [ ] **M0.1** Confirm Last.fm API terms cover personal ML use; one line in `DATA_SOURCES.md`
-- [ ] **M0.2** Secrets config — `.env.example`, typed settings loader, no keys in code
+- [x] **M0.2** Secrets config — `.env.example`, typed settings loader, no keys in code
 - [ ] **M0.3** Pull full scrobble history; archive raw responses before parsing
+      > **BLOCKED 2026-08-27:** the Last.fm account (`irenehng`, created 2026-08-26)
+      > has 0 scrobbles. Credentials verified working — there is simply no history.
+      > Needs a backfill source before M0.4-M0.9 can proceed.
 - [ ] **M0.4** Normalize to an events table: `(ts, artist, track, album)`
 - [ ] **M0.5** Profile it — date range, unique tracks, play distribution, gaps
 - [ ] **M0.6** Baseline recommender: popularity + item-item co-occurrence, no training
