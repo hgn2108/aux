@@ -1,265 +1,138 @@
 # aux — Plan of Attack
 
-Working checklist derived from `PROJECT_CONTEXT.md`. The Google Doc PRD remains
-canonical for product intent; this file is the execution view.
+Execution view. `PROJECT_CONTEXT.md` carries motivation and the skills this project
+should showcase; details here get refined as implementation teaches us things.
 
-**How to use:** tick boxes as you go. Tasks are numbered (`3.2`) so they can be
-referenced in conversation and commits. Phases are ordered by dependency, not by
-date — no deadlines are invented here.
+**How this plan works**
 
-**Phase gate:** each phase has a Done-when line. Do not start the next phase
-until it holds. Two rules override convenience at every phase:
+- **Vertical slices, not phases.** Ship a thin working path first, then deepen it.
+- **Each model track owns its own data.** Source checks, ingestion, and processing
+  happen inside the track that needs them, when it needs them — not as one upfront audit.
+- **Baseline before sophistication.** Every track lands a crude measurable version
+  before anything learned. Escalate only when evals justify it.
+- **Tick boxes as you go.** Tasks are numbered (`B3`) for reference in conversation.
 
-- The eval harness is never cut (principle 3).
-- Model C output stays descriptive, never a quality score (principle 1).
-
----
-
-## Phase 0 — Foundations
-
-Nothing here is ML. It exists so later phases are reproducible and legally clean.
-
-- [x] **0.1 Repo scaffolding**
-  - [x] 0.1.1 Package layout (`aux/` source, `tests/`, `notebooks/`, `data/`, `configs/`)
-  - [x] 0.1.2 Dependency + env management (choose: uv / poetry / conda) and pin Python version
-  - [x] 0.1.3 `.gitignore` for `data/`, model artifacts, `.env`, MLflow local store
-  - [x] 0.1.4 Lint/format/typecheck (ruff + mypy) and pre-commit hooks
-  - [x] 0.1.5 `pytest` wired up with one trivial passing test
-- [ ] **0.2 Secrets and config**
-  - [ ] 0.2.1 `.env.example` listing every credential (Last.fm API key, etc.)
-  - [ ] 0.2.2 Config loader with typed settings; no credentials in code or notebooks
-- [ ] **0.3 Data-source terms verification — BLOCKING GATE**
-  - [ ] 0.3.1 Re-verify Last.fm API terms permit personal ML use; record date checked
-  - [ ] 0.3.2 Re-verify MusicBrainz licensing + rate-limit/user-agent requirements
-  - [ ] 0.3.3 Confirm FMA and/or Jamendo CC license tiers usable for audio features
-  - [ ] 0.3.4 Confirm Spotify Web API audio-features status; if unverified, mark unusable
-  - [ ] 0.3.5 Record Genius as excluded; record Musixmatch decision (permitted or dropped)
-  - [ ] 0.3.6 Write `DATA_SOURCES.md` with per-source verdict, date, and quoted terms link
-- [ ] **0.4 MLflow tracking server** running locally, logging a dummy run end to end
-
-**Done when:** a clean clone can install, lint, test, and log an MLflow run; and
-`DATA_SOURCES.md` gives a dated yes/no for every source in the PRD.
+**Never cut, regardless of schedule:** the eval harness; descriptive (non-scoring)
+Model C output; data-terms compliance; lyric embed-then-discard if Model D exists.
 
 ---
 
-## Phase 1 — Data ingestion
+## M0 — Spine
 
-- [ ] **1.1 Last.fm listening history (behavioral spine)**
-  - [ ] 1.1.1 Full scrobble backfill for the user account, paginated + resumable
-  - [ ] 1.1.2 Raw response archival before any parsing (replayable without refetch)
-  - [ ] 1.1.3 Normalize to canonical event schema: `(ts, artist, track, album, source)`
-  - [ ] 1.1.4 Decide + implement refresh strategy — resolves open decision *batch vs. live scrobble refresh*
-  - [ ] 1.1.5 Profile the history: date range, unique tracks/artists, play distribution, gaps
-- [ ] **1.2 MusicBrainz enrichment**
-  - [ ] 1.2.1 Resolve scrobbles to MBIDs; measure match rate
-  - [ ] 1.2.2 Manual/fuzzy fallback for unmatched high-play tracks
-  - [ ] 1.2.3 Attach metadata (release date, artist, tags); respect rate limits
-- [ ] **1.3 CC-licensed audio (FMA / Jamendo)**
-  - [ ] 1.3.1 Determine overlap between listening history and CC-available audio — *reality check on Model A coverage*
-  - [ ] 1.3.2 Download audio for the covered subset; store checksums + license per track
-  - [ ] 1.3.3 Document the coverage ceiling honestly (principle 2)
-- [ ] **1.4 Unified track table** joining behavioral, metadata, and audio-availability keys
+One thin end-to-end path: real data → model → measured answer → served → agent tool.
+Everything after this deepens a link in a chain that already works.
 
-**Done when:** one reproducible pipeline command rebuilds the track table from raw
-archives, and coverage numbers for each signal are written down.
+- [ ] **M0.1** Confirm Last.fm API terms cover personal ML use; one line in `DATA_SOURCES.md`
+- [ ] **M0.2** Secrets config — `.env.example`, typed settings loader, no keys in code
+- [ ] **M0.3** Pull full scrobble history; archive raw responses before parsing
+- [ ] **M0.4** Normalize to an events table: `(ts, artist, track, album)`
+- [ ] **M0.5** Profile it — date range, unique tracks, play distribution, gaps
+- [ ] **M0.6** Baseline recommender: popularity + item-item co-occurrence, no training
+- [ ] **M0.7** Eval v0 — time-based holdout, recall@k, beat the popularity baseline
+- [ ] **M0.8** FastAPI `/similar` endpoint over the baseline
+- [ ] **M0.9** One agent tool calling that endpoint
+
+**Done when:** you can ask for tracks similar to an anchor and get an answer whose
+quality is a number you measured. Time-ordered split from the start — a random split
+leaks the future and flatters every model you build after.
 
 ---
 
-## Phase 2 — Evaluation harness (BUILD BEFORE MODELS)
+## Track B — Behavioral
 
-Deliberately ahead of the models. Built after them, it gets cut under time pressure —
-and the PRD forbids that.
+Highest-coverage signal and no licensing blocker, so it leads.
 
-- [ ] **2.1 Golden set construction**
-  - [ ] 2.1.1 Hand-label Vibe Match cases: natural-language prompt → acceptable acoustic/thematic ranges
-  - [ ] 2.1.2 Hand-label Bridge Finder cases: anchor pairs + what "between" should mean per axis
-  - [ ] 2.1.3 Hold out a blind slice never inspected during development
-- [ ] **2.2 Metrics**
-  - [ ] 2.2.1 Bridge Finder: measurable gap reduction between anchors across axes
-  - [ ] 2.2.2 Vibe Match: fraction of results inside golden-set ranges
-  - [ ] 2.2.3 Model B: held-out next-track / co-occurrence retrieval metrics
-  - [ ] 2.2.4 Coverage + confidence reporting as a first-class metric (principle 2)
-- [ ] **2.3 Harness mechanics**
-  - [ ] 2.3.1 One command runs all evals against a named model version
-  - [ ] 2.3.2 Results logged to MLflow and diffable across versions
-  - [ ] 2.3.3 Regression check that fails loudly when a metric drops
-  - [ ] 2.3.4 Baselines: random, popularity, raw-metadata nearest-neighbor
+- [ ] **B1** Sessionize scrobbles — session boundaries, repeat handling
+- [ ] **B2** Decide refresh strategy: batch vs. live *(open decision)*
+- [ ] **B3** Model approach *(open decision)* — implement matrix factorization / item2vec;
+      move to a sequence model only if it beats this on B5
+- [ ] **B4** MLflow tracking — introduced here, where there are versions worth comparing
+- [ ] **B5** Eval — held-out next-track and co-occurrence retrieval vs. M0.6 baseline
+- [ ] **B6** Cold-start + long-tail behavior; write down the failure modes
+- [ ] **B7** Swap into the serving path behind M0.8
 
-**Done when:** the harness runs green against stub models and produces a comparison
-report. Every later model phase must move a number in this harness.
+**MLE note:** the n-of-1 setting means a small, dense matrix. Favor methods that
+work at that scale over methods that impress on paper.
 
 ---
 
-## Phase 3 — Model A: acoustic / content embeddings
+## Track A — Acoustic
 
-- [ ] **3.1 Feature extraction** — tempo, key, spectral, MFCC/mel from CC audio
-- [ ] **3.2 Architecture decision** — resolves open decision *Model A architecture*
-  - [ ] 3.2.1 Start with classical features + dimensionality reduction as the baseline
-  - [ ] 3.2.2 Only escalate to a learned encoder if the baseline underperforms in Phase 2
-  - [ ] 3.2.3 Log the decision + rationale to the decision log
-- [ ] **3.3 Fixed-length embeddings** for every audio-covered track, versioned in MLflow
-- [ ] **3.4 Sanity checks** — known-similar tracks land near each other; genre clusters emerge without genre labels
-- [ ] **3.5 Coverage statement** — which fraction of the library has acoustic vectors
-
-**Done when:** embeddings exist for the covered subset, beat the Phase 2 baselines,
-and the coverage gap is documented rather than hidden.
-
----
-
-## Phase 4 — Model B: behavioral / taste embeddings
-
-- [ ] **4.1 Approach decision** — resolves open decision *sequence vs. co-occurrence/factorization*
-  - [ ] 4.1.1 Implement the simpler co-occurrence/factorization baseline first
-  - [ ] 4.1.2 Evaluate a sequence model only if the baseline is beaten meaningfully
-  - [ ] 4.1.3 Log the decision + rationale
-- [ ] **4.2 Training data** — sessionize scrobbles; define session boundaries; handle repeats
-- [ ] **4.3 Train/held-out split that respects time** (no future leakage into past)
-- [ ] **4.4 Train + evaluate** against Phase 2 metrics
-- [ ] **4.5 Cold-start behavior** for tracks with few plays — state it, don't paper over it
-- [ ] **4.6 Version in MLflow** with data snapshot reference
-
-**Done when:** Model B beats popularity baseline on held-out history, and its
-failure modes are written down.
+- [ ] **A1** **Coverage check first** — overlap between listening history and CC-available
+      audio (FMA/Jamendo). This number decides how much of the product can lean on
+      acoustic signal. Cheap to run, expensive to discover late.
+- [ ] **A2** Confirm FMA/Jamendo license tiers permit feature extraction; log in `DATA_SOURCES.md`
+- [ ] **A3** Fetch audio for the covered subset; store checksum + license per track
+- [ ] **A4** Feature extraction — tempo, key, spectral, MFCC/chroma
+- [ ] **A5** Baseline embeddings: features + dimensionality reduction
+- [ ] **A6** Sanity check — genre clusters should emerge *without* genre labels
+- [ ] **A7** Learned encoder *(open decision)* — only if A5 underperforms on Track C evals
+- [ ] **A8** State coverage honestly wherever acoustic signal is used
 
 ---
 
-## Phase 5 — Model C: Bridge Finder + Vibe Match
+## Track C — Compatibility
 
-The product surface. Where the non-judgmental principle is easiest to violate.
+The product surface, and where the non-judgmental principle is easiest to break.
+Needs B and A.
 
-- [ ] **5.1 Multi-axis compatibility output**
-  - [ ] 5.1.1 Define axes explicitly (tempo, energy, key, spectral, behavioral proximity)
-  - [ ] 5.1.2 Return per-axis relationships — **no scalar quality score** (principle 1)
-  - [ ] 5.1.3 Output schema carries confidence + coverage per axis (principle 2)
-- [ ] **5.2 Bridge Finder** — given two anchors, retrieve tracks that reduce measured gaps
-  - [ ] 5.2.1 Define "between" per axis
-  - [ ] 5.2.2 Decide thematic-distance inclusion — resolves open decision *thematic distance in Bridge Finder vs. Vibe Match-only*
-- [ ] **5.3 Vibe Match** — natural language → acoustic/behavioral target region
-  - [ ] 5.3.1 Prompt-to-target-region mapping
-  - [ ] 5.3.2 Confidence/coverage representation — resolves open decision *Vibe Match confidence/coverage representation*
-  - [ ] 5.3.3 "Closest available" fallback wording when the library is thin
-- [ ] **5.4 Combine Model A + B signals**; document the weighting and why
-- [ ] **5.5 Evaluate against the Phase 2 golden set**
-- [ ] **5.6 Language audit** — sweep every user-facing string for evaluative phrasing
+- [ ] **C1** Define axes explicitly: tempo, energy, key, spectral, behavioral proximity
+- [ ] **C2** Output schema — per-axis relationships plus confidence/coverage.
+      **No scalar quality score.**
+- [ ] **C3** Golden set — hand-labeled Bridge Finder anchor pairs and Vibe Match prompts,
+      with a blind slice never inspected during development
+- [ ] **C4** Bridge Finder — retrieve tracks that measurably reduce anchor gaps
+- [ ] **C5** Vibe Match — natural language → target region; "closest available" fallback
+- [ ] **C6** Confidence/coverage representation *(open decision)*
+- [ ] **C7** Combine A + B signals; document the weighting and why
+- [ ] **C8** Eval against C3; regression check wired into the harness
+- [ ] **C9** Language audit — sweep user-facing strings for evaluative phrasing
 
-**Done when:** both features beat baselines on the golden set, and 5.6 passes.
-
----
-
-## Phase 6 — Serving
-
-- [ ] **6.1 Vector database** — resolves open decision *vector DB choice*
-  - [ ] 6.1.1 Pick based on library size (likely small — favor simplicity over scale)
-  - [ ] 6.1.2 Index Model A + B embeddings; benchmark query latency
-  - [ ] 6.1.3 Log the decision + rationale
-- [ ] **6.2 FastAPI service** — endpoints for similar / bridge / vibe-match / track-profile
-  - [ ] 6.2.1 Typed request/response schemas carrying confidence + coverage
-  - [ ] 6.2.2 Model version pinned and reported in every response
-- [ ] **6.3 Docker** — reproducible image; compose file for API + MLflow + vector DB
-- [ ] **6.4 Load model artifacts from the MLflow registry**, not local paths
-- [ ] **6.5 API tests** against a fixture library
-
-**Done when:** `docker compose up` serves working endpoints with versioned models.
+**MLE note:** label C3 before looking at model output, or the labels drift toward
+whatever the model already does and the eval stops meaning anything.
 
 ---
 
-## Phase 7 — Agent layer
+## Track D — Lyrical *(optional, gated)*
 
-- [ ] **7.1 Tool definitions** — models and retrieval exposed as real callable tools
-  - [ ] 7.1.1 `find_similar`, `bridge`, `vibe_match`, `track_profile`, `listening_recall`
-  - [ ] 7.1.2 Tool schemas surface confidence + coverage so the agent can hedge honestly
-- [ ] **7.2 Conversation layer** handling the five PRD user intents
-- [ ] **7.3 System prompt encoding principles 1 and 2** — descriptive, coverage-honest
-- [ ] **7.4 Agent-level eval** — scripted conversations asserting correct tool selection
-- [ ] **7.5 Refusal//hedge behavior** when the library genuinely lacks a match
-
-**Done when:** scripted conversations pass, and the agent never volunteers a taste judgment.
+- [ ] **D1** **GATE** — Musixmatch terms permit this use. If not, omit Model D entirely.
+- [ ] **D2** Embed-then-discard pipeline; raw lyric text never stored, logged, or displayed
+- [ ] **D3** Automated test asserting no lyric text reaches disk or logs
+- [ ] **D4** Embedding approach + minimum viable coverage *(open decision)*
+- [ ] **D5** Thematic distance in Bridge Finder or Vibe Match only *(open decision)*
 
 ---
 
-## Phase 8 — Event logging + preference loop
+## Cross-cutting
 
-- [ ] **8.1 Structured recommendation-event logging** — request, results, model versions, timestamps
-- [ ] **8.2 Feedback capture** — accept / reject / refine
-- [ ] **8.3 Preference-pair construction** from feedback events
-- [ ] **8.4 Contrastive reweighting of Model B** — resolves open decision *reweighting method and cadence*
-- [ ] **8.5 Proxy metrics** — resolves open decision *preference-loop proxy metrics*
-- [ ] **8.6 Version reweighted models in MLflow**; regression-check against Phase 2
-- [ ] **8.7 Framing check** — documented as small-scale preference learning, explicitly **not** Spotify-scale DPO/RLHF
+Pulled in when a track needs them, not built speculatively.
 
-**Done when:** feedback measurably shifts recommendations and the shift is tracked
-across model versions.
-
----
-
-## Phase 9 — Monitoring
-
-- [ ] **9.1 Drift detection** on input distributions (listening habits shift over time)
-- [ ] **9.2 Embedding distribution monitoring** across model versions
-- [ ] **9.3 Latency monitoring** at useful percentiles
-- [ ] **9.4 Dashboard** — functional first; polish is explicitly cuttable
-- [ ] **9.5 Alert thresholds** written down, even if manual
-
-**Done when:** a rebuild that degrades quality is visible without reading code.
+- [ ] **X1** Structured recommendation-event logging — request, results, model versions
+- [ ] **X2** Feedback capture: accept / reject / refine
+- [ ] **X3** Preference pairs → contrastive reweighting of Model B *(open decision: method + cadence)*
+- [ ] **X4** Preference-loop proxy metrics *(open decision)*; framed as small-scale, not RLHF
+- [ ] **X5** Docker compose — API + MLflow + vector store
+- [ ] **X6** Vector DB *(open decision)* — only when linear scan actually hurts
+- [ ] **X7** Drift + latency monitoring; thresholds written down
+- [ ] **X8** MPD co-occurrence pretraining *(open decision: sample size/value)*; 2017 catalog caveat
+- [ ] **X9** README, results writeup incl. what didn't work, limitations, demo
 
 ---
 
-## Phase 10 — Optional breadth (strictly in cut order)
+## Open decisions
 
-Only after Phases 1–9 form a coherent system. Cut from the bottom up.
+Resolved in: B2 refresh · B3 model approach · A7 encoder · C6 confidence repr ·
+D4 embedding · D5 thematic placement · X3 reweighting · X4 proxy metrics ·
+X6 vector DB · X8 MPD value
 
-- [ ] **10.1 MPD co-occurrence pretraining** — resolves open decision *MPD sample size/value*
-  - [ ] 10.1.1 Sample size experiment
-  - [ ] 10.1.2 Measure whether it beats Model B trained on history alone
-  - [ ] 10.1.3 Document the 2017 catalog cutoff as a known limitation
-- [ ] **10.2 Model D — lyrical/thematic embeddings** *(build only if 10.2.1 passes)*
-  - [ ] 10.2.1 **GATE:** Musixmatch terms permit this use — if not, omit Model D entirely
-  - [ ] 10.2.2 Embed-then-discard pipeline: raw lyric text never stored, displayed, logged, or redistributed
-  - [ ] 10.2.3 Automated test asserting no lyric text reaches disk or logs
-  - [ ] 10.2.4 Embedding approach + minimum viable coverage — resolves that open decision
-  - [ ] 10.2.5 Integrate thematic axis per the 5.2.2 decision
-
-**Done when:** each optional item either ships with evals or is explicitly recorded as cut.
+Log each resolution in the `PROJECT_CONTEXT.md` decision log per `AGENTS.md`.
 
 ---
 
-## Phase 11 — Portfolio surface
+## Order
 
-The PRD frames this as portfolio-quality work; that framing needs its own artifact.
+`M0` → `B` → `A` → `C` → `X` as needed → `D` if the gate passes.
 
-- [ ] **11.1 README** — problem, architecture diagram, model boundaries, results
-- [ ] **11.2 Results writeup** — eval numbers vs. baselines, including what didn't work
-- [ ] **11.3 Architecture decision records** for each resolved open decision
-- [ ] **11.4 Demo** — recorded walkthrough or reproducible notebook
-- [ ] **11.5 Limitations section** — coverage gaps, n-of-1 caveats, cold start (principle 2 applied to the project itself)
-
----
-
-## Open decisions → where they get resolved
-
-| Open decision | Resolved in |
-|---|---|
-| Vector DB choice | 6.1 |
-| Model A architecture | 3.2 |
-| Model B sequence vs. co-occurrence | 4.1 |
-| Batch vs. live scrobble refresh | 1.1.4 |
-| Preference reweighting method + cadence | 8.4 |
-| Preference-loop proxy metrics | 8.5 |
-| MPD sample size / value | 10.1 |
-| Vibe Match confidence/coverage representation | 5.3.2 |
-| Model D embedding approach + coverage | 10.2.4 |
-| Thematic distance in Bridge Finder vs. Vibe Match-only | 5.2.2 |
-
-Per `AGENTS.md`, log each resolution in the `PROJECT_CONTEXT.md` decision log with
-date, rationale, and affected PRD section.
-
----
-
-## Critical path
-
-`0.3` (terms verification) → `1.1` (history) → `2.x` (eval harness) → `4.x` (Model B)
-→ `5.x` (Model C) → `6.x` (serving) → `7.x` (agent)
-
-Model A (Phase 3) parallelizes with Model B but is **coverage-limited by 1.3.1** —
-run that overlap check early, since a thin CC-audio overlap reshapes how much of the
-product can lean on acoustic signal.
+A1 is the one task worth pulling early: if CC-audio overlap is thin, Track A covers a
+small slice of the library and Track C has to lean on behavioral signal — which
+changes what C is.
