@@ -22,7 +22,7 @@ Model C output; data-terms compliance; lyric embed-then-discard if Model D exist
 One thin end-to-end path: real data → model → measured answer → served → agent tool.
 Everything after this deepens a link in a chain that already works.
 
-- [ ] **M0.1** Confirm Last.fm API terms cover personal ML use; one line in `DATA_SOURCES.md`
+- [x] **M0.1** Confirm Last.fm API terms cover personal ML use; one line in `DATA_SOURCES.md`
 - [x] **M0.2** Secrets config — `.env.example`, typed settings loader, no keys in code
 - [ ] **M0.3** Pull full scrobble history; archive raw responses before parsing
       > **BLOCKED 2026-08-27:** the Last.fm account (`irenehng`, created 2026-08-26)
@@ -72,10 +72,12 @@ evaluated before any listening data exists.
 
 - [ ] **A1** Coverage check — overlap between listening history and CC-available audio.
       *Deferred: needs the Spotify export first.*
-- [ ] **A2** Confirm FMA/Jamendo license tiers permit feature extraction; log in `DATA_SOURCES.md`
+- [x] **A2** Confirm FMA license tiers permit feature extraction; logged in `DATA_SOURCES.md`
 - [ ] **A3** Fetch audio for the covered subset; store checksum + license per track
-- [ ] **A4** Feature extraction — tempo, key, spectral, MFCC/chroma
-- [ ] **A5** Baseline embeddings: features + dimensionality reduction
+- [x] **A4a** Baseline on FMA precomputed features — eval harness + numbers, no audio needed
+- [ ] **A4b** Our own feature extraction from audio — tempo, key, spectral, MFCC/chroma;
+      score against A4a as a reference point
+- [x] **A5** Baseline embeddings: standardize + PCA (64 dims chosen by sweep)
 - [ ] **A6** Sanity check — genre clusters should emerge *without* genre labels
 - [ ] **A7** Learned encoder *(open decision)* — only if A5 underperforms on Track C evals
 - [ ] **A8** State coverage honestly wherever acoustic signal is used
