@@ -43,8 +43,13 @@ leaks the future and flatters every model you build after.
 
 ## Track B — Behavioral
 
-Highest-coverage signal and no licensing blocker, so it leads.
+**BLOCKED pending Spotify export.** The Last.fm account has no history (see M0.3).
+Spotify's extended streaming history is the backfill source; Last.fm becomes the
+live-refresh source once scrobbling is connected.
 
+- [ ] **B0** Request Spotify extended streaming history — *do first, up to 30 days lead time*
+- [ ] **B0.1** Connect Last.fm scrobbling so live data accumulates from now on
+- [ ] **B0.2** Parse the export into the M0.4 events schema; reconcile with Last.fm going forward
 - [ ] **B1** Sessionize scrobbles — session boundaries, repeat handling
 - [ ] **B2** Decide refresh strategy: batch vs. live *(open decision)*
 - [ ] **B3** Model approach *(open decision)* — implement matrix factorization / item2vec;
@@ -61,9 +66,12 @@ work at that scale over methods that impress on paper.
 
 ## Track A — Acoustic
 
-- [ ] **A1** **Coverage check first** — overlap between listening history and CC-available
-      audio (FMA/Jamendo). This number decides how much of the product can lean on
-      acoustic signal. Cheap to run, expensive to discover late.
+**Leads while the export is pending.** Needs no personal history: FMA is public
+CC-licensed audio with its own genre labels, so embeddings can be genuinely
+evaluated before any listening data exists.
+
+- [ ] **A1** Coverage check — overlap between listening history and CC-available audio.
+      *Deferred: needs the Spotify export first.*
 - [ ] **A2** Confirm FMA/Jamendo license tiers permit feature extraction; log in `DATA_SOURCES.md`
 - [ ] **A3** Fetch audio for the covered subset; store checksum + license per track
 - [ ] **A4** Feature extraction — tempo, key, spectral, MFCC/chroma
@@ -134,8 +142,9 @@ Log each resolution in the `PROJECT_CONTEXT.md` decision log per `AGENTS.md`.
 
 ## Order
 
-`M0` → `B` → `A` → `C` → `X` as needed → `D` if the gate passes.
+`M0.1-M0.2` (done) → `A` on FMA → `B` when the export lands → `M0` spine completed
+on real history → `C` → `X` as needed → `D` if the gate passes.
 
-A1 is the one task worth pulling early: if CC-audio overlap is thin, Track A covers a
-small slice of the library and Track C has to lean on behavioral signal — which
-changes what C is.
+A1's coverage check moves to *after* the export arrives — it needs a library to
+overlap against. If that overlap turns out thin, Track A covers a small slice and
+Track C has to lean on behavioral signal, which changes what C is.
