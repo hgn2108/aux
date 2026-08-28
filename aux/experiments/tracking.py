@@ -22,8 +22,25 @@ def setup(tracking_uri: str = DEFAULT_BACKEND) -> None:
 
 def log_report(name: str, params: dict[str, Any], report: EmbeddingReport) -> str:
     """Record one evaluated configuration. Returns the MLflow run id."""
+    return log_run(name, params, report.to_metrics(), text=str(report))
+
+
+def log_run(
+    name: str,
+    params: dict[str, Any],
+    metrics: dict[str, float],
+    text: str | None = None,
+) -> str:
+    """Record arbitrary params and metrics. Non-finite metrics are dropped.
+
+    MLflow rejects NaN and infinity, and a single bad value would fail the whole
+    run after the expensive work is already done.
+    """
+    import math
+
     with mlflow.start_run(run_name=name) as active:
         mlflow.log_params(params)
-        mlflow.log_metrics(report.to_metrics())
-        mlflow.log_text(str(report), "report.txt")
+        mlflow.log_metrics({k: v for k, v in metrics.items() if math.isfinite(v)})
+        if text is not None:
+            mlflow.log_text(text, "report.txt")
         return str(active.info.run_id)

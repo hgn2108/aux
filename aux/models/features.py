@@ -10,6 +10,7 @@ is a "bag of frames" representation: it discards temporal order, which is a real
 limitation and the main thing a learned encoder (roadmap A7) would improve on.
 """
 
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
 import librosa
@@ -107,20 +108,29 @@ def extract(path: str | Path) -> pd.Series:
     return pd.Series(values).reindex(feature_columns())
 
 
-def extract_many(paths: dict[int, Path]) -> pd.DataFrame:
+def _extract_one(item: tuple[int, Path]) -> tuple[int, pd.Series | None]:
+    track_id, path = item
+    try:
+        return track_id, extract(path)
+    except Exception:  # noqa: BLE001 - corrupt audio is data, not a bug
+        return track_id, None
+
+
+def extract_many(paths: dict[int, Path], workers: int = 1) -> pd.DataFrame:
     """Extract for many files, skipping unreadable ones.
 
-    FMA is known to contain a handful of truncated or corrupt mp3s, so a failure
-    here is expected and must not abort a long run.
+    FMA is known to contain truncated and corrupt mp3s, so a failure here is
+    expected and must not abort a long run. Extraction is CPU-bound on the CQT,
+    so ``workers > 1`` scales close to linearly.
     """
-    rows: dict[int, pd.Series] = {}
-    failed: list[int] = []
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            results = list(pool.map(_extract_one, paths.items(), chunksize=4))
+    else:
+        results = [_extract_one(item) for item in paths.items()]
 
-    for track_id, path in paths.items():
-        try:
-            rows[track_id] = extract(path)
-        except Exception:  # noqa: BLE001 - corrupt audio is data, not a bug
-            failed.append(track_id)
+    rows = {tid: series for tid, series in results if series is not None}
+    failed = [tid for tid, series in results if series is None]
 
     if failed:
         print(f"skipped {len(failed)} unreadable file(s): {failed[:5]}")
