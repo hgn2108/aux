@@ -39,3 +39,17 @@ def load_features() -> pd.DataFrame:
 def subset(tracks: pd.DataFrame, name: str = "small") -> pd.Index:
     """Track ids belonging to an FMA subset ('small', 'medium', 'large')."""
     return tracks.index[tracks[("set", "subset")] == name]
+
+
+AUDIO_DIR = "fma/fma_small"
+
+
+def audio_path(track_id: int, root: Path | None = None) -> Path:
+    """Path to a track's mp3.
+
+    FMA lays audio out as ``<zero-padded 6-digit id>`` bucketed into directories
+    named by its first three digits: track 2 lives at ``000/000002.mp3``.
+    """
+    root = root or (get_settings().raw_dir / AUDIO_DIR)
+    name = f"{track_id:06d}"
+    return root / name[:3] / f"{name}.mp3"

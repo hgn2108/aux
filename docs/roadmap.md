@@ -87,8 +87,11 @@ evaluated before any listening data exists.
   - [ ] A9.2 Verify they behave comparably to FMA's features on this harness
 - [ ] **A10** MagnaTagATune perceptual eval — loader and metric done and tested;
       *blocked on A4b* since scoring needs embeddings for MTAT clips
-- [ ] **A7** Learned encoder *(open decision)* — CLAP first (CC0 weights); only if it
-      beats Tier 0/1 on this harness
+- [ ] **A7** Pretrained embeddings *(open decision)* — CLAP (CC0 weights), PANNs, MERT;
+      only what beats Tier 0/1 on this harness
+- [ ] **A11** Contrastive CNN on mel-spectrograms (InfoNCE), FMA Small scale.
+      Positives must span *different* tracks sharing album/artist — same-song chunks let
+      the network learn production signature instead of similarity.
 - [ ] **A8** State coverage honestly wherever acoustic signal is used
 
 ---
