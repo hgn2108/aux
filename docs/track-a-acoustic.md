@@ -82,7 +82,7 @@ Chosen empirically, and it contradicted the prior hypothesis. The expectation wa
 whitened Euclidean would win, since Bridge Finder needs a metric where interpolation is
 meaningful and an angle has no natural midpoint. The sweep said otherwise: cosine beat
 Euclidean in all 10 paired configurations, and whitened Euclidean at 256 dims was the
-worst configuration tested. See RESULTS.md for the numbers and the mechanism.
+worst configuration tested. See results.md for the numbers and the mechanism.
 
 **Open question this creates for Track C:** if ranking is by cosine, "between two anchors"
 needs definition on a sphere rather than a line — spherical interpolation, or

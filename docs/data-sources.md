@@ -2,7 +2,7 @@
 
 Licensing register. One entry per source, added when a track first needs it, recording
 what we verified, when, and what it permits — so decisions are auditable and re-checkable.
-Results live in `RESULTS.md`; reasoning lives in `docs/`.
+Results live in `results.md`; reasoning lives in this directory.
 
 | Source | Verified | Verdict | Used for |
 |---|---|---|---|

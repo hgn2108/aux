@@ -26,7 +26,7 @@ def build_embeddings(
 ) -> np.ndarray:
     """Standardize then PCA-reduce a feature matrix to fixed-length vectors.
 
-    Defaults chosen by the sweep in ``aux.experiments.sweeps`` (see RESULTS.md).
+    Defaults chosen by the sweep in ``aux.experiments.sweeps`` (see docs/results.md).
 
     PCA components carry decreasing variance, so without whitening a distance is
     dominated by the first few — nominally 128 dimensions, effectively a handful.

@@ -1,6 +1,6 @@
 # aux — Plan of Attack
 
-Execution view. `PROJECT_CONTEXT.md` carries motivation and the skills this project
+Execution view. `project-context.md` carries motivation and the skills this project
 should showcase; details here get refined as implementation teaches us things.
 
 **How this plan works**
@@ -22,7 +22,7 @@ Model C output; data-terms compliance; lyric embed-then-discard if Model D exist
 One thin end-to-end path: real data → model → measured answer → served → agent tool.
 Everything after this deepens a link in a chain that already works.
 
-- [x] **M0.1** Confirm Last.fm API terms cover personal ML use; one line in `DATA_SOURCES.md`
+- [x] **M0.1** Confirm Last.fm API terms cover personal ML use; one line in `data-sources.md`
 - [x] **M0.2** Secrets config — `.env.example`, typed settings loader, no keys in code
 - [ ] **M0.3** Pull full scrobble history; archive raw responses before parsing
       > **BLOCKED 2026-08-27:** the Last.fm account (`irenehng`, created 2026-08-26)
@@ -72,7 +72,7 @@ evaluated before any listening data exists.
 
 - [ ] **A1** Coverage check — overlap between listening history and CC-available audio.
       *Deferred: needs the Spotify export first.*
-- [x] **A2** Confirm FMA license tiers permit feature extraction; logged in `DATA_SOURCES.md`
+- [x] **A2** Confirm FMA license tiers permit feature extraction; logged in `data-sources.md`
 - [ ] **A3** Fetch audio for the covered subset; store checksum + license per track
 - [x] **A4a** Baseline on FMA precomputed features — eval harness + numbers, no audio needed
 - [ ] **A4b** Our own feature extraction from audio — tempo, key, spectral, MFCC/chroma;
@@ -147,7 +147,7 @@ Resolved in: B2 refresh · B3 model approach · A7 encoder · C6 confidence repr
 D4 embedding · D5 thematic placement · X3 reweighting · X4 proxy metrics ·
 X6 vector DB · X8 MPD value
 
-Log each resolution in the `PROJECT_CONTEXT.md` decision log per `AGENTS.md`.
+Log each resolution in the `project-context.md` decision log per `AGENTS.md`.
 
 ---
 
