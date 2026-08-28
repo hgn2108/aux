@@ -1,11 +1,16 @@
-"""Generic evaluation for embedding spaces.
+"""Evaluation for embedding spaces.
 
 Embeddings are judged the way the product uses them — retrieval — not by
-classification accuracy alone. Labels are a proxy for musical structure, never
+classification accuracy alone. Labels are proxies for musical structure, never
 the thing we are trying to predict.
+
+Proxies get stronger down this list: genre is coarse, artist narrower, album
+narrower still (shared production, instrumentation, session). Human similarity
+triplets are the only target here that measures perception rather than metadata.
 """
 
-from dataclasses import dataclass
+from collections.abc import Mapping
+from dataclasses import dataclass, field
 
 import numpy as np
 from sklearn.metrics import silhouette_score
@@ -13,61 +18,153 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier, NearestNeighbors
 from sklearn.preprocessing import LabelEncoder
 
+# Above this many distinct labels, per-class metrics stop being meaningful and a
+# stratified split stops being possible (albums with a single track). Retrieval
+# precision still works, so that is all we report for high-cardinality labels.
+MAX_CLASSES_FOR_CLASSIFICATION = 50
+
+
+@dataclass
+class LabelReport:
+    """Scores for one label set."""
+
+    name: str
+    n_classes: int
+    precision_at_k: float
+    majority_baseline: float
+    knn_accuracy: float | None = None
+    silhouette: float | None = None
+
+    def __str__(self) -> str:
+        parts = [
+            f"{self.name:<8} classes {self.n_classes:>5}",
+            f"P@k {self.precision_at_k:.3f} (chance {self.majority_baseline:.3f})",
+        ]
+        if self.knn_accuracy is not None:
+            parts.append(f"kNN {self.knn_accuracy:.3f}")
+        if self.silhouette is not None:
+            parts.append(f"sil {self.silhouette:+.3f}")
+        return "  ".join(parts)
+
 
 @dataclass
 class EmbeddingReport:
+    """Scores for one embedding space across every label set."""
+
     n_tracks: int
     n_dims: int
-    n_classes: int
-    majority_baseline: float
-    knn_accuracy: float
-    retrieval_precision_at_k: float
-    silhouette: float
+    metric: str
+    labels: dict[str, LabelReport] = field(default_factory=dict)
+    triplet_agreement: float | None = None
+    triplet_ci95: float | None = None
 
     def __str__(self) -> str:
-        lift = self.knn_accuracy - self.majority_baseline
-        return (
-            f"tracks {self.n_tracks:,} | dims {self.n_dims} | classes {self.n_classes}\n"
-            f"  majority baseline   {self.majority_baseline:.3f}\n"
-            f"  kNN accuracy        {self.knn_accuracy:.3f}  (lift {lift:+.3f})\n"
-            f"  retrieval P@k       {self.retrieval_precision_at_k:.3f}\n"
-            f"  silhouette          {self.silhouette:.3f}"
-        )
+        lines = [f"tracks {self.n_tracks:,} | dims {self.n_dims} | metric {self.metric}"]
+        lines += [f"  {report}" for report in self.labels.values()]
+        if self.triplet_agreement is not None:
+            ci = f" ±{self.triplet_ci95:.3f}" if self.triplet_ci95 is not None else ""
+            lines.append(f"  human triplets  agreement {self.triplet_agreement:.3f}{ci}")
+        return "\n".join(lines)
+
+    def to_metrics(self) -> dict[str, float]:
+        """Flatten to a name->value mapping for experiment tracking."""
+        out: dict[str, float] = {}
+        for name, report in self.labels.items():
+            out[f"{name}_p_at_k"] = report.precision_at_k
+            out[f"{name}_chance"] = report.majority_baseline
+            if report.knn_accuracy is not None:
+                out[f"{name}_knn_accuracy"] = report.knn_accuracy
+            if report.silhouette is not None:
+                out[f"{name}_silhouette"] = report.silhouette
+        if self.triplet_agreement is not None:
+            out["triplet_agreement"] = self.triplet_agreement
+        return out
 
 
-def _precision_at_k(x: np.ndarray, y: np.ndarray, k: int) -> float:
+def _precision_at_k(x: np.ndarray, y: np.ndarray, k: int, metric: str) -> float:
     """Fraction of a track's k nearest neighbours sharing its label.
 
     Self-matches are excluded: this asks whether the neighbourhood a retrieval
-    query would return is musically coherent.
+    query would actually return is musically coherent.
     """
-    nn = NearestNeighbors(n_neighbors=k + 1).fit(x)
+    nn = NearestNeighbors(n_neighbors=k + 1, metric=metric).fit(x)
     neighbours = nn.kneighbors(x, return_distance=False)[:, 1:]
     return float((y[neighbours] == y[:, None]).mean())
 
 
-def evaluate(
-    x: np.ndarray,
-    labels: np.ndarray,
-    k: int = 5,
-    test_size: float = 0.2,
-    seed: int = 0,
-) -> EmbeddingReport:
-    """Score an embedding matrix against categorical labels."""
-    y = LabelEncoder().fit_transform(labels)
+def _chance_precision(y: np.ndarray) -> float:
+    """Probability a random other track shares a given track's label.
+
+    The right chance baseline for retrieval: sampling by label frequency, not the
+    majority-class rate used for classification.
+    """
+    counts = np.bincount(y)
+    n = counts.sum()
+    return float((counts * (counts - 1)).sum() / (n * (n - 1)))
+
+
+def _score_labels(
+    x: np.ndarray, name: str, raw_labels: np.ndarray, k: int, metric: str, seed: int
+) -> LabelReport:
+    y = LabelEncoder().fit_transform(raw_labels)
+    n_classes = int(len(np.unique(y)))
+
+    report = LabelReport(
+        name=name,
+        n_classes=n_classes,
+        precision_at_k=_precision_at_k(x, y, k, metric),
+        majority_baseline=_chance_precision(y),
+    )
+    if n_classes > MAX_CLASSES_FOR_CLASSIFICATION:
+        return report
 
     x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=test_size, random_state=seed, stratify=y
+        x, y, test_size=0.2, random_state=seed, stratify=y
     )
-    knn = KNeighborsClassifier(n_neighbors=k).fit(x_train, y_train)
+    knn = KNeighborsClassifier(n_neighbors=k, metric=metric).fit(x_train, y_train)
+    report.knn_accuracy = float(knn.score(x_test, y_test))
+    report.silhouette = float(silhouette_score(x, y, metric=metric))
+    return report
 
-    counts = np.bincount(y_test)
+
+def evaluate(
+    x: np.ndarray,
+    labels: Mapping[str, np.ndarray] | np.ndarray,
+    k: int = 5,
+    metric: str = "euclidean",
+    seed: int = 0,
+) -> EmbeddingReport:
+    """Score an embedding matrix against one or more label sets."""
+    if not isinstance(labels, Mapping):
+        labels = {"label": np.asarray(labels)}
+
     return EmbeddingReport(
         n_tracks=len(x),
-        n_dims=x.shape[1],
-        n_classes=len(np.unique(y)),
-        majority_baseline=float(counts.max() / counts.sum()),
-        knn_accuracy=float(knn.score(x_test, y_test)),
-        retrieval_precision_at_k=_precision_at_k(x, y, k),
-        silhouette=float(silhouette_score(x, y)),
+        n_dims=int(x.shape[1]),
+        metric=metric,
+        labels={
+            name: _score_labels(x, name, np.asarray(values), k, metric, seed)
+            for name, values in labels.items()
+        },
     )
+
+
+def triplet_agreement(
+    x: np.ndarray, triplets: np.ndarray, metric: str = "euclidean"
+) -> tuple[float, float]:
+    """Agreement with human 'odd one out' judgements, and a 95% interval.
+
+    Each row is ``(a, b, c)`` where listeners judged ``c`` the outlier. We agree
+    when ``d(a, b)`` is the smallest of the three pairwise distances. Chance is
+    1/3. The interval matters because these sets are small — MagnaTagATune has
+    533 triplets, so a difference of a few points is not a real difference.
+    """
+    from sklearn.metrics import pairwise_distances
+
+    a, b, c = triplets[:, 0], triplets[:, 1], triplets[:, 2]
+    dist = pairwise_distances(x, metric=metric)
+
+    agree = (dist[a, b] < dist[a, c]) & (dist[a, b] < dist[b, c])
+    rate = float(agree.mean())
+    ci95 = float(1.96 * np.sqrt(rate * (1 - rate) / len(agree)))
+    return rate, ci95

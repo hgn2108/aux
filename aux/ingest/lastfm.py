@@ -18,10 +18,10 @@ class LastfmError(RuntimeError):
 
 def call(method: str, **params: Any) -> dict[str, Any]:
     """Call a Last.fm API method and return the parsed JSON payload."""
-    settings = get_settings()
+    api_key, _ = get_settings().require_lastfm()
     query = {
         "method": method,
-        "api_key": settings.lastfm_api_key,
+        "api_key": api_key,
         "format": "json",
         **params,
     }
@@ -36,7 +36,7 @@ def call(method: str, **params: Any) -> dict[str, Any]:
 
 def user_info(user: str | None = None) -> dict[str, Any]:
     """Fetch profile info for a user, defaulting to the configured account."""
-    user = user or get_settings().lastfm_user
+    user = user or get_settings().require_lastfm()[1]
     info: dict[str, Any] = call("user.getInfo", user=user)["user"]
     return info
 

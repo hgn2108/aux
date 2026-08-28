@@ -28,6 +28,9 @@ dependencies:
   - pydantic
   - pydantic-settings
 
+  # Plotting (notebooks)
+  - matplotlib
+
   # Dev tooling
   - pytest
   - pytest-cov

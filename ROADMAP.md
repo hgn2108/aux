@@ -77,9 +77,18 @@ evaluated before any listening data exists.
 - [x] **A4a** Baseline on FMA precomputed features — eval harness + numbers, no audio needed
 - [ ] **A4b** Our own feature extraction from audio — tempo, key, spectral, MFCC/chroma;
       score against A4a as a reference point
-- [x] **A5** Baseline embeddings: standardize + PCA (64 dims chosen by sweep)
-- [ ] **A6** Sanity check — genre clusters should emerge *without* genre labels
-- [ ] **A7** Learned encoder *(open decision)* — only if A5 underperforms on Track C evals
+- [x] **A5** Baseline embeddings: standardize + PCA (128 dims, whitened, cosine — by sweep)
+- [x] **A5b** Metric geometry + stronger eval targets (album/artist retrieval); MLflow wired
+- [x] **A6** Sanity check — genres overlap heavily (silhouette ~0) while album retrieval
+      runs 223x chance. Local structure is real, global genre boundaries are not.
+- [ ] **A9** AcousticBrainz — CC0 precomputed features keyed by MBID. The only
+      representation that reaches the user's own library (no audio required).
+  - [ ] A9.1 Pull the feature dumps; join on MBID
+  - [ ] A9.2 Verify they behave comparably to FMA's features on this harness
+- [ ] **A10** MagnaTagATune perceptual eval — loader and metric done and tested;
+      *blocked on A4b* since scoring needs embeddings for MTAT clips
+- [ ] **A7** Learned encoder *(open decision)* — CLAP first (CC0 weights); only if it
+      beats Tier 0/1 on this harness
 - [ ] **A8** State coverage honestly wherever acoustic signal is used
 
 ---

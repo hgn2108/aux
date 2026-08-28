@@ -18,6 +18,11 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.per-file-ignores]
+# Notebooks are exploratory: compact plotting cells are idiomatic there, and the
+# pipeline code they call is linted normally in aux/.
+"*.ipynb" = ["E501", "E701", "E702", "B905"]
+
 [tool.mypy]
 python_version = "3.11"
 files = ["aux"]
