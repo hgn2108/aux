@@ -18,6 +18,21 @@ import numpy as np
 import pandas as pd
 from scipy import stats as scipy_stats
 
+# Every corpus is resampled to this rate before extraction.
+#
+# Source material arrives at wildly different rates — FMA at 44100 Hz, MagnaTagATune
+# at 16000 Hz — and loading each at its native rate puts their features on different
+# frequency axes, making them silently incomparable. A fixed rate is what makes one
+# feature space span several corpora.
+#
+# 22050 was chosen because FMA's own reference features are computed on that axis
+# (their spectral centroids never exceed 7974 Hz and rolloff caps at 10451 Hz, both
+# under the 11025 Hz Nyquist), it is librosa's default, and it is a common MIR
+# convention. Audio arriving below this rate is upsampled: no information is added,
+# and its spectrum is simply empty above its own Nyquist, which is honest about the
+# source rather than hidden.
+SAMPLE_RATE = 22050
+
 # Ordered to match FMA's columns (alphabetical in both levels).
 STATISTICS = ("kurtosis", "max", "mean", "median", "min", "skew", "std")
 
@@ -80,16 +95,19 @@ def _descriptors(y: np.ndarray, sr: int) -> dict[str, np.ndarray]:
     return {
         "chroma_cens": librosa.feature.chroma_cens(C=cqt, n_chroma=12, bins_per_octave=12),
         "chroma_cqt": chroma_cqt,
-        "chroma_stft": librosa.feature.chroma_stft(S=stft**2, n_chroma=12),
+        # sr must be passed with every S= call: librosa defaults to 22050 and
+        # builds its frequency axis from that, silently mislabelling the spectrum
+        # for 44.1 kHz audio.
+        "chroma_stft": librosa.feature.chroma_stft(S=stft**2, sr=sr, n_chroma=12),
         "mfcc": librosa.feature.mfcc(
             S=librosa.power_to_db(librosa.feature.melspectrogram(S=stft**2, sr=sr)),
             n_mfcc=20,
         ),
         "rmse": librosa.feature.rms(S=stft),
-        "spectral_bandwidth": librosa.feature.spectral_bandwidth(S=stft),
-        "spectral_centroid": librosa.feature.spectral_centroid(S=stft),
-        "spectral_contrast": librosa.feature.spectral_contrast(S=stft, n_bands=6),
-        "spectral_rolloff": librosa.feature.spectral_rolloff(S=stft),
+        "spectral_bandwidth": librosa.feature.spectral_bandwidth(S=stft, sr=sr),
+        "spectral_centroid": librosa.feature.spectral_centroid(S=stft, sr=sr),
+        "spectral_contrast": librosa.feature.spectral_contrast(S=stft, sr=sr, n_bands=6),
+        "spectral_rolloff": librosa.feature.spectral_rolloff(S=stft, sr=sr),
         "tonnetz": librosa.feature.tonnetz(chroma=chroma_cqt),
         "zcr": librosa.feature.zero_crossing_rate(y, frame_length=2048, hop_length=512),
     }
@@ -97,7 +115,7 @@ def _descriptors(y: np.ndarray, sr: int) -> dict[str, np.ndarray]:
 
 def extract(path: str | Path) -> pd.Series:
     """Extract the full 518-dim descriptor vector from one audio file."""
-    y, sr = librosa.load(path, sr=None, mono=True)
+    y, sr = librosa.load(path, sr=SAMPLE_RATE, mono=True)
 
     values: dict[tuple[str, str, str], float] = {}
     for family, matrix in _descriptors(y, int(sr)).items():

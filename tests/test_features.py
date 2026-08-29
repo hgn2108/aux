@@ -79,3 +79,34 @@ def test_extract_many_survives_unreadable_files(tone, tmp_path) -> None:
 
     assert list(out.index) == [1]
     assert out.shape == (1, 518)
+
+
+def test_fixed_sample_rate_makes_corpora_commensurable(tmp_path) -> None:
+    """Sources arrive at different rates; features must land on one frequency axis.
+
+    FMA is 44.1 kHz and MagnaTagATune is 16 kHz. Loading each natively put their
+    descriptors on different axes and made cross-corpus comparison meaningless.
+    """
+    paths = []
+    for native_sr in (16000, 44100, 48000):
+        t = np.linspace(0, 2.0, 2 * native_sr, endpoint=False)
+        y = np.sin(2 * np.pi * 440.0 * t)
+        p = tmp_path / f"tone_{native_sr}.wav"
+        sf.write(p, y.astype(np.float32), native_sr)
+        paths.append(p)
+
+    centroid = ("spectral_centroid", "mean", "01")
+    values = [features.extract(p)[centroid] for p in paths]
+
+    # A 440 Hz tone must report the same centroid regardless of source rate.
+    assert max(values) - min(values) < 0.05 * np.mean(values)
+
+
+def test_sample_rate_is_passed_to_frequency_features(tone) -> None:
+    """librosa defaults sr=22050 on S= calls; a 440 Hz tone pins the axis."""
+    vector = features.extract(tone)
+    centroid = vector[("spectral_centroid", "mean", "01")]
+
+    # Lowest note of the test chord is 261.6 Hz; centroid sits above it but well
+    # below Nyquist. A mislabelled axis would halve or double this.
+    assert 200 < centroid < features.SAMPLE_RATE / 2

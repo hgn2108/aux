@@ -57,6 +57,84 @@ scores them here for comparison.
 
 ---
 
+## A4b — our own feature extraction vs FMA's reference
+
+**2026-08-29** · 400 FMA tracks, seed 0 · run `ceba76ee`
+
+### The headline: the reference has a mislabelled frequency axis
+
+FMA's precomputed features were computed from 44.1 kHz audio while letting librosa
+default to `sr=22050` in the feature calls. Their frequency values are half the true
+figure.
+
+Verified by extracting the same track three ways and comparing against their stored
+values (`spectral_centroid` mean, Hz):
+
+| track | FMA reference | native, no `sr` | native, correct `sr` | resampled 22050 |
+|---|---|---|---|---|
+| 2 | 1640 | 1842 | 3684 | 3057 |
+| 5 | 1293 | 1464 | 2928 | 2430 |
+| 10 | 1360 | 1393 | 2787 | 2358 |
+
+FMA tracks the *native, no `sr`* column; the correctly-labelled variant is exactly
+double it. An earlier inference from the Nyquist ceiling — their centroids never exceed
+7974 Hz, rolloff caps at 10451 Hz — was consistent with this *and* with genuine
+resampling to 22050. Only the per-track comparison separates them.
+
+### The decision, and what it costs
+
+Every corpus is now resampled to a fixed 22050 Hz. FMA arrives at 44100 and
+MagnaTagATune at 16000; loading each natively put their features on different frequency
+axes and made them silently incomparable — which the AcousticBrainz plan depends on.
+
+This deliberately diverges from the reference, and correlation drops as a result:
+
+| pipeline | overall median correlation |
+|---|---|
+| native rate, no `sr` (replicates FMA) | +0.702 |
+| native rate, correct `sr` | +0.635 |
+| **fixed 22050, correct `sr`** (chosen) | **+0.433** |
+
+`spectral_contrast` falls to +0.004, because its octave-spaced bands cover entirely
+different content once the top octave is gone.
+
+**Correlation is therefore not a correctness test here.** It measures how faithfully we
+reproduce FMA's pipeline, bug included. The harness is the real check:
+
+| | genre P@5 | genre kNN | artist P@5 | album P@5 |
+|---|---|---|---|---|
+| ours | 0.228 | **0.400** | 0.009 | 0.007 |
+| FMA reference | 0.236 | 0.325 | 0.019 | 0.013 |
+
+Comparable on genre retrieval and **better on genre kNN** (0.400 vs 0.325), from a
+feature set that discards everything above 11 kHz. The extractor is sound.
+
+*(Retrieval numbers are far below the 8,000-track run because at n=400 there are 342
+artists and 366 albums — almost every track is its own class, so artist and album P@5
+have little room to score. Only the ours-vs-reference comparison is meaningful here.)*
+
+### Per-statistic breakdown
+
+Pooled across families, this explains why single-coefficient families looked weak:
+
+| statistic | correlation |
+|---|---|
+| median | +0.892 |
+| mean | +0.890 |
+| std | +0.670 |
+| skew | +0.423 |
+| min | +0.337 |
+| kurtosis | +0.315 |
+| max | +0.256 |
+
+Central tendency reproduces closely; higher moments and extrema are unstable across
+decoders and framing. A family's median is taken over its seven statistics, so
+`spectral_centroid` (1 coefficient) is dominated by the noisy four, while `mfcc`
+(20 coefficients) and the chromas (12) average that noise away. The low family scores
+were a measurement artifact, not broken descriptors.
+
+---
+
 ## A10 — human similarity judgements, MagnaTagATune
 
 **2026-08-29** · 307 triplets (of 533, after dropping 87 ties and low-vote rows) · features

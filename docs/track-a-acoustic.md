@@ -87,6 +87,30 @@ album or artist. Note that album retrieval would partly mask this failure too, s
 album shares production; the MagnaTagATune perceptual triplets are the metric that would
 catch it, because listeners judging "odd one out" do not hear mastering.
 
+## One feature space across corpora
+
+Audio arrives at whatever rate its source used: FMA at 44.1 kHz, MagnaTagATune at
+16 kHz. Loading each at its native rate puts their descriptors on different frequency
+axes, so the two corpora are silently incomparable — and combining corpora is exactly
+what the architecture needs, since FMA supplies audio, MTAT supplies human judgements,
+and AcousticBrainz will supply the user's own library.
+
+**Everything is resampled to a fixed 22050 Hz** (`features.SAMPLE_RATE`) before
+extraction, and `sr` is passed explicitly to every librosa call that takes `S=`, since
+librosa otherwise defaults to 22050 and builds its frequency axis from that regardless
+of the real rate.
+
+This deliberately diverges from FMA's own precomputed features, which were computed
+from 44.1 kHz audio while letting that default stand — their frequency values are half
+the true figure (verified per-track; see results.md). Reproducing their numbers would
+mean reproducing that, and giving up the shared axis.
+
+The cost is recorded honestly: correlation with FMA's reference drops from +0.70 to
++0.43, and downsampling discards everything above 11 kHz. What survives is the check
+that matters — our features score comparably to theirs on genre retrieval and better on
+genre kNN (0.400 vs 0.325). MTAT, arriving at 16 kHz, is upsampled and simply carries an
+empty spectrum above 8 kHz, which reflects the source rather than concealing it.
+
 ## How similarity is measured
 
 `StandardScaler` → `PCA(128, whiten=True)` → **cosine**.

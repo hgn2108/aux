@@ -91,6 +91,7 @@ Add entries in newest-first order.
 
 | Date | Decision | Rationale | PRD impact |
 |---|---|---|---|
+| 2026-08-29 | All audio resampled to a fixed 22050 Hz before feature extraction. | FMA (44.1 kHz) and MagnaTagATune (16 kHz) otherwise produce features on different frequency axes, making corpora incomparable — and Model A depends on combining them with AcousticBrainz. Diverges from FMA's own reference features, which carry a mislabelled axis. | Affects Model A implementation only; no change to product specification. |
 | 2026-08-27 | Renamed the project from “Resonance” to **aux**. | Product naming decision by the owner. | Title/name change only; the canonical Google Doc PRD still says “Resonance” and needs a sync. |
 | 2026-08-22 | Created a repository-local project context and update protocol. | Makes stable product rationale and constraints available to future coding sessions while retaining the Google Doc as canonical PRD. | None; documentation workflow only. |
 

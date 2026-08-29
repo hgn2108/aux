@@ -2,14 +2,23 @@
 
 Two questions, in order:
 
-1. **Is the extractor correct?** Per-family rank correlation between our features
-   and FMA's for the same tracks. This is the check A4a existed to make possible.
-2. **Does it carry the same information?** Both feature sets scored on the same
-   harness. Correlation can be high while retrieval quality differs, so agreement
-   on the metric that matters is a separate question.
+1. **How closely do we track FMA's reference?** Per-family rank correlation.
+2. **Does our feature set carry the same information?** Both scored on the same
+   harness. This is the question that decides whether the extractor is usable.
 
-Exact equality is not expected: librosa versions, decoder behaviour, and framing
-all differ. Strong rank agreement plus comparable retrieval is the bar.
+**Correlation is not a correctness test here, and low correlation is expected.**
+FMA's reference features were computed from 44.1 kHz audio while letting librosa
+default to ``sr=22050`` in the feature calls, so their frequency axis is
+mislabelled by 2x — verified by extracting a track three ways and comparing to
+their stored values (their numbers match the native-rate, default-sr variant, and
+the correctly-labelled variant is exactly double).
+
+We deliberately do not reproduce that. Every corpus is resampled to a fixed rate
+(``features.SAMPLE_RATE``) so FMA, MagnaTagATune, and later AcousticBrainz share
+one frequency axis. Matching FMA's numbers would mean matching their bug and
+giving up cross-corpus comparability, which the whole architecture depends on.
+
+So the bar is the harness comparison, not the correlation.
 
 Run with:  python -m aux.experiments.extraction_check --n 300 --workers 8
 """
@@ -47,20 +56,31 @@ def ensure_audio_extracted() -> None:
         zf.extractall(raw / "fma")
 
 
+def _column_correlations(ours: pd.DataFrame, reference: pd.DataFrame) -> pd.Series:
+    """Spearman correlation per column, across tracks, indexed by (family, statistic)."""
+    values = {}
+    for col in ours.columns:
+        a, b = ours[col], reference[col]
+        if a.std() > 0 and b.std() > 0:
+            values[(col[0], col[1])] = scipy_stats.spearmanr(a, b).statistic
+    return pd.Series(values).groupby(level=[0, 1]).median()
+
+
 def family_correlations(ours: pd.DataFrame, reference: pd.DataFrame) -> pd.Series:
     """Median Spearman correlation per feature family, across tracks."""
-    out = {}
-    for family in FAMILY_SIZES:
-        a = ours.xs(family, axis=1, level=0)
-        b = reference.xs(family, axis=1, level=0)
-        # Correlate each column across tracks, then take the family median.
-        cols = [
-            scipy_stats.spearmanr(a[c], b[c]).statistic
-            for c in a.columns
-            if a[c].std() > 0 and b[c].std() > 0
-        ]
-        out[family] = float(np.nanmedian(cols)) if cols else float("nan")
-    return pd.Series(out).sort_values()
+    per_column = _column_correlations(ours, reference)
+    return per_column.groupby(level=0).median().reindex(FAMILY_SIZES).sort_values()
+
+
+def statistic_correlations(ours: pd.DataFrame, reference: pd.DataFrame) -> pd.Series:
+    """Median correlation per summary statistic, pooled across families.
+
+    Separates two very different failure modes: a descriptor computed wrongly
+    (a whole family disagrees) versus higher moments being inherently unstable
+    across decoders and framing (skew and kurtosis disagree everywhere, while
+    mean and median hold).
+    """
+    return _column_correlations(ours, reference).groupby(level=1).median().sort_values()
 
 
 def run(n: int = 300, workers: int = 8, seed: int = 0) -> None:
@@ -87,6 +107,11 @@ def run(n: int = 300, workers: int = 8, seed: int = 0) -> None:
     for family, value in corr.items():
         print(f"  {family:<20} {value:+.3f}")
     print(f"  {'OVERALL median':<20} {corr.median():+.3f}")
+
+    by_stat = statistic_correlations(ours, ref)
+    print("\nper-statistic (pooled across families):")
+    for stat, value in by_stat.items():
+        print(f"  {stat:<20} {value:+.3f}")
 
     # 2. Equivalent information on the harness
     labels = {k: tracks.loc[common, c].to_numpy() for k, c in LABEL_COLUMNS.items()}
