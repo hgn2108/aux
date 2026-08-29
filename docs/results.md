@@ -57,10 +57,14 @@ scores them here for comparison.
 
 ---
 
-## Batch 1 — the ceiling, and what the projection costs
+## Batch 1 — the ceiling, the projection, and fusion
 
-**2026-08-29** · FMA small, 8,000 tracks, 8 genres (chance 0.125) · run `e656963c`
-· `python -m aux.experiments.ceiling`
+**2026-08-29** · FMA small, 8,000 tracks, 8 genres (chance 0.125) · runs `782351ff`,
+`359f3395` · `python -m aux.experiments.ceiling`, `python -m aux.experiments.fusion`
+
+> **Corrected.** The first version of this section fit supervised projections on the full
+> corpus before splitting, inflating LDA's kNN by 8.7 points (0.629 → 0.542) and producing
+> a false headline. See `lessons.md`. Numbers below fit on the training split only.
 
 ### 1. The features are not the problem
 
@@ -73,9 +77,8 @@ Supervised classifiers on the raw 518 features, genre accuracy:
 | SVM (linear) | 0.553 |
 | kNN (k=5, cosine) | 0.540 |
 
-0.630 on 8 genres, against [FMA's published 0.63 on 16 genres](https://arxiv.org/abs/1612.01840).
-The information is present. Every weak result so far has been about what we do with these
-features, not what they contain.
+0.630 on 8 genres against [FMA's published 0.63 on 16](https://arxiv.org/abs/1612.01840).
+The information is present.
 
 ### 2. Retrieval by projection
 
@@ -83,42 +86,46 @@ features, not what they contain.
 |---|---|---|---|---|---|
 | raw | 518 | 0.452 | 0.540 | 0.162 | 0.125 |
 | raw + log | 518 | 0.451 | 0.534 | 0.163 | 0.126 |
-| PCA (whitened) | 128 | 0.426 | 0.503 | **0.188** | **0.151** |
-| PCA + log | 128 | 0.426 | 0.512 | 0.188 | 0.151 |
-| **LDA** | **7** | **0.547** | **0.629** | 0.038 | 0.021 |
-| NCA | 64 | 0.488 | 0.562 | 0.155 | 0.118 |
+| PCA (whitened) | 128 | 0.429 | 0.504 | **0.189** | **0.152** |
+| LDA | 7 | **0.532** | 0.542 | 0.036 | 0.019 |
+| NCA | 64 | 0.483 | **0.547** | 0.152 | 0.114 |
 
-### 3. What this settles
+**The nine-point gap between kNN (0.540) and the RBF SVM (0.630) is classifier capacity,
+not representation.** Three projections later, no linear method closes it.
 
-**Most of the gap was the classifier, not the projection.** kNN on raw features scores
-0.540 where an RBF SVM scores 0.630 — nine points sitting in the *classifier*. PCA costs
-a further 3.7 points (0.540 → 0.503). Attributing the whole shortfall to the embedding
-would have been wrong.
+**NCA is the better supervised projection** — it edges LDA on kNN (0.547 vs 0.542) while
+keeping four times the artist retrieval. LDA buys its genre score by discarding everything
+else: artist 0.036, album 0.019, below even raw features.
 
-**A supervised projection recovers the entire ceiling.** LDA in **7 dimensions** reaches
-kNN 0.629, matching the RBF SVM's 0.630 on 518 dimensions. Seven supervised directions
-carry all the genre information an SVM finds. That is a decisive verdict on what PCA
-spends its 128 dimensions on.
+**No single projection serves every axis.** Structural, not a leakage artifact.
 
-**And optimising one axis destroys the others.** LDA's artist retrieval collapses to
-0.038 and album to 0.021 — far below PCA's 0.188 and 0.151, and below even raw features.
-Fit to genre, it discards everything not genre-discriminative.
+### 3. Fusion beats every component
 
-**This is the multi-axis case, established empirically rather than borrowed.** No single
-projection serves every notion of similarity: PCA is best for album and artist, LDA is
-best for genre by a wide margin, and each is poor where the other is strong. Batch 3's
-separate subspaces stop being a design preference and become what the data requires.
+Distances standardised, then blended. Projections fit on train; retrieval scored within
+the 1,600 held-out tracks, so absolute values are lower than whole-corpus figures — fewer
+candidates to retrieve — and comparable only to each other.
 
-**On perceptual similarity.** The features hold genuine structure (0.630 ceiling) while
-perceptual agreement sits at 0.397. So the shortfall there is not "weak features" in
-general — it is that hand-crafted spectral summaries capture genre-like structure but not
-how people hear similarity. Batch 2 remains motivated.
+| w_lda | genre | artist | album |
+|---|---|---|---|
+| 0.00 (PCA) | 0.325 | 0.086 | 0.059 |
+| 0.35 | 0.406 | **0.096** | **0.064** |
+| **0.50** | **0.440** | **0.096** | **0.064** |
+| 0.80 | 0.469 | 0.079 | 0.050 |
+| 1.00 (LDA) | 0.434 | 0.027 | 0.011 |
 
-### Caveat on supervised projections
+At w=0.5 the fused space beats **both** components on **all three** axes at once — a
+Pareto improvement, not a trade-off.
 
-LDA and NCA need labels to fit. A projection tuned to FMA's 8 genres may not transfer to
-MagnaTagATune or to a personal library with different or absent labels. Transfer is
-untested and must not be assumed.
+Fusion is applied to distances rather than concatenated features: concatenation lets the
+higher-dimensional space dominate by column count and destroys the per-axis distances
+Model C is required to report.
+
+### What this means
+
+The multi-axis case now rests on our own measurements rather than the literature. But
+every number here is a *metadata* proxy, and metadata has misled us before — perceptual
+agreement sits at 0.397 while genre accuracy reaches 0.630. **Fusion has not yet been
+scored against human judgement.**
 
 ---
 
