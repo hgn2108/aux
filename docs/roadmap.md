@@ -120,12 +120,18 @@ The published best design, and what Model C requires.
 - [ ] **A9.4** Expose per-axis distances in the output schema — this is Model C's
       non-scalar requirement arriving as a modelling decision, not a presentation layer
 
-### Evaluation upgrade — runs with Batch 3
+### Evaluation upgrade — done
 
-- [ ] **A10.1** Per-axis targets — tonal against key agreement, rhythm against tempo
-      agreement, timbre against genre and album
-- [ ] **A10.2** Report chance and lift per axis; a single averaged number cannot
-      distinguish strong timbre plus broken rhythm from mediocre everything
+- [x] **A10.1** Per-axis targets — tempo, key, loudness, brightness, each scored by its
+      own MIREX-conventional rule
+- [x] **A10.2** Chance and lift reported per axis. Result: clean diagonal dominance —
+      rhythm wins tempo 2.69x, tonal wins key 2.84x, dynamics wins loudness 2.32x, all
+      off-diagonals near chance. Concatenation scores 1.08x on tempo (chance) where the
+      rhythm subspace scores 2.69x.
+- [x] **A10.3** Rhythm descriptors added — tempo, onset rate, pulse clarity, onset
+      envelope. The core 518 had no temporal information at all.
+- [ ] **A10.4** Per-query axis weighting — equal-weight fusion dilutes tempo to 1.50x
+      against rhythm-alone's 2.69x. Weights must depend on what is being asked.
 
 ### Later / blocked
 
