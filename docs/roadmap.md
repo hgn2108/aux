@@ -113,10 +113,12 @@ means weak features or a lossy projection.
 
 The published best design, and what Model C requires.
 
-- [ ] **A9.1** Partition features into axes — timbre (MFCC, spectral contrast), rhythm
-      (ZCR, RMS, tempo), tonal (chroma, tonnetz)
-- [ ] **A9.2** Embed each axis separately; report per-axis scores, never only a blend
-- [ ] **A9.3** Learn axis weights against the perceptual triplets rather than fixing them
+- [x] **A9.1** Partition features into axes — `features.AXES`, following Essentia's
+      taxonomy (rhythm / tonal / timbre / dynamics)
+- [x] **A9.2** Embed each axis separately; per-axis scores reported. Diagonal dominance
+      confirmed: rhythm wins tempo 2.69x, tonal wins key 2.84x, dynamics wins loudness 2.32x
+- [ ] **A9.3** Learn axis weights per query — equal weight dilutes tempo to 1.50x against
+      rhythm-alone's 2.69x, so weighting must depend on what is being asked
 - [ ] **A9.4** Expose per-axis distances in the output schema — this is Model C's
       non-scalar requirement arriving as a modelling decision, not a presentation layer
 
