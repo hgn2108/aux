@@ -57,9 +57,55 @@ scores them here for comparison.
 
 ---
 
-## Pending
+## A10 — human similarity judgements, MagnaTagATune
 
-- **MagnaTagATune perceptual triplets** — loader and metric are implemented and tested
-  (307 usable triplets of 533 after dropping 87 ties and low-vote rows). Running it needs
-  embeddings for MTAT clips, which needs A4b's audio feature extraction. Blocked, not
-  abandoned.
+**2026-08-29** · 307 triplets (of 533, after dropping 87 ties and low-vote rows) · features
+extracted from MTAT audio, embedding fit on 2,500 clips · run `f97445ff`
+
+The "odd one out" task: given three clips, do we agree with listeners about which is least
+like the other two? Chance is 1/3.
+
+| metric | agreement | 95% CI | one-sided binomial p |
+|---|---|---|---|
+| cosine | 0.394 (121/307) | [0.348, —] | **0.015** |
+| euclidean | 0.352 (108/307) | [0.307, —] | 0.265 |
+
+### What it means — read the power analysis before the p-value
+
+**Cosine agreement is above chance, but barely, and the test is underpowered.**
+
+- Cohen's *h* = 0.126, below the 0.2 conventional floor for a "small" effect.
+- 388 triplets would be needed for 80% power; we have 307.
+- The minimum rate reliably detectable at n=307 is 0.402. We observed 0.394 — *below* our
+  own detection threshold.
+
+So this is a significant p-value on an underpowered test at an effect smaller than the
+study can reliably resolve. That combination is exactly where results fail to replicate.
+The honest statement is: weak evidence of above-chance agreement, not a solid result.
+
+**Euclidean is indistinguishable from chance** (p = 0.27). The cosine-over-Euclidean
+ordering matches the A4a/A5 sweep, but the gap here (0.042) sits inside overlapping
+intervals, so this run does not independently establish it.
+
+### The finding that matters
+
+Metadata proxies said the embedding was excellent — album retrieval at 223× chance. Human
+perceptual agreement says it is marginal. **Doing well on metadata does not mean matching
+how people hear.** Album retrieval rewards shared production, mastering, and session;
+listeners judging "odd one out" are not hearing those.
+
+This is precisely what the perceptual eval was built to detect, and no metadata metric
+could have surfaced it. It is also the strongest argument yet for Tier 3: recent work
+reports ~72% zero-shot perceptual agreement for pretrained models on a *different*
+benchmark — not directly comparable, but far from 0.394.
+
+### Caveats
+
+- MTAT audio is 16 kHz, 32 kbps mono. Our descriptors come from heavily compressed source,
+  which should understate agreement rather than inflate it.
+- The embedding is fit on MTAT clips, not the FMA-fitted space used elsewhere.
+- Our extractor has not yet been validated against FMA's reference (A4b, pending download).
+  If that check finds a discrepancy, this number is re-run — 611 clips is cheap.
+- MTAT is exhausted as an eval set at 533 raw comparisons. Power could be raised to 446
+  triplets by accepting margin-1 ties and single-vote rows, at the cost of noisier labels —
+  which would likely lower the observed rate too. Not obviously a good trade.

@@ -85,8 +85,8 @@ evaluated before any listening data exists.
       representation that reaches the user's own library (no audio required).
   - [ ] A9.1 Pull the feature dumps; join on MBID
   - [ ] A9.2 Verify they behave comparably to FMA's features on this harness
-- [ ] **A10** MagnaTagATune perceptual eval — loader and metric done and tested;
-      *blocked on A4b* since scoring needs embeddings for MTAT clips
+- [x] **A10** MagnaTagATune perceptual eval — cosine 0.394 vs 0.333 chance (p=0.015,
+      underpowered). Metadata proxies overstate perceptual quality; motivates A7.
 - [ ] **A7** Pretrained embeddings *(open decision)* — CLAP (CC0 weights), PANNs, MERT;
       only what beats Tier 0/1 on this harness
 - [ ] **A11** Contrastive CNN on mel-spectrograms (InfoNCE), FMA Small scale.
