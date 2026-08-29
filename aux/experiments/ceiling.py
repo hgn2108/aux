@@ -14,6 +14,11 @@ Two questions:
 2. **Loss.** Does our embedding retain it? kNN on raw features versus kNN on each
    projection isolates the projection's contribution, holding the classifier fixed.
 
+Supervised projections are fit on the training split only. Fitting LDA on all
+labels and splitting afterwards inflates its kNN accuracy by ~8.7 points — the
+projection has already seen the test set's labels. PCA is unaffected, being
+unsupervised, which is exactly how the leak was spotted.
+
 Projections compared:
 
 - **PCA** — maximises variance. Variance directions need not be similarity
@@ -71,8 +76,10 @@ def _classifier_ceiling(x: np.ndarray, y: np.ndarray) -> dict[str, float]:
     return out
 
 
-def _projections(x: np.ndarray, x_log: np.ndarray, y: np.ndarray, dims: int) -> dict:
-    """Build each candidate embedding space."""
+def _projections(
+    x: np.ndarray, x_log: np.ndarray, y: np.ndarray, train: np.ndarray, dims: int
+) -> dict:
+    """Build each candidate embedding space, fitting only on the training split."""
     pca = Pipeline(
         [("scale", StandardScaler()), ("pca", PCA(dims, whiten=True, random_state=SEED))]
     )
@@ -105,9 +112,11 @@ def _projections(x: np.ndarray, x_log: np.ndarray, y: np.ndarray, dims: int) -> 
         ("nca", nca, x, True),
     ):
         started = time.time()
-        spaces[name] = (
-            pipeline.fit_transform(source, y) if supervised else pipeline.fit_transform(source)
-        )
+        if supervised:
+            pipeline.fit(source[train], y[train])
+        else:
+            pipeline.fit(source[train])
+        spaces[name] = pipeline.transform(source)
         print(f"  built {name:<10} dims {spaces[name].shape[1]:>4}  ({time.time() - started:.0f}s)")
     return spaces
 
@@ -127,8 +136,12 @@ def run(subset: str = "small", dims: int = 128) -> None:
     print("\n1. Supervised ceiling on raw features (genre accuracy):")
     ceiling = _classifier_ceiling(x, y)
 
-    print("\n2. Building projections:")
-    spaces = {"raw": x, "raw_log": x_log, **_projections(x, x_log, y, dims)}
+    train, _ = train_test_split(
+        np.arange(len(y)), test_size=TEST_SIZE, random_state=SEED, stratify=y
+    )
+
+    print("\n2. Building projections (fit on training split only):")
+    spaces = {"raw": x, "raw_log": x_log, **_projections(x, x_log, y, train, dims)}
 
     print("\n3. Retrieval on each space (cosine):")
     metrics = dict(ceiling)

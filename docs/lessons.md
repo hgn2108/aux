@@ -118,6 +118,38 @@ sample rate, embedding dimensionality, and this defect.
 
 ---
 
+## Fitting a supervised projection before splitting
+
+**Tried.** Building every candidate embedding space over the full corpus, then handing
+the transformed matrix to the harness, which does its own train/test split for kNN
+accuracy.
+
+**What happened.** For PCA that is merely transductive — no labels are involved. For LDA
+and NCA it is label leakage: the projection has already seen the test set's labels, so
+the split that follows protects nothing.
+
+The cost was 8.7 points. LDA's genre kNN read **0.629** fit on everything and **0.542**
+fit on the training split alone. The inflated figure happened to land on top of the RBF
+SVM's 0.630, which produced a clean and completely false headline — *seven supervised
+dimensions carry all the genre information an SVM finds in 518*. Honest LDA (0.542) is
+barely above raw-feature kNN (0.540) and nowhere near the ceiling.
+
+**How it surfaced.** A question about ensembling PCA and LDA prompted a re-read of the
+code. Nothing in the numbers looked wrong — a supervised method beating an unsupervised
+one is exactly what you expect, and matching the SVM felt like a satisfying result rather
+than a suspicious one.
+
+**Changed.** Every projection is fit on the training split and applied to the rest;
+`aux/experiments/ceiling.py` takes the split before building any space. The general rule:
+**a result that lands exactly where you hoped deserves the same scrutiny as one that does
+not** — and any step fit with labels belongs inside the split, not before it.
+
+**Kept as a diagnostic.** Running an unsupervised method beside supervised ones is what
+made the leak visible: PCA moved 0.503 → 0.504 while LDA moved 0.629 → 0.542. A control
+that *should not* change is a cheap way to detect a protocol error.
+
+---
+
 ## Log-transforming heavy-tailed features: no effect
 
 **Tried.** Applying `log1p` to the strictly-positive magnitude descriptors (rms,

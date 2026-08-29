@@ -103,3 +103,33 @@ def test_triplet_filtering_drops_ties_and_low_votes() -> None:
     assert len(out) == 2
     assert list(out[0]) == [1, 2, 3]  # most-voted clip moved last
     assert out[1][2] == 10  # outlier moved from first position to last
+
+
+def test_precision_at_k_from_distances_matches_embedding_path() -> None:
+    """Distance-level and embedding-level retrieval must agree on the same space."""
+    from sklearn.metrics import pairwise_distances
+
+    from aux.eval.embeddings import precision_at_k_from_distances
+
+    x, y = _clustered()
+    direct = evaluate(x, {"genre": y}, k=5, metric="cosine").labels["genre"].precision_at_k
+    from_distances = precision_at_k_from_distances(
+        pairwise_distances(x, metric="cosine"), np.asarray(y), k=5
+    )
+    assert abs(direct - from_distances) < 1e-9
+
+
+def test_standardize_distances_makes_scales_comparable() -> None:
+    """Fusion weights must control the blend, not the spaces' arbitrary scales."""
+    from aux.eval.embeddings import standardize_distances
+
+    rng = np.random.default_rng(0)
+    small = rng.random((50, 50)) * 0.01
+    large = small * 1000
+    np.fill_diagonal(small, 0.0)
+    np.fill_diagonal(large, 0.0)
+
+    a, b = standardize_distances(small), standardize_distances(large)
+    off = ~np.eye(50, dtype=bool)
+    np.testing.assert_allclose(a[off], b[off], atol=1e-9)
+    assert abs(a[off].std() - 1.0) < 1e-9

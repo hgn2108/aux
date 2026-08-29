@@ -92,6 +92,31 @@ def _precision_at_k(x: np.ndarray, y: np.ndarray, k: int, metric: str) -> float:
     return float((y[neighbours] == y[:, None]).mean())
 
 
+def precision_at_k_from_distances(distances: np.ndarray, labels: np.ndarray, k: int = 5) -> float:
+    """Retrieval precision from a precomputed square distance matrix.
+
+    Used when distances are combined across several spaces — fusing per-axis
+    distances is the point of a multi-axis embedding, and that combination happens
+    after each space has produced its own distances, not before.
+    """
+    distances = distances.copy()
+    np.fill_diagonal(distances, np.inf)
+    neighbours = np.argpartition(distances, k, axis=1)[:, :k]
+    return float((labels[neighbours] == labels[:, None]).mean())
+
+
+def standardize_distances(distances: np.ndarray) -> np.ndarray:
+    """Centre and scale a distance matrix by its off-diagonal distribution.
+
+    Spaces of different dimensionality produce distances on different scales, so a
+    weighted sum of raw distances would be dominated by whichever space happens to
+    spread widest rather than by the weight chosen.
+    """
+    off_diagonal = ~np.eye(len(distances), dtype=bool)
+    values = distances[off_diagonal]
+    return (distances - values.mean()) / values.std()
+
+
 def _chance_precision(y: np.ndarray) -> float:
     """Probability a random other track shares a given track's label.
 
