@@ -95,3 +95,34 @@ def audio_paths(clip_ids: np.ndarray | None = None) -> dict[int, Path]:
         for cid, rel in info["mp3_path"].items()
         if isinstance(rel, str) and rel.strip()
     }
+
+
+ANNOTATIONS = "mtat/annotations_final.csv"
+
+# MagnaTagATune's 188 tags include many rare and near-duplicate labels. Benchmarks
+# on this corpus conventionally keep only the most frequent ones; the tail is too
+# sparse to carry signal.
+DEFAULT_TOP_TAGS = 50
+
+
+@lru_cache
+def load_annotations() -> pd.DataFrame:
+    """Raw binary tag matrix: one row per clip, one column per tag."""
+    return pd.read_csv(_path(ANNOTATIONS), sep="\t", index_col="clip_id")
+
+
+def load_tags(top_n: int = DEFAULT_TOP_TAGS) -> pd.DataFrame:
+    """Binary tag matrix over the most frequent tags, dropping untagged clips.
+
+    These are humans describing *acoustic content* — instrumentation, texture,
+    voice — rather than expressing preference. That makes them independent ground
+    truth for Model A in a way our computed axes are not: tempo and loudness truth
+    is derived from the same audio the embedding is built from, whereas nobody
+    listened to a spectrogram to write "harpsichord".
+    """
+    frame = load_annotations().drop(columns=["mp3_path"], errors="ignore")
+    frame = frame.select_dtypes(include="number")
+
+    keep = frame.sum().nlargest(top_n).index
+    frame = frame[keep]
+    return frame[frame.sum(axis=1) > 0]

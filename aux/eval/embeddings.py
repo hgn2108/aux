@@ -174,6 +174,49 @@ def evaluate(
     )
 
 
+def paired_comparison(correct_a: np.ndarray, correct_b: np.ndarray) -> tuple[int, int, float]:
+    """McNemar test for two models scored on the *same* items.
+
+    Returns ``(b_only, a_only, p_value)`` where ``a_only`` counts items model A
+    got right and B did not, and vice versa. One-sided: tests whether B beats A.
+
+    Comparing two independent proportions throws away the pairing and cannot
+    resolve realistic differences on small benchmarks — at 307 triplets the
+    interval is +/-0.056, wider than most differences worth acting on. A paired
+    test counts only the items where the models disagree, and resolved a 12-point
+    difference at p=0.0003 on exactly that data.
+    """
+    from scipy import stats
+
+    a_only = int((correct_a & ~correct_b).sum())
+    b_only = int((~correct_a & correct_b).sum())
+    discordant = a_only + b_only
+    if discordant == 0:
+        return a_only, b_only, 1.0
+
+    p = stats.binomtest(b_only, discordant, 0.5, alternative="greater").pvalue
+    return a_only, b_only, float(p)
+
+
+def minimum_detectable_rate(
+    n: int, baseline: float, power: float = 0.8, alpha: float = 0.05
+) -> float:
+    """Smallest rate a sample of ``n`` can reliably distinguish from ``baseline``.
+
+    Reporting a score without this invites the mistake we already made once:
+    treating a significant p-value on an underpowered test as a result. At n=307
+    against chance 1/3 the detectable rate is 0.402, and we observed 0.397 —
+    below our own threshold.
+    """
+    import math
+
+    from scipy import stats
+
+    z_alpha, z_beta = stats.norm.ppf(1 - alpha), stats.norm.ppf(power)
+    h = (z_alpha + z_beta) / math.sqrt(n)
+    return float(math.sin(h / 2 + math.asin(math.sqrt(baseline))) ** 2)
+
+
 def triplet_correct(distances: np.ndarray, triplets: np.ndarray) -> np.ndarray:
     """Per-triplet agreement with an 'odd one out' verdict, from a distance matrix.
 

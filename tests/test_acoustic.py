@@ -133,3 +133,66 @@ def test_standardize_distances_makes_scales_comparable() -> None:
     off = ~np.eye(50, dtype=bool)
     np.testing.assert_allclose(a[off], b[off], atol=1e-9)
     assert abs(a[off].std() - 1.0) < 1e-9
+
+
+def test_paired_comparison_resolves_what_independent_proportions_cannot() -> None:
+    """The reason model comparisons on shared benchmarks must use a paired test."""
+    from aux.eval.embeddings import paired_comparison
+
+    # B is right everywhere A is, plus 20 more out of 300 — a 6.7 point gain that
+    # overlapping independent intervals at this n would not resolve.
+    a = np.zeros(300, dtype=bool)
+    b = np.zeros(300, dtype=bool)
+    a[:100] = True
+    b[:120] = True
+
+    a_only, b_only, p = paired_comparison(a, b)
+    assert (a_only, b_only) == (0, 20)
+    assert p < 0.001
+
+
+def test_paired_comparison_finds_nothing_between_identical_models() -> None:
+    from aux.eval.embeddings import paired_comparison
+
+    correct = np.tile([True, False], 150)
+    assert paired_comparison(correct, correct.copy()) == (0, 0, 1.0)
+
+
+def test_minimum_detectable_rate_reproduces_the_a10_figure() -> None:
+    """Pins the number that showed A10 was underpowered: 0.402 at n=307."""
+    from aux.eval.embeddings import minimum_detectable_rate
+
+    assert abs(minimum_detectable_rate(307, 1 / 3) - 0.402) < 0.005
+    # More data resolves smaller differences.
+    assert minimum_detectable_rate(2000, 1 / 3) < minimum_detectable_rate(307, 1 / 3)
+
+
+def test_supervised_projection_must_be_fit_inside_the_split() -> None:
+    """Regression guard: fitting LDA before splitting inflated kNN by 8.7 points.
+
+    An unsupervised projection is unaffected, which is how the leak was spotted.
+    """
+    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+    from sklearn.model_selection import train_test_split
+    from sklearn.neighbors import KNeighborsClassifier
+
+    rng = np.random.default_rng(0)
+    n_features = 40
+    centres = rng.normal(scale=1.2, size=(3, n_features))
+    x = np.vstack([c + rng.normal(scale=3.0, size=(120, n_features)) for c in centres])
+    y = np.repeat([0, 1, 2], 120)
+
+    idx_train, idx_test = train_test_split(
+        np.arange(len(x)), test_size=0.3, random_state=0, stratify=y
+    )
+
+    def knn_score(train_space: np.ndarray, test_space: np.ndarray) -> float:
+        model = KNeighborsClassifier(n_neighbors=5).fit(train_space, y[idx_train])
+        return float(model.score(test_space, y[idx_test]))
+
+    leaky = LinearDiscriminantAnalysis(n_components=2).fit_transform(x, y)
+    honest = LinearDiscriminantAnalysis(n_components=2).fit(x[idx_train], y[idx_train])
+
+    assert knn_score(leaky[idx_train], leaky[idx_test]) > knn_score(
+        honest.transform(x[idx_train]), honest.transform(x[idx_test])
+    ), "fitting a supervised projection on all labels must inflate the score"

@@ -59,4 +59,9 @@ This repository is shown to employers. Keep it legible.
 - Code states what runs; `docs/` states why. Neither duplicates the other.
 - Superseded approaches are removed from the code and summarised in `docs/lessons.md`. Do not leave dead paths in place for reference.
 - Every published number is reproducible by one command and logged to MLflow.
+- **Persist the code that produced any finding.** If an analysis appears in `docs/`, the
+  code behind it lives in the repository — as an experiment, a function, or a test. Only
+  genuinely throwaway checks (does this file exist, what columns does this have) stay
+  inline. A number in the docs with no code behind it is an unverifiable claim, and the
+  reasoning is far harder to reconstruct later than the code is to keep.
 - Nothing written belongs at the repository root except `README.md` and this file.
