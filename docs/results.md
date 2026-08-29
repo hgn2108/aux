@@ -129,6 +129,52 @@ scored against human judgement.**
 
 ---
 
+## Perceptual probe — concatenation is actively harmful
+
+**2026-08-29** · 307 MTAT triplets, chance 0.333 · run `5b512833`
+· `python -m aux.experiments.perceptual_probe`
+
+### Per-axis agreement, and fusion
+
+| space | columns | agreement |
+|---|---|---|
+| timbre | 210 | 0.368 ±0.054 |
+| **all** | **518** | **0.397 ±0.055** |
+| tonal | 294 | 0.443 ±0.056 |
+| dynamics | **14** | 0.463 ±0.056 |
+| **dynamics + tonal** | 308 | **0.521 ±0.056** |
+| all three fused | 518 | 0.498 ±0.056 |
+
+**Fourteen columns beat five hundred and eighteen.** Fusing dynamics and tonal beats the
+single concatenated space by 12.4 points: 78 triplets where fusion is right and the full
+space wrong, against 40 the other way — **paired McNemar p = 0.00030**.
+
+### Why
+
+Column-count dominance. PCA over 518 columns takes its variance structure from the 210
+timbre and 294 tonal columns; the 14 dynamics columns carry the most signal *per column*
+but contribute almost nothing to the components. Standardising per column does nothing
+about imbalance *per family*. Adding timbre back to the winning pair actively hurts
+(0.521 → 0.498).
+
+**Consequence.** The default embedding is misconfigured, not merely suboptimal — and any
+axis-based evaluation built on one concatenated space inherits the same distortion. Axes
+must be embedded separately and fused, from the start.
+
+### The paired test earned its place
+
+Independent proportions could not have resolved a 12-point difference at n=307 (interval
+±0.056). The paired test gives p=0.00030 on the same data, because it counts only
+discordant triplets. Model comparisons on shared benchmarks should use it by default.
+
+### Probe 1 was inconclusive
+
+Agreement by annotator confidence ran 0.348 / 0.440 / 0.357 / 0.425 across margin strata
+— a weak upward hint, non-monotonic, intervals overlapping heavily. Underpowered, and not
+worth reading into.
+
+---
+
 ## A4b — our own feature extraction vs FMA's reference
 
 **2026-08-29** · 400 FMA tracks, seed 0 · run `ceba76ee`
