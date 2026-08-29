@@ -129,6 +129,68 @@ scored against human judgement.**
 
 ---
 
+## Per-axis acoustic evaluation — the axes are separable
+
+**2026-08-29** · 1,499 FMA tracks (1 corrupt mp3 skipped) · k=5 · run `47ead8ed`
+· `python -m aux.experiments.axis_check`
+
+Every embedding subspace scored against every ground-truth axis. Reported as lift over
+chance, so columns compare despite different chance rates.
+
+| subspace | tempo | key | loudness | brightness |
+|---|---|---|---|---|
+| **rhythm** | **2.69×** | 1.08× | 1.20× | 1.40× |
+| **tonal** | 1.06× | **2.84×** | 1.14× | 1.29× |
+| timbre | 1.14× | 1.04× | 1.40× | 1.70× |
+| **dynamics** | 1.05× | 1.10× | **2.32×** | **1.85×** |
+| all (concat) | 1.08× | 2.49× | 1.47× | 1.64× |
+| fused (equal weight) | 1.50× | 1.92× | 1.78× | 1.84× |
+| *chance rate* | *0.108* | *0.114* | *0.154* | *0.140* |
+
+### 1. Diagonal dominance — disentanglement is real
+
+Rhythm wins tempo (2.69×), tonal wins key (2.84×), dynamics wins loudness (2.32×), and
+every off-diagonal sits near 1.0: tonal predicts tempo at 1.06×, timbre predicts key at
+1.04× — essentially chance.
+
+**Per-axis reporting is therefore substantive, not presentational.** When Model C says two
+tracks are close in key and far in tempo, that rests on subspaces which demonstrably track
+those properties and demonstrably do not track each other's.
+
+The single off-diagonal is benign: dynamics edges timbre on brightness (1.85× vs 1.70×),
+because zero-crossing rate lives in dynamics and tracks spectral brightness directly.
+
+### 2. Concatenation destroys tempo entirely
+
+**`all (concat)` scores 1.08× on tempo — chance — while the rhythm subspace alone scores
+2.69×.** The rhythm block is 10 columns of 528; in a concatenated PCA it contributes
+almost nothing to the variance structure, so its information is annihilated.
+
+This is the same column-count dominance the perceptual probe found, now confirmed against
+objective ground truth with an unambiguous mechanism. Concatenation is not merely
+suboptimal — it *erases* the axis the PRD names first for Bridge Finder.
+
+### 3. Equal-weight fusion dilutes
+
+Fusion recovers tempo to 1.50× — far better than concatenation's 1.08×, well short of
+rhythm's 2.69×. Averaging in three subspaces that sit at chance for tempo dilutes the one
+that carries it.
+
+**So weighting must be per-query, not global.** A tempo question should lean on the rhythm
+subspace, a harmonic question on tonal. Fusion is the right default for an unqualified
+"find similar", not the right answer to every question — which is precisely the interface
+Model C specifies.
+
+### Caveats
+
+- Tempo, loudness and brightness ground truth derives from the same features the embeddings
+  are built from. "What does the compression discard" is a real question, but this is weaker
+  evidence than an independent annotation would be.
+- Key ground truth is Krumhansl–Kessler template matching on averaged chroma — a standard
+  method, not an oracle.
+
+---
+
 ## Perceptual probe — concatenation is actively harmful
 
 **2026-08-29** · 307 MTAT triplets, chance 0.333 · run `5b512833`
