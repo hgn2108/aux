@@ -74,3 +74,24 @@ def triplets_from(df: pd.DataFrame, min_votes: int = 3, min_margin: int = 1) -> 
     return np.column_stack(
         [clips[rows, others[:, 0]], clips[rows, others[:, 1]], clips[rows, outlier]]
     )
+
+
+AUDIO_DIR = "mtat/audio"
+
+
+def audio_paths(clip_ids: np.ndarray | None = None) -> dict[int, Path]:
+    """Map clip ids to their mp3 files.
+
+    ``clip_info`` stores a relative path per clip (``f/artist-album-track.mp3``);
+    the archive unpacks to that same layout.
+    """
+    root = get_settings().raw_dir / AUDIO_DIR
+    info = load_clip_info()
+    if clip_ids is not None:
+        info = info.loc[info.index.intersection(clip_ids)]
+
+    return {
+        int(cid): root / str(rel)
+        for cid, rel in info["mp3_path"].items()
+        if isinstance(rel, str) and rel.strip()
+    }
