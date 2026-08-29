@@ -1,5 +1,31 @@
 # Project instructions
 
+This file is `CLAUDE.md` via symlink — one file, two names. Edit `AGENTS.md`.
+
+## Where things live
+
+Check here before searching. If a file is not listed, it probably should not exist.
+
+| Path | Holds | Go here when |
+|---|---|---|
+| `docs/project-context.md` | Product rationale, principles, decision log | Starting any work; recording a decision |
+| `docs/roadmap.md` | Numbered tasks, what is done and next | Choosing what to work on |
+| `docs/results.md` | Every experiment's numbers and interpretation | Looking up a result, or writing one up |
+| `docs/lessons.md` | Approaches abandoned, with evidence | Before retrying something; after a dead end |
+| `docs/track-a-acoustic.md` | Model A reasoning and approach ladder | Choosing an acoustic method |
+| `docs/data-sources.md` | Licensing register, verified dates | Before using any new data or weights |
+| `aux/config/` | Typed settings, paths | Adding config or a credential |
+| `aux/ingest/` | Dataset loaders (`fma`, `mtat`, `lastfm`) | Reading a corpus |
+| `aux/models/` | `features` (audio→descriptors), `acoustic` (descriptors→embedding) | Changing a representation |
+| `aux/eval/` | `embeddings` — the harness, metrics, triplets | Changing how anything is scored |
+| `aux/experiments/` | One module per experiment; `tracking` wraps MLflow | Running or adding an experiment |
+| `tests/` | Runs with no dataset present | Adding a test |
+| `notebooks/` | Exploration and interpretation, committed with figures | Explaining a result visually |
+| `data/` | Corpora. Structure tracked, contents gitignored | Never edited by hand |
+
+Results go in `docs/results.md`, never in code comments or `data-sources.md`.
+Reasoning goes in `docs/`, never duplicated into docstrings.
+
 Before planning or implementing project work, read `docs/project-context.md`.
 
 The canonical product source is the linked Google Doc PRD recorded there. Treat Sections 2–5 of that PRD as stable product rationale. Implementation details in Sections 6+ may be superseded by the repository.

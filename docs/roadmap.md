@@ -90,14 +90,14 @@ Reasoning in `track-a-acoustic.md`; results in `results.md`; dead ends in `lesso
 The gap that makes every other result ambiguous: we do not know whether weak retrieval
 means weak features or a lossy projection.
 
-- [ ] **A7.1** Supervised ceiling — SVM and gradient boosting on the raw 518 features.
-      Published reference is 63% (16 genres) from FMA's own paper.
-- [ ] **A7.2** Log-transform heavy-tailed families (centroid, rolloff, bandwidth, rms)
-      before standardising; these are roughly log-normal and outliers currently dominate
-- [ ] **A7.3** Replace PCA with a supervised projection — LDA and NCA (both in sklearn,
-      no new dependency). PCA maximises variance; we need a similarity metric.
-- [ ] **A7.4** Decide: is the ceiling low (features weak → Batch 2) or is the projection
-      lossy (fix it first)?
+- [x] **A7.1** Supervised ceiling — SVM (RBF) reaches 0.630 on 8 genres, matching FMA's
+      published 0.63 on 16. The features are not the problem.
+- [x] **A7.2** Log-transform heavy-tailed families — no measurable effect (`lessons.md`)
+- [x] **A7.3** Supervised projections — LDA in 7 dims reaches kNN 0.629, matching the
+      SVM ceiling; NCA 0.562; PCA 0.503
+- [x] **A7.4** Decided: most of the gap was the classifier, not the projection. But LDA's
+      artist/album retrieval collapses (0.038 / 0.021), so no single projection serves
+      every axis — Batch 3 is now required by evidence, not preference.
 
 ### Batch 2 — pretrained embeddings
 

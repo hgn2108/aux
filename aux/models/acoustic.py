@@ -20,6 +20,27 @@ LABEL_COLUMNS = {
     "album": ("album", "id"),
 }
 
+# Strictly-positive magnitude descriptors whose across-track distributions are
+# heavy-tailed. Standardising them raw lets a few loud or bright tracks dominate
+# every distance; a log first pulls the tail in.
+HEAVY_TAILED = ("rmse", "spectral_bandwidth", "spectral_centroid", "spectral_rolloff", "zcr")
+
+# Only location and scale statistics are non-negative. Skew and kurtosis are
+# signed and must not be logged.
+LOGGABLE_STATISTICS = ("mean", "median", "min", "max", "std")
+
+
+def log_heavy_tails(features: pd.DataFrame) -> pd.DataFrame:
+    """Apply log1p to heavy-tailed magnitude columns, leaving the rest untouched."""
+    out = features.copy()
+    mask = features.columns.get_level_values(0).isin(
+        HEAVY_TAILED
+    ) & features.columns.get_level_values(1).isin(LOGGABLE_STATISTICS)
+
+    columns = features.columns[mask]
+    out[columns] = np.log1p(features[columns].clip(lower=0))
+    return out
+
 
 def build_embeddings(
     features: pd.DataFrame, n_components: int = 128, whiten: bool = True

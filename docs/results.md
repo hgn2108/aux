@@ -57,6 +57,71 @@ scores them here for comparison.
 
 ---
 
+## Batch 1 — the ceiling, and what the projection costs
+
+**2026-08-29** · FMA small, 8,000 tracks, 8 genres (chance 0.125) · run `e656963c`
+· `python -m aux.experiments.ceiling`
+
+### 1. The features are not the problem
+
+Supervised classifiers on the raw 518 features, genre accuracy:
+
+| model | accuracy |
+|---|---|
+| **SVM (RBF)** | **0.630** |
+| gradient boosting | 0.616 |
+| SVM (linear) | 0.553 |
+| kNN (k=5, cosine) | 0.540 |
+
+0.630 on 8 genres, against [FMA's published 0.63 on 16 genres](https://arxiv.org/abs/1612.01840).
+The information is present. Every weak result so far has been about what we do with these
+features, not what they contain.
+
+### 2. Retrieval by projection
+
+| space | dims | genre P@5 | genre kNN | artist P@5 | album P@5 |
+|---|---|---|---|---|---|
+| raw | 518 | 0.452 | 0.540 | 0.162 | 0.125 |
+| raw + log | 518 | 0.451 | 0.534 | 0.163 | 0.126 |
+| PCA (whitened) | 128 | 0.426 | 0.503 | **0.188** | **0.151** |
+| PCA + log | 128 | 0.426 | 0.512 | 0.188 | 0.151 |
+| **LDA** | **7** | **0.547** | **0.629** | 0.038 | 0.021 |
+| NCA | 64 | 0.488 | 0.562 | 0.155 | 0.118 |
+
+### 3. What this settles
+
+**Most of the gap was the classifier, not the projection.** kNN on raw features scores
+0.540 where an RBF SVM scores 0.630 — nine points sitting in the *classifier*. PCA costs
+a further 3.7 points (0.540 → 0.503). Attributing the whole shortfall to the embedding
+would have been wrong.
+
+**A supervised projection recovers the entire ceiling.** LDA in **7 dimensions** reaches
+kNN 0.629, matching the RBF SVM's 0.630 on 518 dimensions. Seven supervised directions
+carry all the genre information an SVM finds. That is a decisive verdict on what PCA
+spends its 128 dimensions on.
+
+**And optimising one axis destroys the others.** LDA's artist retrieval collapses to
+0.038 and album to 0.021 — far below PCA's 0.188 and 0.151, and below even raw features.
+Fit to genre, it discards everything not genre-discriminative.
+
+**This is the multi-axis case, established empirically rather than borrowed.** No single
+projection serves every notion of similarity: PCA is best for album and artist, LDA is
+best for genre by a wide margin, and each is poor where the other is strong. Batch 3's
+separate subspaces stop being a design preference and become what the data requires.
+
+**On perceptual similarity.** The features hold genuine structure (0.630 ceiling) while
+perceptual agreement sits at 0.397. So the shortfall there is not "weak features" in
+general — it is that hand-crafted spectral summaries capture genre-like structure but not
+how people hear similarity. Batch 2 remains motivated.
+
+### Caveat on supervised projections
+
+LDA and NCA need labels to fit. A projection tuned to FMA's 8 genres may not transfer to
+MagnaTagATune or to a personal library with different or absent labels. Transfer is
+untested and must not be assumed.
+
+---
+
 ## A4b — our own feature extraction vs FMA's reference
 
 **2026-08-29** · 400 FMA tracks, seed 0 · run `ceba76ee`

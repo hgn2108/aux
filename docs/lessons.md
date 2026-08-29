@@ -118,6 +118,27 @@ sample rate, embedding dimensionality, and this defect.
 
 ---
 
+## Log-transforming heavy-tailed features: no effect
+
+**Tried.** Applying `log1p` to the strictly-positive magnitude descriptors (rms,
+spectral centroid, bandwidth, rolloff, ZCR) before standardising, on the reasoning that
+these are roughly log-normal across tracks and a few loud or bright tracks would
+otherwise dominate every distance.
+
+**What happened.** Nothing measurable. Genre P@5 went 0.452 → 0.451 on raw features and
+0.426 → 0.426 under PCA; kNN moved within a point. Artist and album retrieval were
+unchanged to three decimals.
+
+**Why the reasoning did not hold.** Only 35 of 518 columns are affected, and PCA's
+whitening already equalises component scales, so the tail correction had little left to
+do by the time distances were computed.
+
+**Kept anyway.** `log_heavy_tails` stays available — it costs nothing, and it may matter
+for a distance computed without whitening. Recorded here so nobody re-derives the
+hypothesis and re-runs the experiment.
+
+---
+
 ## Corrections to earlier records
 
 - LAION-CLAP weights were recorded as CC0 from a secondary source. The model cards state
