@@ -65,6 +65,53 @@ RHYTHM_SCALARS = ("tempo", "onset_rate", "pulse_clarity")
 RHYTHM_ENVELOPE = "onset_strength"
 
 
+# Feature families grouped into axes, following Essentia's descriptor taxonomy —
+# the grouping AcousticBrainz ships its dumps in, so these carry over unchanged to
+# the user's own library.
+#
+# Concatenating all families into one space is measurably harmful: a subspace of 10
+# rhythm columns scores 2.69x chance on tempo while the combined 528-column space
+# scores 1.08x, because column count decides a PCA's variance structure. Embed per
+# axis, then fuse. See docs/results.md.
+AXES = {
+    "rhythm": ("tempo", "onset_rate", "pulse_clarity", "onset_strength"),
+    "tonal": ("chroma_cens", "chroma_cqt", "chroma_stft", "tonnetz"),
+    "timbre": (
+        "mfcc",
+        "spectral_contrast",
+        "spectral_centroid",
+        "spectral_bandwidth",
+        "spectral_rolloff",
+    ),
+    "dynamics": ("rmse", "zcr"),
+}
+
+
+def axis_columns(frame: pd.DataFrame, axis: str) -> pd.Index:
+    """Columns belonging to one axis, tolerating frames that predate a family.
+
+    Cached extractions made before the rhythm block exists simply yield no rhythm
+    columns rather than raising.
+    """
+    return frame.columns[frame.columns.get_level_values(0).isin(AXES[axis])]
+
+
+def flatten_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    """Join the MultiIndex into single strings so the frame can be written to parquet."""
+    flat = frame.copy()
+    flat.columns = ["|".join(c) for c in frame.columns]
+    return flat
+
+
+def restore_columns(frame: pd.DataFrame) -> pd.DataFrame:
+    """Inverse of flatten_columns, for reading a cached parquet back."""
+    frame.columns = pd.MultiIndex.from_tuples(
+        [tuple(c.split("|")) for c in frame.columns],
+        names=["feature", "statistics", "number"],
+    )
+    return frame
+
+
 def rhythm_columns() -> pd.MultiIndex:
     """MultiIndex for the rhythm block: three scalars plus a summarised envelope."""
     tuples = [(name, "mean", "01") for name in RHYTHM_SCALARS]

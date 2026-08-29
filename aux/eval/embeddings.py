@@ -174,6 +174,22 @@ def evaluate(
     )
 
 
+def triplet_correct(distances: np.ndarray, triplets: np.ndarray) -> np.ndarray:
+    """Per-triplet agreement with an 'odd one out' verdict, from a distance matrix.
+
+    Each row is ``(a, b, c)`` where listeners judged ``c`` the outlier; we agree
+    when ``d(a, b)`` is the smallest of the three pairwise distances.
+    """
+    a, b, c = triplets[:, 0], triplets[:, 1], triplets[:, 2]
+    return (distances[a, b] < distances[a, c]) & (distances[a, b] < distances[b, c])
+
+
+def agreement_rate(correct: np.ndarray) -> tuple[float, float]:
+    """Agreement rate and its 95% interval."""
+    rate = float(correct.mean())
+    return rate, float(1.96 * np.sqrt(rate * (1 - rate) / max(len(correct), 1)))
+
+
 def triplet_agreement(
     x: np.ndarray, triplets: np.ndarray, metric: str = "euclidean"
 ) -> tuple[float, float]:
@@ -186,10 +202,4 @@ def triplet_agreement(
     """
     from sklearn.metrics import pairwise_distances
 
-    a, b, c = triplets[:, 0], triplets[:, 1], triplets[:, 2]
-    dist = pairwise_distances(x, metric=metric)
-
-    agree = (dist[a, b] < dist[a, c]) & (dist[a, b] < dist[b, c])
-    rate = float(agree.mean())
-    ci95 = float(1.96 * np.sqrt(rate * (1 - rate) / len(agree)))
-    return rate, ci95
+    return agreement_rate(triplet_correct(pairwise_distances(x, metric=metric), triplets))

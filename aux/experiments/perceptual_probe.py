@@ -30,39 +30,20 @@ import pandas as pd
 from sklearn.metrics import pairwise_distances
 
 from aux.config.settings import get_settings
-from aux.eval.embeddings import standardize_distances
+from aux.eval.embeddings import agreement_rate, standardize_distances, triplet_correct
 from aux.experiments import tracking
 from aux.ingest import mtat
 from aux.models.acoustic import build_embeddings
-from aux.models.features import extract_many
+from aux.models.features import AXES, axis_columns, extract_many, flatten_columns, restore_columns
 
 CACHE = "mtat_features.parquet"
-
-# Feature families grouped into the axes Model C must report on.
-#
-# Note the gap: we compute no true rhythm descriptor — no tempo, beat, or onset
-# features — so "dynamics" stands in for rhythm and is really energy and noisiness.
-# If rhythm turns out to matter perceptually, that is a feature-set gap rather than
-# an embedding one.
-AXES = {
-    "timbre": (
-        "mfcc",
-        "spectral_contrast",
-        "spectral_centroid",
-        "spectral_bandwidth",
-        "spectral_rolloff",
-    ),
-    "dynamics": ("rmse", "zcr"),
-    "tonal": ("chroma_cens", "chroma_cqt", "chroma_stft", "tonnetz"),
-}
 
 
 def _cached_features(n_fit: int, workers: int, seed: int) -> pd.DataFrame:
     """Extract MTAT features once and reuse them across probes."""
     path = get_settings().data_dir / "interim" / CACHE
     if path.exists():
-        frame = pd.read_parquet(path)
-        frame.columns = mtat_columns(frame)
+        frame = restore_columns(pd.read_parquet(path))
         print(f"loaded {len(frame)} cached clips from {path.name}")
         return frame
 
@@ -81,29 +62,9 @@ def _cached_features(n_fit: int, workers: int, seed: int) -> pd.DataFrame:
     frame = extract_many(wanted, workers=workers)
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    frame.columns = ["|".join(c) for c in frame.columns]
-    frame.to_parquet(path)
-    frame.columns = mtat_columns(frame)
+    flatten_columns(frame).to_parquet(path)
     print(f"cached {len(frame)} clips to {path.name}")
     return frame
-
-
-def mtat_columns(frame: pd.DataFrame) -> pd.MultiIndex:
-    """Restore the (family, statistic, number) MultiIndex flattened for parquet."""
-    return pd.MultiIndex.from_tuples(
-        [tuple(c.split("|")) for c in frame.columns], names=["feature", "statistics", "number"]
-    )
-
-
-def _agreement(distances: np.ndarray, triplets: np.ndarray) -> np.ndarray:
-    """Per-triplet agreement with the human 'odd one out' verdict."""
-    a, b, c = triplets[:, 0], triplets[:, 1], triplets[:, 2]
-    return (distances[a, b] < distances[a, c]) & (distances[a, b] < distances[b, c])
-
-
-def _rate(agree: np.ndarray) -> tuple[float, float]:
-    rate = float(agree.mean())
-    return rate, float(1.96 * np.sqrt(rate * (1 - rate) / max(len(agree), 1)))
 
 
 def run(n_fit: int = 2500, workers: int = 6, dims: int = 128, seed: int = 0) -> None:
@@ -132,7 +93,7 @@ def run(n_fit: int = 2500, workers: int = 6, dims: int = 128, seed: int = 0) -> 
         if len(usable) < 10:
             continue
         indexed = np.vectorize(position.get)(usable)
-        rate, ci = _rate(_agreement(d_full, indexed))
+        rate, ci = agreement_rate(triplet_correct(d_full, indexed))
         label = f"{lo}" if lo == hi else f"{lo}-{hi if hi < 99 else '+'}"
         print(f"{label:>8}{len(usable):>10}{rate:>12.3f}{ci:>10.3f}")
         metrics[f"margin_{lo}_agreement"] = rate
@@ -145,25 +106,27 @@ def run(n_fit: int = 2500, workers: int = 6, dims: int = 128, seed: int = 0) -> 
 
     print(f"\n2. Per-axis agreement ({len(usable)} triplets, chance 0.333):")
     axis_distances = {}
-    for axis, families in AXES.items():
-        columns = frame.columns[frame.columns.get_level_values(0).isin(families)]
+    for axis in AXES:
+        columns = axis_columns(frame, axis)
+        if len(columns) == 0:
+            continue  # cache predates this family (e.g. rhythm)
         embedded = build_embeddings(frame[columns], n_components=min(dims, len(columns) - 1))
         d = pairwise_distances(embedded, metric="cosine")
         axis_distances[axis] = standardize_distances(d)
-        rate, ci = _rate(_agreement(d, indexed))
+        rate, ci = agreement_rate(triplet_correct(d, indexed))
         print(f"  {axis:<10} {len(columns):>4} cols   {rate:.3f} ±{ci:.3f}")
         metrics[f"axis_{axis}_agreement"] = rate
 
-    rate, ci = _rate(_agreement(d_full, indexed))
+    rate, ci = agreement_rate(triplet_correct(d_full, indexed))
     print(f"  {'all':<10} {frame.shape[1]:>4} cols   {rate:.3f} ±{ci:.3f}")
     metrics["axis_all_agreement"] = rate
 
     print("\n3. Fusing axes (equal weight over each combination):")
-    names = list(AXES)
+    names = list(axis_distances)
     for size in (2, 3):
         for combo in itertools.combinations(names, size):
             fused = np.mean([axis_distances[a] for a in combo], axis=0)
-            rate, ci = _rate(_agreement(fused, indexed))
+            rate, ci = agreement_rate(triplet_correct(fused, indexed))
             print(f"  {'+'.join(combo):<28} {rate:.3f} ±{ci:.3f}")
             metrics[f"fused_{'_'.join(combo)}_agreement"] = rate
 

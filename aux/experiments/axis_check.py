@@ -24,35 +24,15 @@ from aux.experiments import tracking
 from aux.experiments.extraction_check import ensure_audio_extracted
 from aux.ingest import fma
 from aux.models.acoustic import build_embeddings
-from aux.models.features import extract_many
+from aux.models.features import AXES, axis_columns, extract_many, flatten_columns, restore_columns
 
 CACHE = "fma_features_rhythm.parquet"
-
-# Embedding subspaces, following Essentia's descriptor taxonomy — the same
-# grouping AcousticBrainz ships its dumps in, so these axes will carry over to
-# the user's own library unchanged.
-SUBSPACES = {
-    "rhythm": ("tempo", "onset_rate", "pulse_clarity", "onset_strength"),
-    "tonal": ("chroma_cens", "chroma_cqt", "chroma_stft", "tonnetz"),
-    "timbre": (
-        "mfcc",
-        "spectral_contrast",
-        "spectral_centroid",
-        "spectral_bandwidth",
-        "spectral_rolloff",
-    ),
-    "dynamics": ("rmse", "zcr"),
-}
 
 
 def _cached_features(n: int, workers: int, seed: int) -> pd.DataFrame:
     path = get_settings().data_dir / "interim" / CACHE
     if path.exists():
-        frame = pd.read_parquet(path)
-        frame.columns = pd.MultiIndex.from_tuples(
-            [tuple(c.split("|")) for c in frame.columns],
-            names=["feature", "statistics", "number"],
-        )
+        frame = restore_columns(pd.read_parquet(path))
         print(f"loaded {len(frame)} cached tracks")
         return frame
 
@@ -67,9 +47,7 @@ def _cached_features(n: int, workers: int, seed: int) -> pd.DataFrame:
     )
 
     path.parent.mkdir(parents=True, exist_ok=True)
-    flat = frame.copy()
-    flat.columns = ["|".join(c) for c in frame.columns]
-    flat.to_parquet(path)
+    flatten_columns(frame).to_parquet(path)
     print(f"cached {len(frame)} tracks")
     return frame
 
@@ -103,8 +81,8 @@ def run(n: int = 1500, workers: int = 6, dims: int = 64, seed: int = 0, k: int =
     truth = ground_truth(frame)
 
     distances = {}
-    for name, families in SUBSPACES.items():
-        columns = frame.columns[frame.columns.get_level_values(0).isin(families)]
+    for name in AXES:
+        columns = axis_columns(frame, name)
         embedded = build_embeddings(frame[columns], n_components=min(dims, len(columns) - 1))
         distances[name] = standardize_distances(pairwise_distances(embedded, metric="cosine"))
 
@@ -112,7 +90,7 @@ def run(n: int = 1500, workers: int = 6, dims: int = 64, seed: int = 0, k: int =
     distances["all (concat)"] = standardize_distances(
         pairwise_distances(everything, metric="cosine")
     )
-    distances["fused"] = np.mean([distances[s] for s in SUBSPACES], axis=0)
+    distances["fused"] = np.mean([distances[a] for a in AXES], axis=0)
 
     names = list(truth)
     header = "".join(f"{a:>13}" for a in names)
