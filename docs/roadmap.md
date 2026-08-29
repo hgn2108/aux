@@ -67,34 +67,76 @@ work at that scale over methods that impress on paper.
 ## Track A — Acoustic
 
 **Leads while the export is pending.** Needs no personal history: FMA is public
-CC-licensed audio with its own genre labels, so embeddings can be genuinely
-evaluated before any listening data exists.
+CC-licensed audio with its own labels, so embeddings can be genuinely evaluated
+before any listening data exists.
 
-- [ ] **A1** Coverage check — overlap between listening history and CC-available audio.
-      *Deferred: needs the Spotify export first.*
-- [x] **A2** Confirm FMA license tiers permit feature extraction; logged in `data-sources.md`
-- [ ] **A3** Fetch audio for the covered subset; store checksum + license per track
-- [x] **A4a** Baseline on FMA precomputed features — eval harness + numbers, no audio needed
-- [ ] **A4b** Our own feature extraction from audio — tempo, key, spectral, MFCC/chroma;
-      score against A4a as a reference point
-- [x] **A5** Baseline embeddings: standardize + PCA (128 dims, whitened, cosine — by sweep)
-- [x] **A5b** Metric geometry + stronger eval targets (album/artist retrieval); MLflow wired
-- [x] **A6** Sanity check — genres overlap heavily (silhouette ~0) while album retrieval
-      runs 223x chance. Local structure is real, global genre boundaries are not.
-- [ ] **A9** AcousticBrainz — CC0 precomputed features keyed by MBID. The only
-      representation that reaches the user's own library (no audio required).
-  - [ ] A9.1 Pull the feature dumps; join on MBID
-  - [ ] A9.2 Verify they behave comparably to FMA's features on this harness
-- [x] **A4b** Our own feature extraction from audio; validated on the harness
-- [x] **A10** MagnaTagATune perceptual eval — cosine 0.397 vs 0.333 chance (p=0.011,
-      underpowered), stable across two feature pipelines. Metadata proxies overstate
-      perceptual quality; motivates A7.
-- [ ] **A7** Pretrained embeddings *(open decision)* — CLAP (CC0 weights), PANNs, MERT;
-      only what beats Tier 0/1 on this harness
-- [ ] **A11** Contrastive CNN on mel-spectrograms (InfoNCE), FMA Small scale.
-      Positives must span *different* tracks sharing album/artist — same-song chunks let
-      the network learn production signature instead of similarity.
-- [ ] **A8** State coverage honestly wherever acoustic signal is used
+Reasoning in `track-a-acoustic.md`; results in `results.md`; dead ends in `lessons.md`.
+
+### Done
+
+- [x] **A1** Licensing verified — FMA, AcousticBrainz, MagnaTagATune; audio sources
+      investigated and closed (see `data-sources.md`)
+- [x] **A2** Baseline on FMA precomputed features; harness built first
+- [x] **A3** Baseline embeddings — `StandardScaler → PCA(128, whiten) → cosine`,
+      chosen from a 20-configuration sweep
+- [x] **A4** Harness targets — genre, artist, album retrieval with per-label chance rates
+- [x] **A5** Own feature extraction from audio, validated on the harness
+      (genre kNN 0.400 vs FMA reference 0.325)
+- [x] **A6** Perceptual eval — MagnaTagATune triplets, cosine 0.397 vs 0.333 chance,
+      stable across two feature pipelines
+
+### Batch 1 — establish the ceiling, replace the objective
+
+The gap that makes every other result ambiguous: we do not know whether weak retrieval
+means weak features or a lossy projection.
+
+- [ ] **A7.1** Supervised ceiling — SVM and gradient boosting on the raw 518 features.
+      Published reference is 63% (16 genres) from FMA's own paper.
+- [ ] **A7.2** Log-transform heavy-tailed families (centroid, rolloff, bandwidth, rms)
+      before standardising; these are roughly log-normal and outliers currently dominate
+- [ ] **A7.3** Replace PCA with a supervised projection — LDA and NCA (both in sklearn,
+      no new dependency). PCA maximises variance; we need a similarity metric.
+- [ ] **A7.4** Decide: is the ceiling low (features weak → Batch 2) or is the projection
+      lossy (fix it first)?
+
+### Batch 2 — pretrained embeddings
+
+- [ ] **A8.1** Add torch + transformers; record weight licences in `data-sources.md`
+- [ ] **A8.2** CLAP audio embeddings — 48 kHz input, 10 s window, 512-dim output.
+      Own loading path; the 22050 Hz constant does not apply. Chunk 30 s clips and pool.
+- [ ] **A8.3** Checkpoint choice — `larger_clap_music` for audio only; its text tower is
+      degenerate. `clap-htsat-unfused` where text→audio is needed.
+- [ ] **A8.4** Score on the full harness including perceptual triplets; compare to 0.397
+- [ ] **A8.5** PANNs as a second candidate if CLAP underperforms
+
+### Batch 3 — multi-axis subspaces
+
+The published best design, and what Model C requires.
+
+- [ ] **A9.1** Partition features into axes — timbre (MFCC, spectral contrast), rhythm
+      (ZCR, RMS, tempo), tonal (chroma, tonnetz)
+- [ ] **A9.2** Embed each axis separately; report per-axis scores, never only a blend
+- [ ] **A9.3** Learn axis weights against the perceptual triplets rather than fixing them
+- [ ] **A9.4** Expose per-axis distances in the output schema — this is Model C's
+      non-scalar requirement arriving as a modelling decision, not a presentation layer
+
+### Evaluation upgrade — runs with Batch 3
+
+- [ ] **A10.1** Per-axis targets — tonal against key agreement, rhythm against tempo
+      agreement, timbre against genre and album
+- [ ] **A10.2** Report chance and lift per axis; a single averaged number cannot
+      distinguish strong timbre plus broken rhythm from mediocre everything
+
+### Later / blocked
+
+- [ ] **A11** Coverage check — overlap between listening history and available audio.
+      *Blocked on the Spotify export.*
+- [ ] **A12** AcousticBrainz — CC0 features keyed by MBID; the only representation that
+      reaches the user's own library. *Best done once A11 gives a library to join to.*
+- [ ] **A13** Contrastive CNN (InfoNCE) at FMA Small scale. Positives must span
+      *different* tracks sharing album/artist — same-song chunks let the network learn
+      production signature instead of similarity. *Only if Batches 1–3 leave a gap.*
+- [ ] **A14** State coverage honestly wherever acoustic signal is used
 
 ---
 

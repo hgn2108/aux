@@ -1,6 +1,10 @@
-"""Reproducible Track A sweeps. Every published number comes from here.
+"""Tier 0 baseline: unsupervised PCA over hand-crafted features.
 
-Run with:  python -m aux.experiments.sweeps
+Establishes the floor every later approach must beat. Kept because it is the
+reference point, not because it is the recommended method — PCA maximises
+variance where we need a similarity metric (see docs/lessons.md).
+
+Run with:  python -m aux.experiments.baseline_pca
 """
 
 import argparse

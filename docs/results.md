@@ -2,7 +2,7 @@
 
 Index of experiments. Metrics live in MLflow (`sqlite:///mlflow.db`, experiment
 `track-a-acoustic`); this file is the human-readable record of what was run and what it
-meant. Reproduce any row with `python -m aux.experiments.sweeps`.
+meant. Each section names the command that reproduces it.
 
 ---
 

@@ -30,7 +30,7 @@ gitignored and never committed.
 | Path | Contents |
 |---|---|
 | `aux/` | Library code — ingestion, models, evaluation, experiments |
-| `aux/experiments/` | Reproducible sweeps; every published number comes from here |
+| `aux/experiments/` | Reproducible experiments; every published number comes from here |
 | `tests/` | Runs without any dataset download |
 | `notebooks/` | Exploration and interpretation, committed with figures |
 | `docs/` | All written documentation (see below) |
@@ -46,7 +46,8 @@ Everything written lives in `docs/`. Nothing else belongs at the repository root
 | [roadmap.md](docs/roadmap.md) | Execution plan with checkable tasks |
 | [results.md](docs/results.md) | Experiment index and what each result meant |
 | [data-sources.md](docs/data-sources.md) | Licensing register — what we verified and when |
-| [track-a-acoustic.md](docs/track-a-acoustic.md) | Model A reasoning: approaches tried and rejected |
+| [track-a-acoustic.md](docs/track-a-acoustic.md) | Model A reasoning and approach ladder |
+| [lessons.md](docs/lessons.md) | Approaches abandoned, with the evidence |
 
 `AGENTS.md` (and its `CLAUDE.md` symlink) sits at the root by convention — it is the
 working protocol for coding sessions, not project documentation.
@@ -54,7 +55,7 @@ working protocol for coding sessions, not project documentation.
 ## Experiments
 
 ```bash
-python -m aux.experiments.sweeps   # reruns the Track A grid
+python -m aux.experiments.baseline_pca   # reruns the Tier 0 baseline grid
 mlflow ui --backend-store-uri sqlite:///mlflow.db
 ```
 

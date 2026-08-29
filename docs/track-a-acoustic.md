@@ -1,20 +1,21 @@
 # Track A — acoustic embeddings
 
-Reasoning behind Model A: what it is for, what audio we can lawfully use, which
-approaches are on the table, and which were rejected and why.
+What Model A is for, what audio we can lawfully use, and which approaches are worth
+trying in what order. Dead ends and their evidence live in `lessons.md`; measured results
+live in `results.md`.
 
 ## What Model A is for
 
-A function from a piece of music to a fixed-length vector, so "these two sound alike"
-becomes distance arithmetic.
+A function from a piece of music to a fixed-length vector, so that "these two sound
+alike" becomes distance arithmetic.
 
 Two things depend on it:
 
 - **Bridge Finder** must judge whether a candidate sits *between* two anchors on tempo,
   energy, key, and spectral character. With no acoustic vector there is no acoustic axis,
   and Bridge Finder collapses into co-listen statistics.
-- **"Where does this track sit beyond its genre label"** is a PRD capability that requires
-  acoustic position to be measurable.
+- **"Where does this track sit beyond its genre label"** is a PRD capability that
+  requires acoustic position to be measurable.
 
 Model A is one of three independent signals: acoustic (A), behavioral (B), lyrical (D).
 
@@ -25,148 +26,120 @@ Investigated and closed:
 | Source | Verdict |
 |---|---|
 | YouTube (API or extraction) | Rejected. The Data API exposes no audio stream; extraction breaches ToS. Fails PRD principle 4. |
-| iTunes / Apple previews | Rejected. Terms require previews be streamed only — never downloaded, saved, or cached — and only in a promotional context beside a purchase link. Feature extraction requires exactly what is prohibited. |
+| iTunes / Apple previews | Rejected. Terms require previews be streamed only — never downloaded, saved, or cached — and only in a promotional context beside a purchase link. |
 | Deezer previews | Rejected. Developer terms explicitly forbid harvesting and mining of data. |
-| Spotify audio features | Rejected by the PRD already; endpoints deprecated and ML use restricted. |
-| Unauthorized MP3 sources | Rejected. Same failure as YouTube, and it would undermine the provenance the rest of the project is establishing. |
+| Spotify audio features | Rejected by the PRD; endpoints deprecated and ML use restricted. |
+| Unauthorized MP3 sources | Rejected. Same failure as YouTube, and it would undermine the provenance the rest of the project establishes. |
 
-What remains, and the architecture that follows:
+What remains:
 
-- **AcousticBrainz** gives the user's library acoustic coverage without audio — CC0,
-  ~7.5M recordings keyed by MusicBrainz ID, precomputed Essentia features, frozen June
-  2022. Post-2022 releases are a known gap, reported under principle 2.
-- **FMA** is the audio corpus for building and validating the pipeline.
-- **Music the user owns** (purchased downloads, ripped CDs) adds coverage on top.
-
-**The unifying move: extract with Essentia.** AcousticBrainz was built with Essentia's
-`streaming_extractor_music`. Running the same extractor on any audio we lawfully hold
-places those tracks in the *same feature space* as AcousticBrainz's 7.5M recordings — one
-representation reached by several lawful routes. Essentia is AGPL: a dependency licence
-to record, not a data licence.
-
-**Coverage fallbacks** for tracks with neither audio nor an AcousticBrainz entry, each
-surfaced with reduced confidence: MusicBrainz work-level substitution (a different
-recording of the same work), artist centroid, and learned metadata→embedding translation.
-
-## Approach ladder
-
-Each rung must beat the previous one *on the same harness*.
-
-| Tier | Approach | Status | Rationale |
-|---|---|---|---|
-| 0 | Hand-crafted features + PCA | Done | Interpretable — tempo/key/energy *are* the PRD's axes. Sets the floor. |
-| 1 | Metric geometry + stronger eval targets | Done | Fixed a real defect and changed which configuration wins. |
-| 2 | AcousticBrainz features | Next | The only representation that reaches the user's actual library. |
-| 3 | Pretrained embeddings — CLAP, PANNs, MERT | Planned | ~72% zero-shot perceptual agreement reported in recent work, no training required. |
-| 3b | Contrastive CNN on mel-spectrograms | Planned | Tractable at FMA Small scale. Tests whether a learned space beats hand-crafted features on our harness. |
-| 4 | Metric learning on co-listen triplets | Blocked on Track B | The differentiator: acoustic space tuned to this listener. |
-
-### Rejected, with reasons
-
-**Training a CNN on mel-spectrograms from scratch.** At 8k tracks on a laptop it loses to
-a pretrained encoder while costing days. The compute is better spent on Tier 4, which no
-pretrained model can provide.
-
-**MERT before CLAP.** LAION-CLAP-Music weights are CC0; MERT-v1-330M weights are reported
-CC-BY-NC 4.0 while the MERT *repository* is Apache-2.0 — a code-vs-weights split like
-FMA's. Licence hygiene applies to weights, not only to data. CLAP is also text-audio, so
-it may serve Vibe Match natively rather than through hand-mapped prompt ranges.
-
-**Position revised — self-supervised contrastive pretraining.** Previously rejected as
-needing a far larger corpus than we hold. That was written about CLMR and COLA at research
-scale and over-generalized: a published walkthrough runs InfoNCE with a small CNN
-(32/64/128 channels, 128-dim output) on FMA Small — the dataset we already use — at laptop
-scale. Promoted to Tier 3b.
-
-**One design change is required if we build it.** The standard formulation takes positive
-pairs as two chunks of the *same song* under light augmentation. A network can minimize
-that loss by learning production signature — EQ, loudness, mastering, room tone — rather
-than musical similarity, because same-song identification is an easier task and the loss
-cannot tell the two apart. Positives should instead span *different* tracks sharing an
-album or artist. Note that album retrieval would partly mask this failure too, since one
-album shares production; the MagnaTagATune perceptual triplets are the metric that would
-catch it, because listeners judging "odd one out" do not hear mastering.
+- **AcousticBrainz** — CC0, ~7.5M recordings keyed by MusicBrainz ID, precomputed
+  Essentia features, frozen June 2022. Reaches the user's library without audio.
+  Post-2022 releases are a known gap, reported under principle 2.
+- **FMA** — the audio corpus for building and validating.
+- **MagnaTagATune** — evaluation only.
+- **Music the user owns** — purchased downloads and ripped CDs, added directly.
 
 ## One feature space across corpora
 
-Audio arrives at whatever rate its source used: FMA at 44.1 kHz, MagnaTagATune at
-16 kHz. Loading each at its native rate puts their descriptors on different frequency
-axes, so the two corpora are silently incomparable — and combining corpora is exactly
-what the architecture needs, since FMA supplies audio, MTAT supplies human judgements,
-and AcousticBrainz will supply the user's own library.
+Sources arrive at different rates: FMA at 44.1 kHz, MagnaTagATune at 16 kHz. Loading each
+natively puts descriptors on different frequency axes and makes corpora silently
+incomparable — and combining corpora is the whole architecture.
 
-**Everything is resampled to a fixed 22050 Hz** (`features.SAMPLE_RATE`) before
-extraction, and `sr` is passed explicitly to every librosa call that takes `S=`, since
-librosa otherwise defaults to 22050 and builds its frequency axis from that regardless
-of the real rate.
+Hand-crafted extraction therefore resamples everything to a fixed **22050 Hz**
+(`features.SAMPLE_RATE`), passing `sr` explicitly to every librosa call taking `S=`.
 
-This deliberately diverges from FMA's own precomputed features, which were computed
-from 44.1 kHz audio while letting that default stand — their frequency values are half
-the true figure (verified per-track; see results.md). Reproducing their numbers would
-mean reproducing that, and giving up the shared axis.
+**This constant does not apply to pretrained models.** Each carries its own input
+contract — CLAP expects 48 kHz with a 10-second window — and must be given audio loaded
+to its own specification, never the 22050 pipeline's output.
 
-The cost is recorded honestly: correlation with FMA's reference drops from +0.70 to
-+0.43, and downsampling discards everything above 11 kHz. What survives is the check
-that matters — our features score comparably to theirs on genre retrieval and better on
-genre kNN (0.400 vs 0.325). MTAT, arriving at 16 kHz, is upsampled and simply carries an
-empty spectrum above 8 kHz, which reflects the source rather than concealing it.
+## What the literature establishes
+
+Consulted before choosing what to try, per `AGENTS.md`.
+
+**Published baselines on our exact inputs.** [FMA's paper](https://arxiv.org/abs/1612.01840)
+reports 63% genre accuracy with an SVM on the same 518 features (16 genres, ~10× chance).
+That is the reference point for hand-crafted features — and it is a *supervised classifier
+on raw features*, not an unsupervised projection.
+
+**Pretrained audio models dominate hand-crafted features.** Zero-shot LAION-CLAP and
+MuQ-MuLan reach ~72% agreement with human listeners on perceptual similarity
+([Interpretable and Perceptually-Aligned Music Similarity](https://arxiv.org/html/2601.19109)),
+without task-specific training.
+
+**Similarity is multi-axis, and decomposing it wins.** That same work lifts perceptual
+agreement from ~72% to 90.4% by decomposing similarity per source-separated stem and
+learning per-component weights. [Disentangled multidimensional metric
+learning](https://arxiv.org/pdf/2008.03720) and [Conditional Similarity
+Networks](https://arxiv.org/html/2404.06682) train one embedding with **separate
+subspaces per similarity notion** — timbre, rhythm, tonal, mood — selected by masks and
+trained with triplet loss.
+
+This is the same shape as Model C's requirement to report per-axis relationships instead
+of a scalar. The best-performing published design and the PRD's non-negotiable coincide,
+which is a strong signal that multi-axis structure belongs in the model rather than in a
+presentation layer.
+
+**Model weights carry their own licences and defects.** LAION-CLAP is Apache 2.0;
+MERT-v1-330M weights are reported CC-BY-NC 4.0 while the MERT repository is Apache-2.0.
+`laion/larger_clap_music` has a degenerate text tower and cannot serve text→audio
+retrieval — see `lessons.md`.
+
+## Approach ladder
+
+Each rung must beat the previous one on the same harness.
+
+| Tier | Approach | Status | Why it earns a try |
+|---|---|---|---|
+| 0 | Hand-crafted features + PCA | Done | Interpretable floor. Tempo/key/energy *are* the PRD's axes. |
+| 1 | Supervised ceiling + learned projection | Next | Establishes what the features contain, and replaces a variance objective with a similarity one. |
+| 2 | Pretrained embeddings — CLAP, PANNs | Next | ~72% zero-shot perceptual agreement published, no training. Apache-2.0 weights. |
+| 3 | Multi-axis subspaces | Next | Best published design, and what Model C requires. |
+| 4 | Contrastive CNN (InfoNCE) on mel-spectrograms | Candidate | Tractable at FMA Small scale. Only if Tiers 1–3 leave a gap. |
+| 5 | Metric learning on co-listen triplets | Blocked on Track B | The differentiator: acoustic space tuned to this listener. |
+
+**Rejected: training a CNN from scratch on genre classification.** At 8k tracks on a
+laptop it loses to a pretrained encoder while costing days, and it optimises
+classification rather than similarity.
+
+**Deferred: source separation.** The 90.4% result depends on separating stems, which is a
+heavy pipeline. Tier 3's per-axis decomposition captures the same structural idea using
+feature families we already compute, at a fraction of the cost. Revisit only if Tier 3
+shows the decomposition is what pays.
 
 ## How similarity is measured
 
-`StandardScaler` → `PCA(128, whiten=True)` → **cosine**.
+Currently `StandardScaler → PCA(128, whiten) → cosine`, chosen empirically from a sweep.
 
-Chosen empirically, and it contradicted the prior hypothesis. The expectation was that
-whitened Euclidean would win, since Bridge Finder needs a metric where interpolation is
-meaningful and an angle has no natural midpoint. The sweep said otherwise: cosine beat
-Euclidean in all 10 paired configurations, and whitened Euclidean at 256 dims was the
-worst configuration tested. See results.md for the numbers and the mechanism.
+Cosine beat Euclidean in all ten paired configurations; whitening helps under cosine and
+hurts under Euclidean. But PCA maximises variance, not similarity — Tier 1 replaces it
+with a projection trained against the thing we actually want.
 
-**Open question this creates for Track C:** if ranking is by cosine, "between two anchors"
-needs definition on a sphere rather than a line — spherical interpolation, or
-interpolating in whitened PCA space while ranking by cosine. Unresolved; flagged so it is
-not silently assumed.
+**Open question for Track C.** If ranking is by cosine, "between two anchors" needs a
+definition on a sphere rather than a line — spherical interpolation, or interpolating in
+a whitened space while ranking by cosine. Unresolved; flagged so it is not assumed.
 
 ## How the embedding is evaluated
 
 Retrieval, not classification: the product looks up similar tracks and never predicts a
-genre. Measuring precision@k on nearest neighbours asks the question the product asks.
+genre. Precision@k on nearest neighbours asks the question the product asks.
 
-Label proxies, weakest to strongest:
+Targets, weakest to strongest:
 
-1. **Genre** — coarse. Two folk tracks can sound nothing alike.
+1. **Genre** — coarse, but should show partial grouping. Two folk tracks can sound
+   nothing alike, yet genre is not noise either.
 2. **Artist** — narrower; captures style.
 3. **Album** — narrowest metadata proxy: shared production, instrumentation, session.
 4. **Human similarity triplets** — the only target measuring perception rather than
    metadata. MagnaTagATune's "odd one out" game, 307 usable triplets after filtering.
 
-Chance rates differ by three orders of magnitude across these (genre 0.125, album
-0.00068), so lift is reported rather than the bare score.
+Chance rates span three orders of magnitude across these (genre 0.125, album 0.00068), so
+lift is reported rather than the bare score.
 
-### Why the harness is the differentiator
+**Evaluation must be per-axis too.** A single averaged number cannot distinguish a strong
+timbre signal with a broken rhythm signal from a mediocre everything. Each axis is scored
+against the target it should govern — tonal against key agreement, rhythm against tempo
+agreement, timbre against genre and album — before any blend is reported.
 
-Published walkthroughs of both routes above validate with PCA/t-SNE pictures or a handful
-of songs judged by eye. A projection where clusters look tidy is not evidence — t-SNE has
-tunable parameters and can be made to look tidy for almost any embedding, and an
-eighteen-song spot check has no statistical content.
-
-Every rung here is scored on the same harness against the same targets, so "the learned
-model beat the baseline" is a measurable claim rather than an impression. A negative
-result is equally publishable to the writeup: knowing a contrastive CNN did *not* beat
-PCA on human triplets is worth more than a picture suggesting it might have.
-
-Genre remains the *proxy*, never the target. The PRD explicitly wants a system that sees
-past genre labels; a Model A that merely reproduced them would be a genre classifier, not
-an acoustic embedding.
-
-## References
-
-- PANNs embeddings with cosine kNN in a vector store —
-  [Elastic Search Labs](https://www.elastic.co/search-labs/blog/searching-by-music-leveraging-vector-search-audio-information-retrieval).
-  Independently arrives at L2-normalized vectors with cosine, matching our sweep. Authors
-  report false positives on an 18-song set and call it unfit for production.
-- Contrastive CNN (InfoNCE) on mel-spectrograms over FMA Small —
-  [Towards Data Science](https://towardsdatascience.com/how-convolutional-neural-networks-learn-musical-similarity/).
-  Independently reproduces our finding that genre clusters overlap heavily.
-- [Interpretable and perceptually-aligned music similarity](https://arxiv.org/html/2601.19109) —
-  decomposing similarity per source separated stem lifts perceptual agreement from ~72% to
-  90.4%, structurally the same argument as Model C's per-axis output.
+Genre remains the *proxy*, never the target. A Model A that merely reproduced genre labels
+would be a genre classifier, not an acoustic embedding.
