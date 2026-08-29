@@ -95,7 +95,10 @@ def run(n: int = 300, workers: int = 8, seed: int = 0) -> None:
     sample = pd.Index(rng.choice(ids, size=min(n, len(ids)), replace=False))
 
     print(f"extracting {len(sample)} tracks with {workers} workers ...")
-    ours = extract_many({int(t): fma.audio_path(int(t)) for t in sample}, workers=workers)
+    # rhythm=False: FMA's reference has no rhythm block, so the frames must match.
+    ours = extract_many(
+        {int(t): fma.audio_path(int(t)) for t in sample}, workers=workers, rhythm=False
+    )
 
     common = ours.index.intersection(reference.index)
     ours, ref = ours.loc[common], reference.loc[common]

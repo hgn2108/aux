@@ -51,6 +51,50 @@ FAMILY_SIZES = {
 }
 
 
+# Rhythm descriptors, mirroring Essentia's `rhythm` group — the taxonomy
+# AcousticBrainz ships its dumps in, so our features and the user's library will
+# share one axis structure.
+#
+# The core 518 features contain no rhythm information at all: eleven families of
+# spectral, tonal and energy descriptors and nothing about time. Bridge Finder's
+# first named axis is tempo, so this is a gap in the product, not only the model.
+#
+# Kept as an additive block so the core 518 columns still line up with FMA's
+# reference for the extraction check.
+RHYTHM_SCALARS = ("tempo", "onset_rate", "pulse_clarity")
+RHYTHM_ENVELOPE = "onset_strength"
+
+
+def rhythm_columns() -> pd.MultiIndex:
+    """MultiIndex for the rhythm block: three scalars plus a summarised envelope."""
+    tuples = [(name, "mean", "01") for name in RHYTHM_SCALARS]
+    tuples += [(RHYTHM_ENVELOPE, stat, "01") for stat in STATISTICS]
+    return pd.MultiIndex.from_tuples(tuples, names=["feature", "statistics", "number"])
+
+
+def _rhythm(y: np.ndarray, sr: int) -> dict[tuple[str, str, str], float]:
+    """Tempo, onset density, pulse clarity, and the onset-strength envelope."""
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=512)
+    tempo = librosa.feature.tempo(onset_envelope=onset_env, sr=sr, hop_length=512)
+    onsets = librosa.onset.onset_detect(onset_envelope=onset_env, sr=sr, hop_length=512)
+
+    # Pulse clarity: how sharply the tempogram peaks. A steady beat concentrates
+    # energy at one lag; free or rubato playing spreads it out.
+    tempogram = librosa.feature.tempogram(onset_envelope=onset_env, sr=sr, hop_length=512)
+    profile = tempogram.mean(axis=1)
+    clarity = float(profile.max() / profile.sum()) if profile.sum() > 0 else 0.0
+
+    duration = len(y) / sr
+    values: dict[tuple[str, str, str], float] = {
+        ("tempo", "mean", "01"): float(tempo[0]),
+        ("onset_rate", "mean", "01"): float(len(onsets) / duration) if duration else 0.0,
+        ("pulse_clarity", "mean", "01"): clarity,
+    }
+    for stat, arr in _summarize(np.atleast_2d(onset_env)).items():
+        values[(RHYTHM_ENVELOPE, stat, "01")] = float(arr[0])
+    return values
+
+
 def feature_columns() -> pd.MultiIndex:
     """The 518-column MultiIndex, matching FMA's ordering.
 
@@ -113,8 +157,13 @@ def _descriptors(y: np.ndarray, sr: int) -> dict[str, np.ndarray]:
     }
 
 
-def extract(path: str | Path) -> pd.Series:
-    """Extract the full 518-dim descriptor vector from one audio file."""
+def extract(path: str | Path, rhythm: bool = True) -> pd.Series:
+    """Extract descriptors from one audio file.
+
+    Returns the core 518 columns, plus the rhythm block unless ``rhythm=False``.
+    The extraction check against FMA's reference passes ``rhythm=False`` so the
+    two frames line up column for column.
+    """
     y, sr = librosa.load(path, sr=SAMPLE_RATE, mono=True)
 
     values: dict[tuple[str, str, str], float] = {}
@@ -123,29 +172,36 @@ def extract(path: str | Path) -> pd.Series:
             for i, value in enumerate(arr):
                 values[(family, stat, f"{i + 1:02d}")] = float(value)
 
-    return pd.Series(values).reindex(feature_columns())
+    columns = feature_columns()
+    if rhythm:
+        values |= _rhythm(y, int(sr))
+        columns = columns.append(rhythm_columns())
+
+    return pd.Series(values).reindex(columns)
 
 
-def _extract_one(item: tuple[int, Path]) -> tuple[int, pd.Series | None]:
-    track_id, path = item
+def _extract_one(item: tuple[int, Path, bool]) -> tuple[int, pd.Series | None]:
+    track_id, path, rhythm = item
     try:
-        return track_id, extract(path)
+        return track_id, extract(path, rhythm=rhythm)
     except Exception:  # noqa: BLE001 - corrupt audio is data, not a bug
         return track_id, None
 
 
-def extract_many(paths: dict[int, Path], workers: int = 1) -> pd.DataFrame:
+def extract_many(paths: dict[int, Path], workers: int = 1, rhythm: bool = True) -> pd.DataFrame:
     """Extract for many files, skipping unreadable ones.
 
     FMA is known to contain truncated and corrupt mp3s, so a failure here is
     expected and must not abort a long run. Extraction is CPU-bound on the CQT,
     so ``workers > 1`` scales close to linearly.
     """
+    items = [(track_id, path, rhythm) for track_id, path in paths.items()]
+
     if workers > 1:
         with ProcessPoolExecutor(max_workers=workers) as pool:
-            results = list(pool.map(_extract_one, paths.items(), chunksize=4))
+            results = list(pool.map(_extract_one, items, chunksize=4))
     else:
-        results = [_extract_one(item) for item in paths.items()]
+        results = [_extract_one(item) for item in items]
 
     rows = {tid: series for tid, series in results if series is not None}
     failed = [tid for tid, series in results if series is None]
