@@ -1,7 +1,12 @@
 # Project
 
-**VibeSearch** — a local-first, multimodal, intent-aware music search and recommendation
-system for user-provided media.
+**aux** — a local-first, multimodal, intent-aware music search and recommendation
+system for user-provided media, with a lightweight built-in player.
+
+The intellectual centre is retrieval, ranking, recommendation and personalization.
+Playback is an *enabling layer*: it makes the product usable end to end and closes the
+recommendation→behaviour feedback loop that later personalization depends on. It is
+deliberately minimal and must not displace the retrieval work.
 
 ## Problem
 
@@ -28,11 +33,18 @@ Interpret a free-form music request, retrieve evidence from the appropriate acou
 semantic representations, rank candidates according to that specific intent, and later
 adapt using intent-specific behavioural feedback.
 
-Two retrieval modes:
+Two retrieval modes, plus playback:
 
 1. **Natural-language vibe search** — "energetic but not aggressive", "dark dreamy
    production with hopeful lyrics"
 2. **Reference-track search** — "like this track, but less aggressive"
+3. **Play what was found** — play a result in place, queue it, and mark it a good or bad
+   match
+
+The third exists because a recommender with no observable outcome cannot be improved.
+Playing a result inside the product turns a recommendation into a behavioural event that
+is attributable to the query and rank that produced it — first-party feedback, without
+assuming access to listening history from another platform.
 
 ### Product principle
 
@@ -114,6 +126,9 @@ latency and observability, deployable local packaging.
 - Hosted vector infrastructure without a scale reason
 - Advanced concept steering before the core recommender works
 - Playlist generation, lyrics, personalization, or advanced UI as MVP requirements
+- A full music-player product. Excluded unless later justified: sophisticated
+  library-management UI, streaming, social features, crossfade, equalizer, elaborate
+  playlists, synchronized lyrics, and general player polish
 
 ## Vertical Slice Roadmap
 
@@ -121,6 +136,7 @@ latency and observability, deployable local packaging.
 |---|---|---|
 | **0** | Local media → searchable music | Validate ingestion, raw-audio representations, track pooling, train/inference parity, basic retrieval |
 | **1** | Natural language → music | Establish the simplest working text→music baseline |
+| **1B** | Search → play → observe | Enabling slice. Play results in-product and log attributable behavioural events, so Slice 5 has real data rather than synthetic behaviour |
 | **2** | Complex intent → routed retrieval | Test whether structured query decomposition beats whole-query embedding |
 | **3** | Audio + lyrical semantics | Add a true semantic modality; test routed multimodal retrieval |
 | **4** | Query-aware ranking | Move from generic fusion to intent-sensitive ranking |
@@ -147,8 +163,8 @@ latency and observability, deployable local packaging.
 4. Can lyrics be sourced legally and reliably for user-owned music without reintroducing
    train/inference mismatch?
 5. Does a supervised mood/theme expert add ranking or interpretive value?
-6. Repository and directory are still named `aux` from the previous project — rename to
-   `vibesearch`?
+6. Which playback technology fits a local-first app without pulling in a heavy framework?
+   Unresolved; research when Slice 1B becomes active.
 
 > Canonical project scope and intent.
 > User owns the substance; Claude may structure and maintain it.

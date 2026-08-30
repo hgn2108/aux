@@ -5,7 +5,7 @@
 > **Update frequency:** Only when a meaningful decision is accepted/rejected.
 > **Rule:** Do not duplicate transient status here.
 
-# VibeSearch Decision Log
+# aux — Decision Log
 
 ## DEC-001 — Local/user-provided media is the canonical product input
 
@@ -71,6 +71,67 @@ Behavioral history may refine ambiguity but may not override explicit current-qu
 
 **Why:**  
 A user may explicitly request music outside their normal taste.
+
+---
+
+## DEC-005 — Include a lightweight local playback layer
+
+**Status:** Accepted
+
+**Decision:**
+aux will include a minimal in-product music player: play/pause, seek, next/previous,
+queue, play directly from a search or recommendation result, basic metadata, and explicit
+feedback (save, like/dislike, good match / bad match).
+
+Added to the roadmap as **Slice 1B — Search → play → observe**, positioned after simple
+natural-language search works.
+
+**Why:**
+Local media is already the system's canonical input, so playback is cheap to add and
+requires no new data source. More importantly it closes the feedback loop:
+
+```text
+query -> recommendation impression -> user selects track -> playback
+      -> behavioural event -> later preference model
+```
+
+Without it, Slice 5 personalization would have to assume access to listening history from
+another platform, or rely on synthetic behaviour — which can test software but cannot
+support any claim about effectiveness.
+
+**Tradeoffs accepted:**
+Some engineering effort goes to a component that is not the intellectual centre. Bounded
+by an explicit non-goal list: no library-management UI, streaming, social features,
+crossfade, equalizer, elaborate playlists, synchronized lyrics, or general player polish.
+The player must not displace retrieval, ranking and recommendation as the project's
+technical story.
+
+**Evidence:**
+- Direct evidence: none. The research ledger does not establish this.
+- Transfer evidence: intent-based personalization from repeated relevance feedback
+  (INIT_RESEARCH §7) assumes a channel through which feedback arrives.
+- Engineering inference: **primary basis.** This is a product/system-design judgement
+  about closing the feedback loop, not a finding from the research ledger.
+
+**Implication:**
+DESIGN.md gains a playback boundary, playback/queue state, a behavioural event model
+(SearchRequest, RecommendationImpression, PlaybackEvent, ExplicitFeedback), an append-only
+behaviour store, and impression→play attribution. Event types are not equivalent
+preference evidence; the strong/medium/weak weighting is a hypothesis to evaluate.
+
+Personalization authority is unchanged: explicit query > current session > intent profile
+> global preference. Behavioural history never overrides an explicit query constraint.
+
+**Removal/revisit condition:**
+Revisit if the player starts consuming time that belongs to retrieval/ranking work, or if
+impression→play attribution proves unreliable enough that behavioural data cannot support
+personalization evaluation.
+
+**Files updated:**
+- PROJECT.md: product framing, third capability, Slice 1B in roadmap, player non-goals
+- DESIGN.md: playback layer section, updated target architecture, open question 10
+- EVALS.md: Slice 1B evaluation, Slice 5 real-behaviour data source, new stop condition
+- STATUS.md: Slice 1B recorded as upcoming; current slice unchanged
 
 ---
 

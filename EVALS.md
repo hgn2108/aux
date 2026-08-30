@@ -4,7 +4,7 @@
 > **Purpose:** Evidence truth: how we decide whether a component or slice works.
 > **Update frequency:** Medium/high as new slices become active.
 
-# VibeSearch — Evaluation Plan
+# aux — Evaluation Plan
 
 ## Evaluation philosophy
 
@@ -106,6 +106,60 @@ Purpose:
 Establish the simple whole-query baseline.
 
 This baseline must exist before query routing is added.
+
+---
+
+# Slice 1B — Search -> play -> observe
+
+The player is an enabling layer, so its evaluation is mostly correctness, not relevance.
+The one thing that must be right is **attribution**: if an event cannot be traced to the
+query and rank that produced it, every later personalization result is unreliable.
+
+## Eval 1B-A — playback correctness
+
+Metrics:
+- playback success rate across supported formats (MP3/WAV/FLAC/M4A/MP4);
+- correct decode-to-audible for each format the ingestion pipeline accepts;
+- playback startup latency;
+- seek accuracy;
+- queue ordering correctness.
+
+Pass gate:
+- every format the indexer accepts is also playable, or the mismatch is explicitly
+  documented as a known limitation.
+
+## Eval 1B-B — event logging correctness
+
+Metrics:
+- event capture rate (no silently dropped events);
+- impression -> play attribution accuracy;
+- session/query id integrity across a multi-query session;
+- position/duration accuracy for progress events;
+- idempotency/replay safety of the append-only log.
+
+Pass gate:
+- attribution is correct on a scripted interaction trace with a known expected event
+  sequence.
+
+**Test with synthetic interaction traces.** They verify the plumbing. They must never be
+reported as evidence about user behaviour.
+
+## Product funnel — measurable only once real use exists
+
+```text
+query
+ -> recommendation impression
+ -> result selected
+ -> play started
+ -> continued / skipped
+ -> completed / saved / repeated
+```
+
+Candidate metrics: result selection rate, search-to-play rate, early-skip rate, completion
+rate, save/like rate, repeat rate, query reformulation rate, session depth.
+
+These are **production-only**. Do not fabricate impact numbers, and do not report any of
+them from synthetic traces.
 
 ---
 
@@ -302,6 +356,19 @@ Core analysis:
 
 This is the cold-start curve.
 
+## Data source
+
+Use **real observed behaviour** logged by the Slice 1B player — playback events and
+explicit feedback, attributed to the impression that produced them.
+
+This is the reason Slice 1B exists: personalization can be evaluated on first-party
+behaviour rather than assuming access to listening history from another platform.
+
+Weight signals by the strength hypothesis in DESIGN.md (strong: explicit feedback, save,
+repeat; medium: queued, high completion, deliberate play from a recommendation; weak:
+early skip, pause, abandonment) — and treat that weighting as something to validate, not
+as given.
+
 Important:
 Synthetic interactions may test code but must not be reported as effectiveness evidence.
 
@@ -363,4 +430,5 @@ Stop/revisit architecture if:
 - mood model adds no measurable or interpretive value;
 - learned ranking lacks labels;
 - personalization evaluation depends mostly on synthetic behavior;
+- playback events cannot be reliably attributed to the recommendation that produced them;
 - advanced research begins consuming time before the core recommender is portfolio-ready.

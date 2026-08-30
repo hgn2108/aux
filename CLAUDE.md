@@ -23,9 +23,9 @@ Before substantial project work:
 Project-specific supplements:
 
 - `DECISIONS.md` — append-only history of accepted/rejected material decisions
-- `INIT_RESEARCH.md` — one-off research snapshot and evidence archive.
+- `docs/INIT_RESEARCH.md` — one-off research snapshot and evidence archive.
   **Do not load every session.** Read only when a design/research question requires it.
-- `evals/EVALS.md` — the layered evaluation plan
+- `EVALS.md` — the layered evaluation plan; `evals/` holds raw evidence
 
 Shared Project Workflow rules and gates are maintained outside this repository.
 

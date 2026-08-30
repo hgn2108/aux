@@ -52,19 +52,25 @@ Irene should be able to answer, without being given the answers first:
 4. How will you know whether the system works?
 5. What assumption is most likely to fail?
 
+## Upcoming
+
+**Slice 1B — Search → play → observe** was added to the roadmap (DEC-005). It sits after
+Slice 1 and is *not* active. Documentation and architecture only; no player implementation
+until Slice 0 and Slice 1 have passed their gates.
+
 ## Blockers
 
 none
 
 ## Pending Decisions
 
-1. **Repository identity** — repo and directory are still named `aux` from the previous
-   project; remote is `hgn2108/aux`. Rename to `vibesearch`?
-2. **Retained data** — 21 GB from the previous project is still on disk (FMA 15 GB,
+1. **Retained data** — 21 GB from the previous project is still on disk (FMA 15 GB,
    MagnaTagATune 5.7 GB, dim-sim 4.4 MB). FMA is a named dataset candidate; the others
    are probably not. Keep, prune, or delete?
-3. **Artifact schema** — `EVALS.md`, `DECISIONS.md` and `INIT_RESEARCH.md` are outside the
-   canonical workflow set. Retained as supplementary; confirm this is wanted.
+2. **Artifact schema** — `EVALS.md`, `DECISIONS.md` and `docs/INIT_RESEARCH.md` are outside
+   the canonical workflow set. Retained as supplementary; confirm this is wanted.
+3. **Playback technology** — deliberately unresolved. Research when Slice 1B activates,
+   not now.
 
 > Machine-maintained workflow state.
 > Claude should keep this current and concise.

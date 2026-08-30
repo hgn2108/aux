@@ -44,6 +44,12 @@ pipeline correct when a second encoder with a different input contract is added.
 Approved direction, not yet implemented:
 
 ```text
+user local media
+        |
+        v
+library / audio pipeline
+        |
+        v
 user query / reference track
         |
         v
@@ -75,7 +81,17 @@ music-text index    lyric index           |          audio similarity
                  recommendations
                          |
                          v
-               behavioral feedback
+              local playback / queue
+                         |
+                         v
+        event + explicit feedback logging
+                         |
+                         v
+     session / intent / global preference state
+                         |
+                         +--> personalized reranking
+                                      |
+                                      +---- feedback loop
 ```
 
 ## Data Flow
@@ -140,6 +156,79 @@ concepts, and a defensible trained component.
 
 **Removal condition:** if it adds neither ranking benefit nor useful interpretability,
 remove it.
+
+## Playback layer
+
+A deliberately minimal player. It exists so results can be heard in place and so the
+recommendation→behaviour loop closes inside the product; it is not the intellectual
+centre and must not accumulate music-player features.
+
+### Boundary
+
+In scope: play/pause, seek, next/previous, queue, play directly from a search or
+recommendation result, basic metadata display, and explicit feedback (save, like/dislike,
+or good match / bad match).
+
+Out of scope unless later justified: library-management UI, streaming, social features,
+crossfade, equalizer, elaborate playlists, synchronized lyrics, general polish.
+
+### Playback and queue state
+
+Transient application state — current track, position, queue contents and order, play/pause.
+Not part of the index, not persisted as model input. Persisted only as the events below.
+
+### Behavioural event model
+
+Every event must be attributable to the query and rank that produced it, or personalization
+later cannot distinguish "the user liked this" from "the user was shown this".
+
+**SearchRequest** — `query_id`, raw query, parsed intent where applicable, timestamp.
+
+**RecommendationImpression** — `impression_id`, `query_id`/`session_id`, `track_id`,
+displayed rank, retrieval/ranking scores, model/version, timestamp.
+
+**PlaybackEvent** — `track_id`, `session_id`, `impression_id` when attributable, event type,
+playback position/duration where relevant, timestamp. Types: `play_started`, `paused`,
+`resumed`, `seeked`, `early_skip`, `25_percent`, `50_percent`, `75_percent`, `completed`,
+`replayed`, `queued`.
+
+**ExplicitFeedback** — `liked`, `disliked`, `saved`, `relevant`, `not_relevant`.
+
+Recording `model/version` on the impression is what makes a past result reproducible and
+lets a ranking change be attributed rather than guessed at.
+
+### Signal strength — hypotheses, not truths
+
+Events are not equivalent preference evidence. Working hypothesis, to be evaluated rather
+than assumed:
+
+| Strength | Signals |
+|---|---|
+| Strong | explicit relevant/not-relevant, like/dislike, save, repeat |
+| Medium | manually queued, high completion, deliberate play from a recommendation |
+| Weak / ambiguous | early skip, no click, pause, abandonment |
+
+A skip may mean dislike, a wrong moment, or an interruption. Treating weak signals as
+strong is the most likely way to build a confidently wrong preference model.
+
+### Behaviour store
+
+A local append-only event log, separate from the track/embedding store. Interface:
+append an event; read events by session, query, track, or time range. Preference state is
+*derived* from this log rather than mutated in place, so a preference model can be rebuilt
+or recomputed under a different weighting without losing history.
+
+### Connection to personalization
+
+Playback events feed the three preference levels in the existing hierarchy — global
+(long-term listening/save/repeat), intent-specific (behaviour under query intents such as
+study, workout, late night), and session (what the user prefers right now).
+
+The authority order is unchanged and unchanged by playback: **explicit query > current
+session > intent profile > global**. Behavioural history refines ambiguity; it never
+overrides an explicit query constraint.
+
+Do not implement personalization now.
 
 ## Evaluation
 
@@ -206,6 +295,9 @@ Full decision history and revisit conditions in `DECISIONS.md`.
 7. Final learned ranker
 8. UI/backend stack
 9. Whether advanced concept steering is worth adding
+10. Playback technology — which local audio playback approach fits without pulling in a
+    heavy framework, and does it decode the same formats the ingestion pipeline accepts?
+    Deliberately unresolved; research when Slice 1B becomes active.
 
 ## Design Revisions
 

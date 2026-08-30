@@ -5,7 +5,7 @@
 > **Update frequency:** Usually none. Append dated research notes only when new evidence materially changes architecture.
 > **Claude should NOT load this every session unless a design/research question requires it.**
 
-# VibeSearch — Initial Research Snapshot
+# aux — Initial Research Snapshot
 
 Research snapshot date: 2026-08-29.
 
@@ -184,7 +184,7 @@ Motivates:
 ## Required validation
 Whole-query retrieval vs decomposed routed retrieval.
 
-If decomposition does not help VibeSearch, remove/simplify it.
+If decomposition does not help aux, remove/simplify it.
 
 ---
 
