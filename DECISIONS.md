@@ -135,6 +135,90 @@ personalization evaluation.
 
 ---
 
+## DEC-006 — Develop personalization on public behaviour; validate on first-party
+
+**Status:** Accepted
+
+**Decision:**
+aux will not wait for first-party behaviour to accumulate before developing the
+behavioural layer. Public behavioural datasets may be used to develop and pretrain general
+preference, session and intent mechanisms.
+
+Two constraints bind that permission:
+
+1. Any behavioural model intended for production must have a feasible path to arbitrary
+   user-uploaded tracks through **content representations computable at inference time**.
+2. Final behavioural models must be validated and adapted using **first-party aux
+   behaviour**. Public results are offline benchmarks, never product claims.
+
+**Why:**
+Waiting for first-party data would stall the behavioural layer for months. It is also
+unnecessary: a dataset exists that satisfies the transfer constraint.
+
+**The transfer path:**
+
+```text
+Music4All 30s audio -> aux's own encoder -> item representation
+                                       +
+Music4All-Onion behaviour (same 109,269 track ids)
+                                       |
+                                       v
+             preference / session / intent mechanism
+                                       |
+                                       v
+                  applies to arbitrary local audio
+```
+
+Because item representations come from **our** encoder over raw audio rather than from
+dataset-specific IDs or dataset-specific precomputed features, a mechanism learned on
+public data applies to a file the model has never seen. A model learning
+`user_id -> external_song_id` would not.
+
+**Evidence:**
+- Direct evidence: Music4All-Onion is CC BY 4.0, openly downloadable, 109,269 tracks,
+  119,140 users, 252,984,396 listening records, with timestamps. Music4All provides
+  30-second 44.1 kHz clips for the same tracks. A RecSys replicability study found
+  BERT4Rec's published results not reproducible under default configuration, and
+  nearest-neighbour methods beating BERT4Rec/GRU4Rec/SASRec on some datasets — supporting
+  simple baselines first. Playlist-title research shows short natural-language intent
+  labels carry usable semantics, especially in cold start.
+- Transfer evidence: playlist-title-conditioned recommendation is structurally similar to
+  aux's free-text queries, but not the same task.
+- Engineering inference: that a shared encoder makes the mechanism transfer. Reasonable,
+  and **untested**.
+- Open hypothesis: that external pretraining actually helps at small first-party history
+  sizes. This is E10c and could fail.
+
+**Tradeoffs accepted:**
+External listeners are not aux users. Last.fm scrobbling is passive; aux behaviour is
+deliberate action on an explicit query. The two may not carry the same preference
+semantics — reported separately, never pooled.
+
+Music4All ships 30-second centre clips only, so behavioural research is inherently
+single-segment. If E1 chooses multi-segment pooling, training and production
+representations diverge and the gap must be measured.
+
+**Licensing/data implications:**
+Music4All-Onion CC BY 4.0 (permissive). Music4All A+A is CC BY-NC-SA 4.0 — prefer Onion.
+Music4All base-audio access terms unverified and gate the transfer path. Spotify MPD is no
+longer directly downloadable and must not be critical path. LFM-1b appears unavailable.
+MSD Taste Profile has no timestamps and no audio path — CF benchmark only.
+
+**Removal/revisit condition:**
+If E10c shows external pretraining does not beat a simple first-party content centroid at
+realistic history sizes, external pretraining does not ship — it stays documented research
+and the product uses the simple profile. If Music4All base audio proves inaccessible, the
+transfer path collapses and the strategy must be reconsidered.
+
+**Files updated:**
+- PROJECT.md: Slice 5 refined; personalization-data section; open questions 7-8
+- DESIGN.md: behavioural personalization architecture; open questions 11-13
+- EVALS.md: E10a/E10b/E10c; two separated data sources; new stop conditions
+- STATUS.md: unchanged slice; recorded as future work
+- docs/INIT_RESEARCH.md: Appendix A, dated 2026-08-30
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

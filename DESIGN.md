@@ -230,6 +230,83 @@ overrides an explicit query constraint.
 
 Do not implement personalization now.
 
+## Behavioural personalization architecture
+
+Not implemented. Slice 5. Documented now because the item-representation constraint
+shapes decisions made earlier.
+
+```text
+external behaviour data (Music4All-Onion)
+        |
+        |  item ids joined to Music4All 30s audio
+        v
+   aux's own encoder  ------------------+
+        |                               |
+        v                               |
+behavioural pretraining / research      |
+        |                               |
+        v                               |
+global / session / intent mechanism     |
+        |                               |
+        +-------------------------+     |
+                                  |     |
+aux playback events --------------+     |
+(same encoder, local audio) -------------+
+                                  |
+                                  v
+                        user preference state
+                                  |
+                                  v
+                      personalized reranking
+```
+
+The single encoder appearing on both paths is the point. External audio and the user's
+own files enter the same encoder and produce representations of the same kind, so a
+mechanism learned on one applies to the other.
+
+### The transfer constraint
+
+Any behavioural model intended for production must consume item representations
+**computable from the user's audio at inference time**. A model learning
+`user_id → external_song_id` cannot rank a file it has never seen.
+
+This rules out collaborative filtering over dataset item IDs as the shipped architecture.
+It remains admissible as a *benchmark* — it quantifies how much collaborative signal
+exists, which bounds what any content-conditioned model could hope to recover.
+
+### Three preference levels
+
+**Global taste** — what this user generally prefers. Inputs: long-term play counts,
+repeats, likes/saves, track content embeddings. Baseline: a weighted average of
+positively-interacted track embeddings.
+
+**Session preference** — what the user wants right now. Inputs: recent ordered listens,
+recent selections and skips, current query context. Baselines: last-track representation,
+mean of last N, recency-weighted average — all computable directly in the embedding space.
+
+**Intent preference** — what "study" or "late night" means *for this user*. Inputs:
+behaviour grouped by query intent. Playlist-title research shows short natural-language
+intent labels carry usable semantics and help most in cold start; an aux query and a
+playlist title are structurally similar.
+
+Authority is unchanged and playback does not alter it:
+**explicit query > current session > intent profile > global taste**.
+
+### Method selection stance
+
+Start simple and make complexity earn its place. A RecSys replicability study found
+BERT4Rec's published results could not be reproduced under its default configuration, and
+nearest-neighbour methods beat BERT4Rec, GRU4Rec and SASRec on some datasets. With a
+single user's sparse history, simple content-space baselines are the honest starting
+point; deep sequential models only after they beat one on our own held-out evaluation.
+
+### Known tension — clip length
+
+Music4All provides 30-second centre clips. Behavioural research on it is therefore
+inherently single-segment. If E1 concludes multi-segment pooling is better for retrieval,
+the production representation and the behavioural training representation diverge, and
+that gap must be measured rather than assumed away. Open question.
+
 ## Evaluation
 
 ### Baseline
@@ -298,6 +375,11 @@ Full decision history and revisit conditions in `DECISIONS.md`.
 10. Playback technology — which local audio playback approach fits without pulling in a
     heavy framework, and does it decode the same formats the ingestion pipeline accepts?
     Deliberately unresolved; research when Slice 1B becomes active.
+11. Does external behavioural pretraining beat a simple first-party content centroid at
+    small history sizes? Decides whether external pretraining ships or stays research.
+12. Does the 30-second-clip constraint conflict with a multi-segment pooling decision?
+13. Do Last.fm scrobbles and aux in-product actions carry the same preference semantics?
+    Passive listening and deliberate action on an explicit query may differ.
 
 ## Design Revisions
 

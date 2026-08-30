@@ -58,6 +58,11 @@ Irene should be able to answer, without being given the answers first:
 Slice 1 and is *not* active. Documentation and architecture only; no player implementation
 until Slice 0 and Slice 1 have passed their gates.
 
+**Slice 5 behavioural strategy** was refined by research (DEC-006): mechanisms will be
+developed offline on Music4All-Onion behaviour with item representations from aux's own
+encoder, then adapted and validated on first-party playback. Research and documentation
+only — no behavioural implementation, and no dataset download, until Slice 5 is active.
+
 ## Blockers
 
 none
@@ -71,6 +76,9 @@ none
    the canonical workflow set. Retained as supplementary; confirm this is wanted.
 3. **Playback technology** — deliberately unresolved. Research when Slice 1B activates,
    not now.
+4. **Music4All base-audio access** — open download or request-gated? Unverified and it
+   gates the Slice 5 transfer path. Worth confirming early since access requests take
+   time, even though the slice is far off.
 
 > Machine-maintained workflow state.
 > Claude should keep this current and concise.

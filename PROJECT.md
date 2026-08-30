@@ -140,9 +140,32 @@ latency and observability, deployable local packaging.
 | **2** | Complex intent → routed retrieval | Test whether structured query decomposition beats whole-query embedding |
 | **3** | Audio + lyrical semantics | Add a true semantic modality; test routed multimodal retrieval |
 | **4** | Query-aware ranking | Move from generic fusion to intent-sensitive ranking |
-| **5** | Intent-specific behavioural personalization | Turn semantic search into a personalized recommender |
+| **5** | Intent-specific behavioural personalization | Turn semantic search into a personalized recommender. Mechanisms developed offline on public behaviour, then adapted and validated on first-party aux behaviour |
 | **6** | Relevance + diversity/discovery | Analyse relevance/diversity/novelty trade-offs |
 | **7** | Harden + ship | Reproducibility, versioning, tests, observability, UI/API — after retrieval is validated |
+
+### On personalization data (Slice 5)
+
+Personalization does not wait for first-party behaviour to accumulate.
+
+**Public behavioural data develops the mechanism.** Music4All-Onion provides 253M
+timestamped listening records over 109,269 tracks under CC BY 4.0, and the underlying
+Music4All release provides 30-second audio clips for those same tracks. Running *our own*
+encoder over that audio produces item representations in the same space aux computes for a
+local MP3 — so preference, session and intent mechanisms can be developed and evaluated
+offline, months before the product has users.
+
+**First-party behaviour remains necessary.** External listeners are not future aux users:
+Last.fm records passive scrobbling, whereas aux records deliberate action on an explicit
+query. Public data can establish that a mechanism works; only in-product behaviour can
+establish that it works *here*. Public results are offline benchmarks, never product
+claims.
+
+**Arbitrary uploaded tracks require content-transferable representations.** A model that
+learns `user_id → external_song_id` cannot rank `~/Music/unknown.mp3`. Any behavioural
+model intended for production must consume item representations computable from the user's
+own audio at inference time. Collaborative filtering on dataset item IDs is admissible as
+a benchmark to quantify available collaborative signal — not as the shipped architecture.
 
 ## Constraints
 
@@ -165,6 +188,11 @@ latency and observability, deployable local packaging.
 5. Does a supervised mood/theme expert add ranking or interpretive value?
 6. Which playback technology fits a local-first app without pulling in a heavy framework?
    Unresolved; research when Slice 1B becomes active.
+7. Does external behavioural pretraining beat a simple first-party content centroid when
+   only a little aux behaviour exists? This is the central Slice 5 experiment and its
+   answer decides whether external pretraining ships at all.
+8. Music4All base-audio access terms — open download or request-gated? Unverified, and it
+   gates the transfer path.
 
 > Canonical project scope and intent.
 > User owns the substance; Claude may structure and maintain it.

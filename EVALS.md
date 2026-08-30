@@ -356,13 +356,75 @@ Core analysis:
 
 This is the cold-start curve.
 
-## Data source
+## Two data sources, kept separate
 
-Use **real observed behaviour** logged by the Slice 1B player — playback events and
-explicit feedback, attributed to the impression that produced them.
+**External (offline benchmark).** Music4All-Onion behaviour, with item representations
+produced by running aux's own encoder over the matching Music4All 30-second audio. Used
+to develop and compare mechanisms before the product has users.
+
+**First-party (product validation).** Real playback events and explicit feedback logged by
+the Slice 1B player, attributed to the impression that produced them.
+
+**Never mix the two in a reported result.** External numbers are offline benchmark
+performance; only first-party numbers say anything about aux users. Public listeners
+scrobble passively, aux users act on an explicit query — the behaviours may not carry the
+same preference semantics.
 
 This is the reason Slice 1B exists: personalization can be evaluated on first-party
 behaviour rather than assuming access to listening history from another platform.
+
+## Experiment E10a — external offline behavioural evaluation
+
+Held-out **users** (not held-out interactions of seen users, which leaks).
+
+Metrics: Recall@K, NDCG@K, MRR, hit rate; coverage/diversity where relevant.
+
+Compare, all in the same content embedding space:
+
+1. non-personalized popularity / generic ranking
+2. content centroid of positively-interacted tracks
+3. recency-weighted / last-N session representation
+4. trained preference encoder (track representations + behaviour weights -> user vector)
+5. intent-conditioned variant where the dataset supports it
+6. item-ID collaborative filtering — **benchmark only**, to quantify available
+   collaborative signal; it cannot rank an arbitrary local file
+
+## Experiment E10b — cold-start interaction curve
+
+The central experiment. For each held-out user, reveal 1, 3, 5, 10, 20 and 50
+interactions, and plot:
+
+```text
+recommendation quality
+        vs
+number of observed interactions
+```
+
+The question is **how much behaviour is needed before personalization is useful at all**,
+not what a single final score is. A method that wins at 50 interactions and loses at 3 is
+the wrong method for a new aux user.
+
+## Experiment E10c — transfer
+
+Does external pretraining help when first-party history is small?
+
+Compare:
+
+A. no personalization
+B. simple aux-only profile (content centroid over observed first-party behaviour)
+C. externally pretrained behavioural model, applied directly
+D. externally pretrained + first-party adaptation
+
+**Removal condition:** if C and D do not beat B at realistic first-party history sizes,
+external pretraining does not ship. It stays documented research, and the product uses
+the simple profile.
+
+## Product validation — first-party only
+
+Once real aux behaviour exists: recommendation selection rate, search-to-play rate,
+early-skip rate, completion rate, save/like rate, repeat rate, query-specific relevance.
+
+Report separately from offline benchmark numbers. Do not fabricate impact figures.
 
 Weight signals by the strength hypothesis in DESIGN.md (strong: explicit feedback, save,
 repeat; medium: queued, high completion, deliberate play from a recommendation; weak:
@@ -431,4 +493,7 @@ Stop/revisit architecture if:
 - learned ranking lacks labels;
 - personalization evaluation depends mostly on synthetic behavior;
 - playback events cannot be reliably attributed to the recommendation that produced them;
+- external behavioural pretraining does not beat a simple first-party profile at realistic
+  history sizes;
+- Music4All base audio proves inaccessible, removing the transfer path;
 - advanced research begins consuming time before the core recommender is portfolio-ready.
