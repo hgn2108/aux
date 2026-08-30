@@ -1,24 +1,19 @@
 .DS_Store
 
-# Data — raw archives and derived artifacts stay local (see roadmap 1.1.2).
+# Data — corpora and derived artifacts stay local.
 # Track the directory structure, never the contents.
 data/**
 !data/**/
 !data/**/.gitkeep
 
-# Experiment tracking
-mlruns/
-mlartifacts/
-mlflow.db
+# Model/embedding caches and indexes
+*.faiss
+*.index
+embeddings/
+.cache/
 
 # Secrets
 .env
-
-# Model artifacts
-*.ckpt
-*.pt
-*.joblib
-*.npy
 
 # Python
 __pycache__/
