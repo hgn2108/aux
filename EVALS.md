@@ -60,6 +60,19 @@ Metrics:
 Purpose:
 Compare joint music-text encoders.
 
+**Hold the caption set fixed.** Caption quality moves the metric as much as a model change
+does: on identical audio and identical pooling, the human-validated subset scores R@10
+0.310 against 0.252 for the full set. An E0 comparison run on different caption sets could
+attribute a data artefact to a model.
+
+## Eval 0B baseline result (2026-09-06)
+
+CLAP `laion/larger_clap_music_and_speech`, one 10 s centre segment, 1,106 captions over
+706 candidate tracks: R@1 0.049, R@5 0.165, R@10 0.252, median rank 33, MRR 0.119 --
+18-34x above chance depending on K. Space diagnostics healthy (track-track cosine mean
+0.296, sd 0.190; no collapse, mild hubness). Cost 0.18 s/track indexing, 4.3 ms/query,
+2 KB/track. Slice 0's "meaningfully above weak/random retrieval" condition is met.
+
 ## Experiment E0 — CLAP vs MuQ-MuLan
 
 Baseline:
@@ -89,6 +102,19 @@ Measure:
 - indexing latency/storage.
 
 Keep multi-segment only if quality gain earns the extra cost.
+
+**Comparisons must be paired.** Both configurations score the identical query set, so the
+test is McNemar's exact test on discordant queries (`scripts/compare_runs.py`), not a
+comparison of two independent proportions. Per-query ranks are persisted in every Eval 0B
+run for this reason.
+
+## E1 result (2026-09-06, CLAP)
+
+Multi-segment pooling wins decisively over a single centre segment: R@10 0.252 -> 0.307,
+median rank 33 -> 27, p = 5.2e-7 paired. **3 vs 5 segments is not separated** by this
+evidence (R@1 p = 1.00, R@5 p = 0.73, R@10 p = 0.018 which does not survive correction
+across the nine tests run). See DEC-011. Re-run against the E0 winner before treating the
+pooling depth as final.
 
 ---
 

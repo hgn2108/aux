@@ -43,17 +43,25 @@ Experiments: **E0** CLAP vs MuQ-MuLan · **E1** one segment vs 3–5 segment mea
 
 ## Next Action
 
-**Eval 0B — acquire Song Describer and measure text->music retrieval.** The encoder layer
-is built and CLAP produces a working joint space, but retrieval quality is still unmeasured
-against any benchmark; the only evidence so far is a six-track qualitative smoke test.
+**E0 — add the MuQ-MuLan adapter and compare against CLAP.** The harness, metrics and
+paired-comparison machinery all exist; E0 needs one new adapter behind the existing
+`EncoderAdapter` contract and three runs.
 
-Then E0 (add the MuQ-MuLan adapter and compare) and E1 (single vs 3-5 segment pooling).
+Hold the caption set and `--n-segments` fixed across the comparison. Caption quality moves
+R@10 by as much as a model change does (0.252 full set vs 0.310 validated subset on
+identical audio), so a comparison across different subsets could credit a data artefact to
+a model.
 
-Instrument during indexing, since both are cheap and both are named Slice 0 risks:
-**embedding distribution statistics** (mean pairwise cosine, to detect a collapsed space on
-out-of-domain audio) and **within-track segment variance** (which is what makes an E1
-result interpretable rather than a guess). `embed_track` already returns segment vectors
-for this reason.
+Then re-run E1 against whichever encoder wins: optimal pooling depth is a property of the
+encoder, not of the task.
+
+### Awaiting Irene
+
+**DEC-011 is Proposed, not Accepted.** Multi-segment pooling beating single-segment is
+settled by evidence. Choosing **3 vs 5 segments is not** — R@1 and R@5 are flat between
+them (p = 1.00, 0.73) and R@10's p = 0.018 does not survive correction across the nine
+tests run. Recommendation is 5, on the grounds that the cost which would argue against it
+does not exist. Irene's call.
 
 ### Implemented
 
@@ -69,6 +77,42 @@ for this reason.
 
 Runtime requires a **native arm64 interpreter** — torch has no macOS x86_64 wheels for
 Python 3.13, so an x86_64 Python under Rosetta cannot install it at all (DEC-010).
+
+### Eval 0B — text→music retrieval (2026-09-06)
+
+CLAP `laion/larger_clap_music_and_speech` on Song Describer (1,106 captions, 706 candidate
+tracks), single centre segment:
+
+| Metric | Measured | Random | Lift |
+|---|---:|---:|---:|
+| Recall@1 | 0.049 | 0.0014 | 34× |
+| Recall@5 | 0.165 | 0.0071 | 23× |
+| Recall@10 | 0.252 | 0.0142 | 18× |
+| Median rank | 33 / 706 | 353.5 | — |
+
+**Slice 0's "meaningfully above weak/random retrieval" condition is met.** Cost is a
+non-issue: 0.18 s/track indexing, 4.3 ms/query, 2 KB/track — a 5,000-track library indexes
+in ~15 minutes for 10 MB, which retires any argument for ANN indexing at this scale.
+
+**The space is healthy**, which matters more than the recall figure. Track–track cosine
+mean 0.296 with sd 0.190 — no collapse. Hubness mild: top 1% of tracks take 5.1% of top-10
+slots, 40 of 706 never surface. So the number is a genuine ranking result, not an artefact
+of a degenerate space; that distinction is what stops later effort going into the wrong
+layer.
+
+**What this does not say.** The benchmark scores exact-track identification from a
+descriptive caption — narrower than aux's use case, where many tracks may legitimately
+satisfy a query, and where returning ten similar tracks scores zero unless the specific one
+is among them. Treat R@1 as a floor on usefulness, not a ceiling.
+
+**E1: multi-segment pooling wins** (DEC-011). R@10 0.252 → 0.307, median 33 → 27, paired
+p = 5.2e-7. Within-track segment cosine ~0.82 explains why: real intra-track variation
+exists for pooling to capture. 3 vs 5 segments is unseparated — see Awaiting Irene above.
+
+**Benchmark caveat.** Song Describer ships 2-minute excerpts, not full tracks. Five 10 s
+windows cover ~42% of a 2-minute clip but only ~17% of a 5-minute song, so E1's conclusion
+is established on excerpts. The direction should hold or strengthen on full tracks, but
+that is an inference.
 
 ### Eval 0A — first evidence
 

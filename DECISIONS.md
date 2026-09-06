@@ -487,6 +487,78 @@ baseline. The guard stays regardless.
 
 ---
 
+## DEC-011 — E1 result: multi-segment pooling beats a single segment
+
+**Status:** Proposed — the multi-segment finding is settled by evidence; the 3-vs-5 choice
+is Irene's call and is **not** settled by it.
+
+**Current slice:** Slice 0
+
+**Question:**
+Should a track be represented by one deterministic centre segment (baseline) or by 3-5
+deterministic windows, mean-pooled?
+
+**Experiment:** E1, run through `scripts/eval_0b_retrieval.py` on Song Describer
+(1,106 captions, 706 candidate tracks), with `--n-segments` as the only variable.
+Compared with a **paired** McNemar exact test on discordant queries
+(`scripts/compare_runs.py`), because both configurations score the identical query set and
+comparing two independent proportions would discard most of the power.
+
+**Result:**
+
+| Comparison | R@1 | R@5 | R@10 | median | MRR | p (R@10) | sign test |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 1 seg (baseline) | 0.049 | 0.165 | 0.252 | 33 | 0.119 | — | — |
+| 3 seg | 0.062 | 0.190 | 0.286 | 28 | 0.139 | 7.2e-04 | 1.3e-04 |
+| 5 seg | 0.063 | 0.193 | 0.307 | 27 | 0.142 | 5.2e-07 | 2.3e-08 |
+| 5 seg vs 3 seg | +0.001 | +0.004 | +0.022 | 28->27 | +0.003 | 1.8e-02 | 5.7e-02 |
+
+**Decision (the settled part):**
+Adopt multi-segment mean pooling. Single-segment is beaten at every K by both variants,
+and the effect is large relative to noise: against 5 segments, 104 queries entered the
+top 10 while 43 left it, p = 5.2e-7.
+
+**What is NOT settled:**
+5 segments over 3. R@1 and R@5 are flat (p = 1.00 and 0.73). Only R@10 favours 5, at
+p = 0.018 — which does **not** survive correction across the nine tests run here
+(Bonferroni threshold 0.0056). Treat 3 and 5 as tied on this evidence.
+
+**Recommendation, for Irene to accept or override:** 5 segments. Not because the R@10 gap
+is proven, but because the cost that would argue against it does not exist -- indexing
+moves 0.18 -> 0.26 s/track and storage is unchanged, since pooling still yields exactly one
+vector. On a 5,000-track library that is 22 minutes instead of 15, once.
+
+**Mechanism, not just outcome:**
+Within-track segment cosine is ~0.82 -- a track's own segments are similar but genuinely
+not identical, so there is real intra-track variation for pooling to capture. Meanwhile
+track-track cosine *rises* with more segments (0.296 -> 0.343): pooling pulls every track
+toward the corpus centroid, yet retrieval improves, so the compaction is discarding
+idiosyncratic noise rather than signal. That trend would eventually reverse, which is a
+reason not to extrapolate past 5 segments without measuring.
+
+**Tradeoffs accepted:**
+- Song Describer ships **2-minute excerpts**, so this is established on excerpts. Five 10 s
+  windows cover ~42% of a 2-minute clip but only ~17% of a 5-minute song. The direction
+  should hold or strengthen on full tracks -- more of the track goes unsampled at
+  n_segments=1 -- but that is an inference, not a measurement.
+- The benchmark scores **exact-track identification from a caption**, which is narrower
+  than aux's use case, where many tracks may legitimately satisfy a query. E1's conclusion
+  is about representation quality under a proxy task.
+- DESIGN.md's known tension stands: Music4All ships 30-second clips, so if behavioural work
+  (Slice 5) uses single-segment representations while production pools five, the two
+  diverge and the gap must be measured rather than assumed away.
+
+**Removal/revisit condition:**
+Re-run E1 against whichever encoder wins E0 before treating this as final -- the optimal
+pooling depth is a property of the encoder, not of the task, and MuQ-MuLan may differ.
+
+**Files updated:**
+- EVALS.md: E1 result recorded
+- STATUS.md: Slice 0 progress
+- DESIGN.md: pending Irene's 3-vs-5 call
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title
