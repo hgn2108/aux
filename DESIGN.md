@@ -117,6 +117,58 @@ A pretrained joint music-text encoder. Similarity is an *emergent property* of t
 representation, not a supervised target — there is no reliable canonical ground truth for
 subjective musical similarity, so no fabricated pairwise similarity labels are created.
 
+### Why a contrastive joint encoder
+
+A joint music-text encoder is two towers — one audio, one text — trained to place matched
+pairs at the same point in a single space. Training is contrastive: for a batch of N
+(audio, caption) pairs, embed all of them, form the N x N cosine matrix, and optimise so
+each clip scores highest against its own caption and each caption against its own clip.
+The other N-1 pairs in the batch are the negatives.
+
+**This is what makes DEC-002 coherent rather than a workaround.** The model is never
+trained on a similarity score, and nothing in the objective ever asserts that two *tracks*
+are similar. It learns only that a description belongs to an audio clip. Track-to-track
+similarity is therefore a geometric consequence — two tracks are close when they would be
+described in similar language — which is precisely the "emergent property" the project
+requires instead of a fabricated scalar target.
+
+Three properties follow directly:
+
+- text and audio vectors are comparable, so text->music retrieval is one matrix multiply;
+- reference search needs no second model, being audio<->audio cosine in the same space;
+- parity holds by construction — the input is a raw waveform and nothing is fitted at
+  inference, so the representation is reproducible from any local file.
+
+### Known limits of that training signal
+
+Four gaps between what the encoder was trained on and what aux asks of it. Each is a thing
+Slice 0 and Slice 1 measure, not a thing to assume away.
+
+1. **Caption language is not query language.** Training captions are descriptive ("a folk
+   song with acoustic guitar and female vocals"); aux queries are expressive ("quiet
+   bittersweet nostalgia"). Abstract, emotional and negated phrasing is plausibly
+   underrepresented. This is why Slice 1 reports human relevance *per query category*
+   rather than as one number, and part of the case for the Slice 2 planner: decomposition
+   moves the query text closer to the shape the encoder was trained on.
+2. **General-audio models are not music-first.** A general audio-text model must separate a
+   dog bark from a siren as well as two indie tracks, so its musical resolution may be
+   coarse. This is the substance of E0: general-audio maturity (CLAP) against
+   music-specific resolution (MuQ-MuLan), decided by measurement.
+3. **Clip length.** These encoders are trained on short windows, not whole songs. The model
+   never learned to summarise a track; pooling is imposed afterwards. That is why E1 exists
+   and why learned pooling is forbidden before it runs.
+4. **The modality gap.** In contrastively trained dual encoders, text and audio embeddings
+   occupy offset regions of the space rather than interleaving. A text->audio cosine of 0.4
+   and an audio->audio cosine of 0.4 do not mean the same thing. This is a second and
+   independent reason fusion is rank-level: scores are not comparable across modality pairs
+   even within a single model.
+
+Two further risks are properties of the space rather than of the training signal, and both
+are cheap to instrument during indexing: **domain shift** (development audio is
+Creative-Commons catalogue, a personal library is commercially mastered) and **hubness**
+(contrastive spaces reliably produce a few vectors that are nearest neighbour to almost
+everything). Symptoms and diagnostics are recorded under Risks / Assumptions.
+
 ### Inputs
 
 Decoded audio waveform at the encoder's required sample rate; natural-language text for
@@ -156,6 +208,64 @@ concepts, and a defensible trained component.
 
 **Removal condition:** if it adds neither ranking benefit nor useful interpretability,
 remove it.
+
+## Query interpretation layer
+
+Not implemented. Slice 2. Documented now because DEC-007 resolves what the planner *is*.
+
+### What it does
+
+```text
+free-form query
+  -> LLM, schema-constrained
+  -> structured interpretation
+  -> routed subqueries -> retrieval -> candidate union -> rerank
+```
+
+The structured interpretation carries the fields `EVALS.md` already labels: acoustic
+facets, lyrical facets, context, positive constraints, negative constraints,
+operator/relation, and reference transform.
+
+### Why an LLM
+
+Vibe language is open-vocabulary. A closed facet taxonomy fails on phrasing it has never
+seen, and no labelled data exists yet to fine-tune a tagger on. Text→structure over
+unbounded natural language is the one place in aux where a general language model is the
+right tool rather than a fashionable one.
+
+### Why not an agent
+
+A query needs one or two interpretation calls. There is no long-horizon task, no tool
+surface to plan over, and no failure-recovery requirement. A multi-step loop would be
+complexity with no experiment behind it, which non-negotiable 10 forbids.
+
+### Boundary
+
+In scope: one schema-constrained generation per query, retry on schema violation, and a
+deterministic fallback to whole-query embedding when generation fails or the structure is
+empty. The baseline path must remain functional with the planner disabled.
+
+Out of scope: multi-step planning, tool invocation, conversational state, self-critique
+loops.
+
+### Failure handling
+
+Schema violation, timeout, and empty-extraction all fall back to the Slice 1 whole-query
+path. The planner is an *enhancement over* a working baseline, never a dependency of it —
+which is also what makes the E2 ablation possible.
+
+### Local-first tension
+
+Only the query string leaves the machine. Audio, library contents, file paths and
+behavioural events never do. E2a's distilled local planner is the intended resolution: if
+a small local model reproduces the hosted planner's structure closely enough, the hosted
+dependency leaves the product path entirely.
+
+### Evaluation coupling
+
+The planner is evaluated on its own output (schema conformance, field-level P/R/F1) *and*
+on downstream retrieval. Both are required — a planner that extracts fields correctly but
+does not improve retrieval has still failed DEC-003.
 
 ## Playback layer
 
@@ -365,7 +475,8 @@ Full decision history and revisit conditions in `DECISIONS.md`.
 
 1. CLAP vs MuQ-MuLan winner
 2. Single vs multi-segment track pooling
-3. Exact query-planner model
+3. Which LLM for the planner, and at what latency/cost budget? (Model choice open;
+   DEC-007 fixes only that it is an LLM with schema-constrained output.)
 4. Exact lyric chunking strategy
 5. Final fusion method
 6. Whether the mood expert adds value
@@ -380,6 +491,8 @@ Full decision history and revisit conditions in `DECISIONS.md`.
 12. Does the 30-second-clip constraint conflict with a multi-segment pooling decision?
 13. Do Last.fm scrobbles and aux in-product actions carry the same preference semantics?
     Passive listening and deliberate action on an explicit query may differ.
+14. Can the LLM planner be distilled into a small local model without material quality
+    loss, removing the hosted dependency? (E2a)
 
 ## Design Revisions
 

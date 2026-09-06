@@ -219,6 +219,274 @@ transfer path collapses and the strategy must be reconsidered.
 
 ---
 
+## DEC-007 — Slice 2's query planner is an LLM producing structured output
+
+**Status:** Accepted
+
+**Current slice:** Slice 0 (this decision governs Slice 2; nothing changes now)
+
+**Question:**
+Open Design Question 3 left "exact query-planner model" unresolved. What produces the
+structured interpretation of a free-form query?
+
+**Decision:**
+Slice 2's planner is an **LLM emitting a schema-constrained structured interpretation** of
+the query — facets, constraints, negation, operator/relation, reference transform — rather
+than a classifier, rule set, or fine-tuned tagger.
+
+Slice 2 additionally gains:
+
+1. **Structured-output correctness as a first-class metric**, not just downstream retrieval
+   quality. Schema-conformance rate and field-level precision/recall/F1 on the labelled
+   query set.
+2. **LLM-as-judge, validated against the human protocol.** The judge is calibrated on
+   human ratings from the existing protocol and reported with its agreement against them.
+   It is a scaling mechanism for evaluation, never a replacement for human judgment.
+3. **A distillation path (E2a).** Once the LLM planner has produced labelled structured
+   outputs, train a small local model to reproduce them and compare quality, latency and
+   cost. This is the project's tuning/training story, earned by data rather than added for
+   its own sake.
+
+Slice 2's position in the roadmap is unchanged. DEC-003 still binds: the planner must beat
+whole-query embedding on stated metrics or it does not ship.
+
+**Why:**
+The planner already existed in the roadmap with an unnamed model, and `EVALS.md` already
+planned the labelled query set that evaluates it. Naming it an LLM answers an open question
+rather than widening scope, and it does so with a built-in counterfactual — per-category
+ablation against a working baseline — which is the part most LLM work omits.
+
+Query interpretation is also the only place in aux where an LLM is genuinely the right
+tool: it is text→structure over open-vocabulary expressive language, where a fixed label
+set would fail on unseen phrasing.
+
+**Alternatives considered:**
+- *Classifier / rule-based extractor* — cannot generalise over open-vocabulary vibe
+  language; would need a closed facet taxonomy the product does not have.
+- *Fine-tuned tagger as the first move* — no labelled data exists yet to fine-tune on.
+  E2a reaches the same place afterwards, with data the LLM produced.
+- *An agent loop (multi-step plan → tool call → observe → revise)* — **rejected.** A search
+  query needs one or two interpretation calls. There is no long-horizon task, no tool
+  surface, and no failure-recovery requirement to justify a loop. Building one would
+  violate non-negotiable 10: complexity without an experiment that changes a decision.
+
+### Evidence
+- Direct evidence: none in the research ledger. This is a component-selection judgement.
+- Transfer evidence: playlist-title research (INIT_RESEARCH §7, cited in DEC-006) shows
+  short natural-language intent labels carry usable structured semantics.
+- Engineering inference: **primary basis.** That open-vocabulary query interpretation is
+  better served by a general language model than a closed taxonomy.
+- Open hypothesis: that decomposition beats whole-query embedding at all. Published
+  retrieval results on query decomposition are mixed. This is E2 and it may fail.
+
+**Experiment:** E2 (whole-query vs decomposition), E2a (distilled planner vs LLM planner).
+
+**Result:** not yet run.
+
+**Tradeoffs accepted:**
+An LLM planner introduces a hosted-API dependency into a project framed as local-first.
+Accepted on the grounds that only the *query text* leaves the machine — never user audio,
+never the library, never behavioural events. E2a's distilled local planner is the intended
+resolution of that tension, not an afterthought; if it matches the LLM's quality, aux
+returns to fully local operation.
+
+Second tradeoff: a negative E2 result is a real possibility. That is acceptable. A measured
+"decomposition wins only on negation and contrast queries, so it routes only those" is a
+valid and reportable outcome under the existing removal conditions.
+
+**Licensing/data implications:**
+Query text sent to a hosted model must not include file paths, library contents, or any
+personal-library metadata — query string only. Personal audio remains local and
+unredistributed, unchanged.
+
+**Removal/revisit condition:**
+If E2 shows no per-category improvement over whole-query embedding, the planner does not
+ship and Slice 2 stays documented research. If the local distilled planner (E2a) matches
+the hosted model, the hosted dependency is removed from the product path.
+
+**Files updated:**
+- PROJECT.md: hiring signal (LLM/eval skills), Slice 2 roadmap row, open questions 3 and 9
+- DESIGN.md: query interpretation layer section; open design questions 3 and 14
+- EVALS.md: Slice 2 structured-output metrics, judge validation, E2a
+- STATUS.md: recorded under Upcoming; current slice unchanged
+
+**Understanding check:**
+Why is this not an agent? Why must the planner beat a baseline that already works?
+
+---
+
+## DEC-008 — Validate ingestion on MP3 now; defer the other four formats
+
+**Status:** Accepted
+
+**Current slice:** Slice 0
+
+**Question:**
+Eval 0A passed at 99.92% on 8,000 MP3s, but WAV / FLAC / M4A / MP4 were exercised only by
+generated test fixtures. Does Slice 0 block on assembling real files in those formats?
+
+**Decision:**
+No. Proceed on MP3.
+
+- The **code** continues to support all five formats; nothing is removed, and the decoder
+  path is format-agnostic by construction.
+- The **validated** set is MP3 only. Eval 0A's gate is claimed for MP3 and explicitly not
+  claimed for the rest.
+- The other four are revalidated when a real need arises — a user library containing them,
+  or the private out-of-domain test set being assembled.
+
+**Why:**
+The ingestion contract is one code path: probe, decode, downmix, preserve rate. MP4 is not
+a separate pipeline but a container whose audio stream enters that same path, and the
+generated fixtures already show every format reaching an AudioAsset. The residual risk is
+therefore about *real-world file pathologies* (DRM-protected M4A, unusual MP4 stream
+layouts), not about untested code.
+
+Weighed against that: Slice 0's actual hypothesis is about whether a pretrained joint
+encoder produces useful retrieval at all. Blocking that on format coverage would delay the
+question the slice exists to answer, in exchange for reducing a risk that is cheap to
+retire later and does not compound.
+
+**Alternatives considered:**
+- *Block Slice 0 until multi-format files are assembled* — rejected as sequencing that
+  serves completeness over the slice's hypothesis.
+- *Narrow the product to MP3* — rejected. This is a validation-scope decision, not a
+  product-scope one. PROJECT.md's supported-format claim is unchanged.
+
+### Evidence
+- Direct evidence: Eval 0A over 8,000 MP3s at 99.92%, deterministic, ~767x realtime
+  (`evals/eval_0a_fma_small_full_20260906.json`). Generated-fixture tests cover all five
+  formats.
+- Engineering inference: **primary basis.** That a shared, format-agnostic decode path
+  makes untested-format risk low and non-compounding.
+- Open risk: real M4A and MP4 pathologies (DRM, multi-stream layouts) are unobserved.
+
+**Tradeoffs accepted:**
+Any claim about format coverage must say "MP3, validated; four others supported but
+unvalidated" until the harness has been run on real files. Reporting a bare Eval 0A pass
+as covering all five formats would be a misstatement, and STATUS.md carries that caveat.
+
+**Removal/revisit condition:**
+Revisit when the private out-of-domain test library is assembled, or the moment a real
+non-MP3 file fails. The harness (`scripts/eval_0a_ingestion.py`) is corpus-agnostic, so
+revalidation is one command per corpus, not new work.
+
+**Files updated:**
+- PROJECT.md: unchanged (product format claim stands)
+- DESIGN.md: unchanged (contract is format-agnostic)
+- EVALS.md: Eval 0A pass gate qualified per-format
+- STATUS.md: pending decision 1 resolved; slice contract and next action updated
+
+---
+
+## DEC-009 — Prune MagnaTagATune and dim-sim
+
+**Status:** Accepted
+
+**Decision:**
+Deleted `data/raw/mtat` (5.7 GB) and `data/raw/dimsim` (4.4 MB), retained from the previous
+project. FMA is retained: it is the Eval 0A ingestion corpus.
+
+**Why:**
+Neither is named as a dataset in PROJECT.md, DESIGN.md or EVALS.md, and neither has a role
+in any planned slice. dim-sim in particular is a pairwise musical-similarity judgement set,
+which DEC-002 rules out as a target for this project by design.
+
+**Removal/revisit condition:**
+Both are publicly redownloadable if a future slice justifies them. MagnaTagATune would
+return only as a tagging benchmark; dim-sim would require DEC-002 to be revisited first.
+
+---
+
+## DEC-010 — Native arm64 runtime, and a verified CLAP checkpoint
+
+**Status:** Accepted
+
+**Current slice:** Slice 0
+
+**Question:**
+Two blockers surfaced when standing up the encoder layer, both silent.
+
+### Part A — the interpreter was running under Rosetta
+
+The development machine is an Apple M4 Pro, but the active Python was miniconda's
+**x86_64** build running under Rosetta 2. PyTorch publishes no macOS x86_64 wheels past
+2.2.2 (which caps at Python 3.12), so `pip install torch` failed with "no matching
+distribution" rather than anything that named the real cause.
+
+**Decision:** the project runs on a native arm64 interpreter. `pyproject.toml` records why.
+
+**Consequences beyond unblocking torch:**
+- MPS acceleration becomes available, which is the difference between a usable and an
+  unusable local E0.
+- Ingestion got materially faster with no code change: decode p50 **39.6 ms -> 27.6 ms**,
+  realtime factor **767x -> 1098x**. Eval 0A was re-run natively and is the number of
+  record (`evals/eval_0a_fma_small_arm64_20260906.*`). Success rate and the six failures
+  were identical across architectures, which is itself a useful confirmation that
+  ingestion is deterministic across platforms and not just across runs.
+- PROJECT.md's compute constraint ("normal local development hardware, with occasional
+  consumer/cloud GPU") is more favourable than assumed. E0 is likely to be feasible
+  entirely locally.
+
+### Part B — the intended CLAP checkpoint is broken
+
+The adapter initially defaulted to `laion/larger_clap_music`, chosen because a
+music-specialised checkpoint gives CLAP its strongest showing in E0. That checkpoint loads
+with **no missing-key warning** but arrives with its joint-space head untrained:
+`text_projection`/`audio_projection` biases exactly zero, and `logit_scale_t = -0.005`
+where a trained value is ~2.5-4.0.
+
+**Why this was dangerous rather than merely broken.** Nothing crashed and nothing looked
+obviously wrong. Embeddings were unit-norm. Audio-audio similarity showed real structure
+(0.51-0.98), because the audio backbone *is* trained and a random linear map preserves some
+geometry. Only the joint space was destroyed: every text embedding collapsed to mutual
+cosine **0.999**, so all queries ranked tracks identically and retrieval was driven
+entirely by the audio side. Every Eval 0B number computed on it would have been
+meaningless while looking plausible.
+
+Verified against the model's own `forward()` logits and against an explicit
+tower-plus-projection path, and reproduced under both transformers 4.57 and 5.16 -- so the
+fault is the published checkpoint, not the library version or the adapter.
+
+**Decision:**
+1. Default checkpoint is **`laion/larger_clap_music_and_speech`** -- music-relevant and
+   verified to load with trained weights (bias std 0.022, `logit_scale_t` 2.659).
+2. `ClapAdapter` runs `_assert_projection_trained` at load and **refuses** a checkpoint
+   whose projection biases are zero or whose logit scale is near zero.
+
+**Why the guard and not just the checkpoint swap:** the checkpoint swap fixes today's
+instance; the guard catches the class. A silently-untrained projection head is invisible in
+exactly the numbers it corrupts, so it has to be caught at load rather than in evaluation.
+
+**Verified working checkpoints:** `laion/larger_clap_music_and_speech`,
+`laion/larger_clap_general`, `laion/clap-htsat-unfused`. **Broken:**
+`laion/larger_clap_music`.
+
+### Evidence
+- Direct evidence: weight statistics and logit scales at load; agreement across three
+  extraction paths; reproduction under two transformers major versions; Eval 0A re-run
+  under both architectures.
+- Engineering inference: that checkpoint-integrity checks belong at load time generally,
+  not only for this model.
+
+**Tradeoffs accepted:**
+The chosen checkpoint is music-*and-speech* rather than music-only, so CLAP is not being
+given its theoretically strongest music-specialised variant in E0 -- because that variant
+is not usable. Recorded so E0's result is not over-read as "music-specialised CLAP lost".
+
+**Removal/revisit condition:**
+If `laion/larger_clap_music` is republished with complete weights, re-test it as the E0
+baseline. The guard stays regardless.
+
+**Files updated:**
+- PROJECT.md: unchanged
+- DESIGN.md: unchanged (checkpoint selection is adapter-level, not architectural)
+- EVALS.md: unchanged
+- STATUS.md: Eval 0A numbers re-recorded natively; encoder layer progress
+- pyproject.toml: torch/transformers deps and the arm64 note
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

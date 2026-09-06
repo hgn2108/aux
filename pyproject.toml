@@ -1,0 +1,33 @@
+[project]
+name = "aux"
+version = "0.0.1"
+description = "Local-first multimodal music search over user-provided media"
+requires-python = ">=3.11"
+dependencies = [
+    "av>=13",
+    "numpy>=1.26",
+    "torch>=2.2",
+    # Pinned below 5.0: the 5.x processor/feature API differs and the adapter is written
+    # to tolerate both, but 4.x is what the CLAP checkpoints are validated against here.
+    "transformers>=4.40,<5",
+]
+
+# NOTE: torch publishes no macOS x86_64 wheels past 2.2.2 (which caps at Python 3.12).
+# On Apple Silicon this project must run under a *native arm64* interpreter -- an x86_64
+# Python under Rosetta 2 cannot install torch at all. See DEC-010.
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The editable install's .pth is not honoured in this interpreter setup; pin the
+# source root so the suite runs identically from a bare checkout.
+pythonpath = ["src"]

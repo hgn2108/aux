@@ -105,6 +105,12 @@ relevance/diversity/novelty trade-offs, decision-making under imperfect proxy me
 search, media ingestion, batch indexing, evaluation harnesses, model/version management,
 latency and observability, deployable local packaging.
 
+**LLM engineering** — schema-constrained structured generation for query understanding,
+field-level evaluation of LLM output against a labelled set, LLM-as-judge validated against
+human ratings, and distilling a hosted planner into a small local model with a measured
+quality/latency/cost comparison (DEC-007, Slice 2). Scoped deliberately: an LLM where query
+interpretation genuinely needs one, not an agent loop where the task does not have one.
+
 ## MVP
 
 ### Must Have
@@ -137,7 +143,7 @@ latency and observability, deployable local packaging.
 | **0** | Local media → searchable music | Validate ingestion, raw-audio representations, track pooling, train/inference parity, basic retrieval |
 | **1** | Natural language → music | Establish the simplest working text→music baseline |
 | **1B** | Search → play → observe | Enabling slice. Play results in-product and log attributable behavioural events, so Slice 5 has real data rather than synthetic behaviour |
-| **2** | Complex intent → routed retrieval | Test whether structured query decomposition beats whole-query embedding |
+| **2** | Complex intent → routed retrieval | LLM query planner emitting schema-constrained structure; test whether decomposition beats whole-query embedding (DEC-007) |
 | **3** | Audio + lyrical semantics | Add a true semantic modality; test routed multimodal retrieval |
 | **4** | Query-aware ranking | Move from generic fusion to intent-sensitive ranking |
 | **5** | Intent-specific behavioural personalization | Turn semantic search into a personalized recommender. Mechanisms developed offline on public behaviour, then adapted and validated on first-party aux behaviour |
@@ -182,7 +188,9 @@ a benchmark to quantify available collaborative signal — not as the shipped ar
 
 1. CLAP vs MuQ-MuLan — which joint music-text encoder wins for this use case?
 2. Single representative segment vs multi-segment pooled track representation?
-3. Does structured query decomposition beat whole-query embedding?
+3. Does LLM structured query decomposition beat whole-query embedding, and on which query
+   categories? Mixed evidence in published retrieval work; a category-specific win is a
+   plausible outcome.
 4. Can lyrics be sourced legally and reliably for user-owned music without reintroducing
    train/inference mismatch?
 5. Does a supervised mood/theme expert add ranking or interpretive value?
@@ -193,6 +201,8 @@ a benchmark to quantify available collaborative signal — not as the shipped ar
    answer decides whether external pretraining ships at all.
 8. Music4All base-audio access terms — open download or request-gated? Unverified, and it
    gates the transfer path.
+9. Can a small local model be distilled from the LLM planner's outputs closely enough to
+   remove the hosted dependency from the product path? (E2a)
 
 > Canonical project scope and intent.
 > User owns the substance; Claude may structure and maintain it.

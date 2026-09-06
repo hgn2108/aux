@@ -40,6 +40,11 @@ Metrics:
 Pass gate:
 - >=95% supported-media success with failures categorized cleanly.
 
+**Claimed per format, not in aggregate.** A pass on one format says nothing about the
+others, and the harness is corpus-agnostic so each is one command. Current state: MP3
+validated on real files; WAV / FLAC / M4A / MP4 exercised by generated fixtures only and
+explicitly not claimed (DEC-008).
+
 ## Eval 0B — public text/music retrieval
 
 Benchmark:
@@ -184,6 +189,40 @@ Metrics:
 - negation accuracy;
 - relation/operator accuracy.
 
+## Eval 2A — planner output correctness (LLM-specific)
+
+The planner is an LLM emitting schema-constrained structure (DEC-007), so its *own output*
+is evaluated before any retrieval effect is measured.
+
+Metrics:
+- schema-conformance rate (valid structure on first attempt, and after retry);
+- field-level precision/recall/F1 against the labelled query set;
+- empty-extraction rate;
+- fallback rate to the whole-query baseline;
+- planner latency (p50/p95) and cost per query;
+- determinism/repeatability across repeated runs of the same query.
+
+Pass gate:
+- planner never breaks the baseline — every failure mode falls back cleanly and the system
+  still returns Slice 1 results.
+
+A planner that extracts fields accurately but does not improve retrieval has still failed
+DEC-003. Both this eval and E2 must pass.
+
+## LLM-as-judge — validated, not assumed
+
+An LLM judge may scale relevance rating beyond what human rating can cover, but only after
+it is calibrated against the human protocol below.
+
+Requirements:
+- judge agreement with human ratings reported (correlation and/or Cohen's kappa) on a
+  held-out slice of human-rated pairs;
+- judge used only on query categories where that agreement is acceptable;
+- every headline relevance claim traceable to human ratings, with judge scores reported as
+  a scaled supplement and labelled as such.
+
+The judge never replaces the human protocol. If agreement is poor, the judge is not used.
+
 ## Experiment E2 — whole-query vs decomposition
 
 Baseline:
@@ -215,7 +254,30 @@ Primary metrics:
 - success@K;
 - pairwise win rate.
 
-Keep decomposition only where it adds measurable value.
+Keep decomposition only where it adds measurable value. A category-specific win — for
+example decomposition helping only on negation and contrast queries — is a valid outcome:
+route those categories through the planner and leave the rest on the baseline.
+
+## Experiment E2a — distilling the planner
+
+Precondition:
+E2 shows the planner is worth shipping, and enough LLM planner outputs exist to train on.
+
+Baseline:
+- hosted LLM planner.
+
+Treatment:
+- small local model trained to reproduce the planner's structured outputs.
+
+Metrics:
+- field-level agreement with the hosted planner;
+- downstream retrieval quality vs the hosted planner;
+- latency, cost, memory.
+
+Decision:
+If the local model matches closely enough, it replaces the hosted planner and aux returns
+to fully local operation. This is the project's tuning/training story and it exists only
+because E2 produced the data for it — not as a training exercise for its own sake.
 
 ---
 
@@ -487,7 +549,10 @@ Report:
 Stop/revisit architecture if:
 
 - neither CLAP nor MuQ-MuLan gives useful public retrieval;
-- query decomposition does not improve mixed/constraint queries;
+- query decomposition does not improve mixed/constraint queries in any category;
+- the LLM planner cannot produce schema-valid structure reliably enough for its fallback
+  rate to stay negligible;
+- an LLM judge cannot be brought into acceptable agreement with human ratings;
 - lyric semantics cannot be sourced legally/reliably;
 - mood model adds no measurable or interpretive value;
 - learned ranking lacks labels;
