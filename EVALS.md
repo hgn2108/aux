@@ -45,6 +45,33 @@ others, and the harness is corpus-agnostic so each is one command. Current state
 validated on real files; WAV / FLAC / M4A / MP4 exercised by generated fixtures only and
 explicitly not claimed (DEC-008).
 
+## Eval 0C — personal-library out-of-domain test
+
+The condition the design leans on: public-benchmark performance is not evidence that the
+encoder works on a commercially-mastered personal library.
+
+Metrics:
+- embedding-space health, compared against the same encoder's spread on the benchmark;
+- hubness;
+- same-artist retrieval lift over chance;
+- neighbour listings and text-query results for human judgement.
+
+**Interpreting a raised mean cosine.** A narrow library is genuinely self-similar, so a
+high mean pairwise cosine is *not* by itself evidence of collapse. The two are separated by
+whether ranking still carries information — measured by same-artist retrieval, which is
+free ground truth already present in filenames. Reporting the cosine delta alone would
+raise a false alarm on any focused library.
+
+Pass gate:
+- neighbours judged plausible by the library's owner, with no collapse and no pathological
+  hubness.
+
+**Result (2026-09-07):** passed on 160 tracks across six genres. Within-genre cosine 0.710
+vs between-genre 0.401; top-5 genre purity 82.2% against 16.1% chance (5.1x); same-artist
+6.0x. Diversifying genres pulled the global mean cosine from 0.724 to 0.518, confirming the
+earlier reading that a raised mean reflected library homogeneity rather than encoder
+collapse.
+
 ## Eval 0B — public text/music retrieval
 
 Benchmark:

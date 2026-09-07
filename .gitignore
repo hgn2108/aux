@@ -31,3 +31,9 @@ htmlcov/
 
 # Superseded raw evidence (summaries are kept as .md)
 evals/eval_0a_fma_small_full_*.json
+
+# Personal library — never committed, never redistributed
+data/music/
+
+# Eval outputs naming the personal library stay local
+evals/*.private.json

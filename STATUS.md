@@ -80,13 +80,73 @@ Python 3.13, so an x86_64 Python under Rosetta cannot install it at all (DEC-010
 |---|---|
 | ≥95% decode/encode success, failures categorised | **met** — 99.92% on 8,000 MP3s; MP3 only (DEC-008) |
 | Meaningfully above weak/random retrieval | **met** — R@10 0.407 vs 0.014 chance, 29× |
-| Plausible personal-library neighbours | **not yet run** — needs the private out-of-domain files |
+| Plausible personal-library neighbours | **met** — Eval 0C, 160 tracks / 6 genres; genre purity 5.1× chance, same-artist 6.0× |
 | Practical compute/storage cost | **met** — 0.63 s/track, 8.7 ms/query, 2 KB/track |
 | At least one meaningful model comparison, recorded | **met** — E0 (DEC-012) and E1 (DEC-011) |
 
-The third condition is the one still open, and it is the out-of-domain generalisation test
-the whole design leans on — public-benchmark performance is not evidence that the encoder
-works on a commercially-mastered personal library.
+**All five conditions are met.** Slice 0's hypothesis holds: a pretrained joint music-text
+encoder produces useful retrieval over both public audio and arbitrary user media through
+one raw-audio pipeline.
+
+### Eval 0C — out-of-domain library (2026-09-07)
+
+160 personal tracks across six genres (94 hip-hop/R&B, 20 jazz, 14 EDM, 13 v-pop, 12 DnB,
+7 classical), MuQ-MuLan, 5 segments. Audited first: 160/162 decode; the two failures were
+zero-byte downloads and were deleted. No silent, truncated or duplicate files.
+
+**The homogeneity hypothesis was tested and confirmed.** The earlier single-genre run gave
+a mean track cosine of 0.724 — 0.32 above the benchmark, crossing a naive collapse
+threshold. The prediction was that this reflected a narrow library rather than a failing
+encoder, and that diversifying genres would pull it down. It did:
+
+| | 94 tracks, 1 genre | 160 tracks, 6 genres |
+|---|---:|---:|
+| mean track cosine | 0.724 | **0.518** |
+| delta vs benchmark | +0.318 | **+0.113** |
+| same-artist lift | 4.0× | **6.0×** |
+| hubness (top 1% share) | 3.8% | **2.2%** |
+
+**Genre structure — the sharper test:**
+
+| genre | n | within | between | top-5 purity | chance |
+|---|---:|---:|---:|---:|---:|
+| hip-hop/R&B | 94 | 0.724 | 0.424 | 92.3% | 58.5% |
+| jazz | 20 | 0.405 | 0.311 | 69.0% | 11.9% |
+| EDM | 14 | 0.702 | 0.465 | 78.6% | 8.2% |
+| v-pop | 13 | 0.723 | 0.500 | 80.0% | 7.5% |
+| DnB | 12 | 0.732 | 0.433 | 85.0% | 6.9% |
+| classical | 7 | 0.606 | **0.157** | 88.6% | 3.8% |
+
+Within-genre 0.710 vs between-genre 0.401 (separation +0.309); overall top-5 genre purity
+82.2% against 16.1% chance, a 5.1× lift. **No collapse**, on a test that does not depend on
+where the global mean happens to land.
+
+Three details worth keeping:
+
+- **Classical behaves exactly as a control should** — between-genre cosine 0.157, far below
+  every other genre, and 23× chance purity. It was included precisely because a space that
+  cannot separate orchestral music from trap is broken; it separates it cleanly.
+- **Jazz has the lowest within-genre cosine (0.405)** and the lowest purity (69%). That is
+  the vocal/instrumental split doing its job: jazz was deliberately assembled as ~8
+  instrumental and ~5 vocal, so internal spread is the expected result, not a defect. It
+  also shows the separation is not merely vocal-presence detection.
+- **EDM sits closest to hip-hop** (between 0.465, highest of the new genres), consistent
+  with sharing programmed drums, synth bass and heavy compression.
+
+**Text queries improved where the library gained material**, which is the behaviour a
+working system should show: "upbeat energetic party track" moved from hip-hop to Calvin
+Harris and J-Lo (0.348 → 0.424); "warm and nostalgic" now returns quiet piano and acoustic
+pieces (0.291 → 0.350); "dark and menacing" surfaces a DnB remix at rank 1.
+
+**Cross-lingual generalisation, unplanned and notable:** Vietnamese ballads take the top
+two slots for "melodic and melancholy, sung rather than rapped" (0.523, 0.504) — an English
+query retrieving Vietnamese-language music. MuQ-MuLan documents English and Chinese text
+support; this suggests the *audio* tower generalises past its text languages.
+
+**One query did not improve: "dreamy atmospheric production with reverb"** stayed at 0.189
+despite classical and ambient material arriving. Either the library still lacks it or the
+encoder handles that descriptor poorly. Carried into Slice 1 as a question rather than
+resolved here.
 
 ### E0 — encoder comparison (2026-09-07)
 
