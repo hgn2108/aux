@@ -12,25 +12,24 @@ from __future__ import annotations
 
 import argparse
 import json
-from math import comb
+import sys
 from pathlib import Path
 
 import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from aux.eval.paired import (  # noqa: E402
+    bonferroni_threshold,
+    compare_at_k,
+    mcnemar_exact,
+    sign_test_on_ranks,
+)
 
 
 def load(path: Path) -> tuple[str, dict[str, int]]:
     d = json.loads(Path(path).read_text())
     return d["label"], {q["caption_id"]: q["rank"] for q in d["per_query"]}
-
-
-def mcnemar_exact(b: int, c: int) -> float:
-    """Two-sided exact binomial p-value on the discordant pairs."""
-    n = b + c
-    if n == 0:
-        return 1.0
-    k = min(b, c)
-    tail = sum(comb(n, i) for i in range(k + 1)) / (2**n)
-    return min(1.0, 2 * tail)
 
 
 def main() -> int:
@@ -55,20 +54,20 @@ def main() -> int:
     print(f"{'K':>4}{'base':>9}{'treat':>9}{'delta':>9}{'gained':>8}{'lost':>7}{'p':>10}")
     print("-" * 56)
     for k in args.k:
-        bh, th = br <= k, tr <= k
-        gained = int((~bh & th).sum())
-        lost = int((bh & ~th).sum())
-        p = mcnemar_exact(lost, gained)
-        print(f"{k:>4}{bh.mean():>9.3f}{th.mean():>9.3f}"
-              f"{th.mean() - bh.mean():>+9.3f}{gained:>8}{lost:>7}{p:>10.2e}")
+        r = compare_at_k(br, tr, k)
+        print(f"{k:>4}{r['baseline']:>9.3f}{r['treatment']:>9.3f}"
+              f"{r['delta']:>+9.3f}{r['gained']:>8}{r['lost']:>7}{r['p_value']:>10.2e}")
 
     print(f"\nmedian rank: {np.median(br):.0f} -> {np.median(tr):.0f}")
     print(f"MRR:         {(1/br).mean():.4f} -> {(1/tr).mean():.4f}")
-    improved = int((tr < br).sum())
-    worsened = int((tr > br).sum())
-    print(f"rank improved on {improved} queries, worsened on {worsened}, "
-          f"unchanged on {len(shared) - improved - worsened}")
-    print(f"sign test on rank change: p = {mcnemar_exact(worsened, improved):.2e}")
+    st = sign_test_on_ranks(br, tr)
+    print(f"rank improved on {st['improved']} queries, worsened on {st['worsened']}, "
+          f"unchanged on {st['unchanged']}")
+    print(f"sign test on rank change: p = {st['p_value']:.2e}")
+    thresh = bonferroni_threshold(len(args.k))
+    print(f"\nBonferroni threshold for {len(args.k)} tests in this run: p < {thresh:.4f}")
+    print("Comparing several configurations multiplies that count — correct across the "
+          "whole comparison set, not per run.")
     return 0
 
 

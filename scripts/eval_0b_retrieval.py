@@ -84,6 +84,10 @@ def build_encoder(name: str, checkpoint: str | None):
         from aux.encode.clap import DEFAULT_CHECKPOINT, ClapAdapter
 
         return ClapAdapter(checkpoint or DEFAULT_CHECKPOINT)
+    if name in {"muq", "muq-mulan"}:
+        from aux.encode.muq import DEFAULT_CHECKPOINT, MuQMuLanAdapter
+
+        return MuQMuLanAdapter(checkpoint or DEFAULT_CHECKPOINT)
     raise ValueError(f"unknown encoder {name!r}; add an adapter for it")
 
 

@@ -189,16 +189,33 @@ MIT, released weights **CC-BY-NC 4.0** (affects productization).
 
 Decision: benchmark both; do not assume a winner.
 
-### Track representation — open decision
+### Track representation — resolved by E1
 
-A 3–5 minute song must become one vector, but encoders accept much shorter windows.
+**Five deterministic 10-second windows, spread across the track, excluding leading and
+trailing silence; each segment embedding L2-normalised, mean-pooled, and the result
+L2-normalised.** (DEC-011, 2026-09-07.)
 
-- **Baseline** — one deterministic representative/centre segment.
-- **Candidate** — 3–5 deterministic windows spread across the track, excluding obvious
-  leading/trailing silence; normalise each segment embedding, mean pool, normalise the
-  result.
+Normalising *before* pooling is load-bearing: without it a loud segment outweighs a quiet
+one through vector magnitude alone, which is a volume artefact rather than a musical one.
 
-Do not use learned pooling before this experiment runs.
+Measured against the single-centre-segment baseline on Song Describer: R@10 0.252 → 0.307,
+median rank 33 → 27, paired McNemar p = 5.2e-7. Within-track segment cosine ~0.82 is the
+mechanism — a track's own segments genuinely differ, so pooling captures more of the track
+than any single window.
+
+Two limits on how far to read that result:
+
+- **5 over 3 is not established.** R@1 and R@5 are flat between them; R@10's p = 0.018 does
+  not survive correction across the tests run. Five was chosen because its cost is
+  negligible (indexing 0.22 → 0.26 s/track, storage unchanged at one vector per track), not
+  because it was shown better than three.
+- **Do not extrapolate past 5 without measuring.** Track-to-track cosine rises with segment
+  count (0.296 → 0.343) as pooling pulls tracks toward the corpus centroid. That is
+  currently discarding noise rather than signal, but the trend must eventually reverse.
+
+Optimal pooling depth is a property of the encoder, not of the task, so E1 is re-run
+against whichever encoder wins E0. Learned pooling remains out of scope until a
+deterministic baseline is beaten.
 
 ### Auxiliary mood/theme expert — optional
 

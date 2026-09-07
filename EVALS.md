@@ -73,6 +73,24 @@ CLAP `laion/larger_clap_music_and_speech`, one 10 s centre segment, 1,106 captio
 0.296, sd 0.190; no collapse, mild hubness). Cost 0.18 s/track indexing, 4.3 ms/query,
 2 KB/track. Slice 0's "meaningfully above weak/random retrieval" condition is met.
 
+## E0 result (2026-09-07)
+
+**MuQ-MuLan wins decisively.** At matched 5-segment pooling on an identical caption set:
+R@10 0.307 -> 0.407, median rank 27 -> 15, paired p = 4.5e-08 (sign test 1.6e-11). Holds at
+matched 1 segment too (p = 2.6e-10), so it is a property of the encoder rather than of one
+pooling configuration.
+
+Costs 2.4x indexing and 2.9x query latency, both still trivial at library scale; storage is
+identical. **The deciding factor is licensing, not quality** -- MuQ-MuLan's weights are
+CC-BY-NC 4.0, the risk DESIGN.md anticipated. See DEC-012, which is Proposed pending
+Irene's call.
+
+Also recorded for Slice 6: MuQ-MuLan retrieves better but covers less catalogue -- hubness
+8.0% vs CLAP's 4.9%, and 55 of 706 tracks never retrieved vs 36.
+
+**E1 replicates on MuQ-MuLan**, which was DEC-011's revisit condition: multi-segment beats
+single (p = 1.05e-04) and 3 vs 5 stays unseparated (p = 0.89 / 0.85 / 0.31).
+
 ## Experiment E0 — CLAP vs MuQ-MuLan
 
 Baseline:

@@ -43,25 +43,20 @@ Experiments: **E0** CLAP vs MuQ-MuLan · **E1** one segment vs 3–5 segment mea
 
 ## Next Action
 
-**E0 — add the MuQ-MuLan adapter and compare against CLAP.** The harness, metrics and
-paired-comparison machinery all exist; E0 needs one new adapter behind the existing
-`EncoderAdapter` contract and three runs.
+**Slice 0 is substantively complete.** All four pass conditions are met; what remains is
+the encoder licensing call (below) and then the Slice 0 gate.
 
-Hold the caption set and `--n-segments` fixed across the comparison. Caption quality moves
-R@10 by as much as a model change does (0.252 full set vs 0.310 validated subset on
-identical audio), so a comparison across different subsets could credit a data artefact to
-a model.
-
-Then re-run E1 against whichever encoder wins: optimal pooling depth is a property of the
-encoder, not of the task.
+After that, Slice 1 — natural-language retrieval with per-query-category human relevance,
+which is the first evidence about *aux's actual task* rather than about exact-track
+identification from a caption.
 
 ### Awaiting Irene
 
-**DEC-011 is Proposed, not Accepted.** Multi-segment pooling beating single-segment is
-settled by evidence. Choosing **3 vs 5 segments is not** — R@1 and R@5 are flat between
-them (p = 1.00, 0.73) and R@10's p = 0.018 does not survive correction across the nine
-tests run. Recommendation is 5, on the grounds that the cost which would argue against it
-does not exist. Irene's call.
+**DEC-012 — which encoder ships.** MuQ-MuLan beats CLAP decisively (R@10 0.407 vs 0.307,
+paired p = 4.5e-08, holding at both 1 and 5 segments), but its weights are **CC-BY-NC 4.0**
+— the productization risk DESIGN.md anticipated, now materialised. Recommendation is
+MuQ-MuLan for now, revisited if productization becomes a real goal; the `EncoderAdapter`
+contract makes reversing it one config change and one re-index. Irene's call.
 
 ### Implemented
 
@@ -77,6 +72,34 @@ does not exist. Irene's call.
 
 Runtime requires a **native arm64 interpreter** — torch has no macOS x86_64 wheels for
 Python 3.13, so an x86_64 Python under Rosetta cannot install it at all (DEC-010).
+
+### Slice 0 pass conditions
+
+| Condition | Status |
+|---|---|
+| ≥95% decode/encode success, failures categorised | **met** — 99.92% on 8,000 MP3s; MP3 only (DEC-008) |
+| Meaningfully above weak/random retrieval | **met** — R@10 0.407 vs 0.014 chance, 29× |
+| Plausible personal-library neighbours | **not yet run** — needs the private out-of-domain files |
+| Practical compute/storage cost | **met** — 0.63 s/track, 8.7 ms/query, 2 KB/track |
+| At least one meaningful model comparison, recorded | **met** — E0 (DEC-012) and E1 (DEC-011) |
+
+The third condition is the one still open, and it is the out-of-domain generalisation test
+the whole design leans on — public-benchmark performance is not evidence that the encoder
+works on a commercially-mastered personal library.
+
+### E0 — encoder comparison (2026-09-07)
+
+| Encoder | seg | R@1 | R@5 | R@10 | median | MRR | s/track | hubness |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| CLAP | 5 | 0.063 | 0.193 | 0.307 | 27 | 0.141 | 0.26 | 4.9% |
+| **MuQ-MuLan** | 5 | **0.090** | **0.270** | **0.407** | **15** | **0.189** | 0.63 | 8.0% |
+
+Paired: 256 queries gained the top 10 against 146 lost, p = 4.5e-08. Holds at matched 1
+segment (p = 2.6e-10), so it is the encoder and not the pooling. **E1 replicates on
+MuQ-MuLan** — multi-segment wins (p = 1.05e-04), 3 vs 5 stays unseparated.
+
+Recorded for Slice 6: MuQ-MuLan retrieves better but covers less catalogue (55 of 706
+tracks never retrieved, vs 36 for CLAP).
 
 ### Eval 0B — text→music retrieval (2026-09-06)
 

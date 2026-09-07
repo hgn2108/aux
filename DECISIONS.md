@@ -489,8 +489,9 @@ baseline. The guard stays regardless.
 
 ## DEC-011 — E1 result: multi-segment pooling beats a single segment
 
-**Status:** Proposed — the multi-segment finding is settled by evidence; the 3-vs-5 choice
-is Irene's call and is **not** settled by it.
+**Status:** Accepted (2026-09-07) — **5 segments**. The multi-segment finding is settled by
+evidence; the 3-vs-5 choice was Irene's, taken on cost grounds rather than on a claimed
+significant difference.
 
 **Current slice:** Slice 0
 
@@ -523,7 +524,7 @@ top 10 while 43 left it, p = 5.2e-7.
 p = 0.018 — which does **not** survive correction across the nine tests run here
 (Bonferroni threshold 0.0056). Treat 3 and 5 as tied on this evidence.
 
-**Recommendation, for Irene to accept or override:** 5 segments. Not because the R@10 gap
+**Chosen: 5 segments.** Not because the R@10 gap
 is proven, but because the cost that would argue against it does not exist -- indexing
 moves 0.18 -> 0.26 s/track and storage is unchanged, since pooling still yields exactly one
 vector. On a 5,000-track library that is 22 minutes instead of 15, once.
@@ -555,7 +556,97 @@ pooling depth is a property of the encoder, not of the task, and MuQ-MuLan may d
 **Files updated:**
 - EVALS.md: E1 result recorded
 - STATUS.md: Slice 0 progress
-- DESIGN.md: pending Irene's 3-vs-5 call
+- DESIGN.md: track representation resolved to 5-segment mean pooling
+
+**Understanding check:**
+Why is "5 beats 3" *not* a claim this evidence supports, even though 5 was chosen?
+
+---
+
+## DEC-012 — E0 result: MuQ-MuLan beats CLAP, and it is CC-BY-NC
+
+**Status:** Proposed — the retrieval result is settled by evidence; **which encoder ships is
+a licensing decision Irene owns.**
+
+**Current slice:** Slice 0
+
+**Question:** CLAP or MuQ-MuLan as aux's joint music-text encoder?
+
+**Experiment:** E0, via `scripts/eval_0b_retrieval.py` on Song Describer (1,106 captions,
+706 candidate tracks), identical caption set and identical pooling for both encoders,
+compared with paired McNemar (`scripts/compare_runs.py`).
+
+**Result — MuQ-MuLan wins decisively, at every pooling depth:**
+
+| Encoder | seg | R@1 | R@5 | R@10 | median | MRR |
+|---|---:|---:|---:|---:|---:|---:|
+| CLAP | 1 | 0.049 | 0.165 | 0.252 | 33 | 0.119 |
+| CLAP | 5 | 0.063 | 0.193 | 0.307 | 27 | 0.141 |
+| MuQ-MuLan | 1 | 0.077 | 0.246 | 0.362 | 20 | 0.169 |
+| **MuQ-MuLan** | **5** | **0.090** | **0.270** | **0.407** | **15** | **0.189** |
+
+Paired, at matched 5 segments: R@10 +0.099, 256 queries gained the top 10 against 146 lost,
+p = 4.5e-08; sign test on rank change p = 1.6e-11. The same result holds at matched 1
+segment (p = 2.6e-10), so it is a property of the encoder and not an artefact of one
+pooling configuration. Median rank 27 -> 15 out of 706.
+
+**E1 replicates on the new encoder**, which was DEC-011's revisit condition: multi-segment
+beats single (R@10 0.362 -> 0.407, p = 1.05e-04), and **3 vs 5 remains unseparated**
+(p = 0.89 / 0.85 / 0.31; sign test 0.23). DEC-011's framing -- five chosen on cost, not
+because it beat three -- is unchanged and now replicated across two independent encoders.
+
+**The cost of winning:**
+
+| | CLAP | MuQ-MuLan | Ratio |
+|---|---:|---:|---:|
+| indexing (5 seg) | 0.26 s/track | 0.63 s/track | 2.4x |
+| query | 3.0 ms | 8.7 ms | 2.9x |
+| storage | 2048 B/track | 2048 B/track | same |
+
+Both remain trivial at personal-library scale: 5,000 tracks index in ~53 minutes and query
+in under 10 ms. Cost does not decide this.
+
+**What does decide it: licensing.** MuQ-MuLan's released weights are **CC-BY-NC 4.0**.
+DESIGN.md recorded this as a risk -- "MuQ-MuLan's CC-BY-NC weights constrain productization
+if it wins the benchmark" -- and the risk has now materialised. The code is MIT; the
+weights are not, and non-commercial terms restrict what a shipped product may do with them.
+
+**A diversity cost, recorded for Slice 6.** MuQ-MuLan's space is more concentrated than
+CLAP's: hubness 8.0% vs 4.9% of top-10 slots taken by the top 1% of tracks, and 55 of 706
+tracks never retrieved vs 36. It retrieves better *and* covers less of the catalogue. That
+tension is precisely Slice 6's subject, and it is better to know now than to discover it as
+a surprise when diversity is measured.
+
+**Options for Irene:**
+
+1. **MuQ-MuLan everywhere.** Best retrieval. Acceptable for a portfolio and for research;
+   constrains any commercial productization.
+2. **MuQ-MuLan for development, CLAP as the shippable fallback.** Costs a documented
+   -0.099 R@10, and the `EncoderAdapter` contract makes it a one-line swap. Every later
+   slice would need to state which encoder its numbers came from.
+3. **CLAP only.** Gives up a large, well-measured gain to avoid a constraint that may never
+   bind on a personal-use local product.
+
+**Recommendation:** option 1 for now, revisited if productization becomes a real goal. This
+is a portfolio and research project; the non-commercial term does not bind current use, the
+gap is too large to give up voluntarily, and the adapter contract means reversing costs one
+config change and one re-index. Whichever is chosen, record the encoder and version
+alongside every result -- that is already enforced by `EncoderAdapter.version`.
+
+**Not legal advice.** The licence fact is verified from the primary repository; the
+interpretation of what it permits is Irene's to make.
+
+**Removal/revisit condition:**
+Revisit if productization becomes a goal, if MuQ-MuLan weights are relicensed, or if Slice
+6 finds MuQ-MuLan's hubness materially harms recommendation diversity.
+
+**Files updated:**
+- EVALS.md: E0 result and the E1 replication
+- STATUS.md: Slice 0 outcome; encoder choice awaiting Irene
+- DESIGN.md: pending Irene's call
+
+**Understanding check:**
+Why does the E0 result hold at both 1 and 5 segments, and why does that matter?
 
 ---
 
