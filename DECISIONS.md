@@ -565,8 +565,9 @@ Why is "5 beats 3" *not* a claim this evidence supports, even though 5 was chose
 
 ## DEC-012 — E0 result: MuQ-MuLan beats CLAP, and it is CC-BY-NC
 
-**Status:** Proposed — the retrieval result is settled by evidence; **which encoder ships is
-a licensing decision Irene owns.**
+**Status:** Accepted (2026-09-07) — **MuQ-MuLan**, option 1. Taken with the CC-BY-NC
+constraint understood and accepted for a portfolio/research project, not because the
+licence was judged unimportant.
 
 **Current slice:** Slice 0
 
@@ -627,7 +628,7 @@ a surprise when diversity is measured.
 3. **CLAP only.** Gives up a large, well-measured gain to avoid a constraint that may never
    bind on a personal-use local product.
 
-**Recommendation:** option 1 for now, revisited if productization becomes a real goal. This
+**Chosen: option 1**, revisited if productization becomes a real goal. This
 is a portfolio and research project; the non-commercial term does not bind current use, the
 gap is too large to give up voluntarily, and the adapter contract means reversing costs one
 config change and one re-index. Whichever is chosen, record the encoder and version

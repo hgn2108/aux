@@ -12,9 +12,13 @@ status: implementing
 
 ### Input
 
-- ~200–500 public tracks (MTG-Jamendo subset), plus Song Describer where appropriate
-- 10–30 private local files, MP3 for now (DEC-008: other formats supported in code,
-  validated later)
+- Song Describer (706 tracks / 1,106 captions) as the public retrieval benchmark; FMA
+  small (8,000 MP3s) as the ingestion corpus
+- **50–150 private local tracks** for the out-of-domain neighbour test. The original
+  10–30 was set before the pipeline existed and is too thin: with 30 tracks each
+  neighbour is drawn from 29 candidates, which cannot distinguish a good space from a
+  lucky one. Genre spread and personal familiarity matter more than raw count — the
+  judgement is "are these plausible neighbours", which only Irene can make.
 
 Both go through the identical pipeline.
 
@@ -50,13 +54,10 @@ After that, Slice 1 — natural-language retrieval with per-query-category human
 which is the first evidence about *aux's actual task* rather than about exact-track
 identification from a caption.
 
-### Awaiting Irene
+### Encoder: MuQ-MuLan (DEC-012, accepted)
 
-**DEC-012 — which encoder ships.** MuQ-MuLan beats CLAP decisively (R@10 0.407 vs 0.307,
-paired p = 4.5e-08, holding at both 1 and 5 segments), but its weights are **CC-BY-NC 4.0**
-— the productization risk DESIGN.md anticipated, now materialised. Recommendation is
-MuQ-MuLan for now, revisited if productization becomes a real goal; the `EncoderAdapter`
-contract makes reversing it one config change and one re-index. Irene's call.
+CC-BY-NC weights accepted for a portfolio/research project. CLAP stays as the shippable
+fallback at a measured cost of -0.099 R@10; swapping is one config change and a re-index.
 
 ### Implemented
 

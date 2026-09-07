@@ -187,7 +187,24 @@ Frozen pretrained encoders, benchmarked rather than assumed.
 **MuQ-MuLan** — newer music-specific comparator. ~700M parameters, 24 kHz input, code
 MIT, released weights **CC-BY-NC 4.0** (affects productization).
 
-Decision: benchmark both; do not assume a winner.
+**Decision: MuQ-MuLan** (E0, DEC-012, 2026-09-07). It beat CLAP decisively on Song
+Describer at matched caption set and matched pooling — R@10 0.407 vs 0.307, median rank
+15 vs 27, paired McNemar p = 4.5e-08 — and the result held at both 1 and 5 segments, so it
+is a property of the encoder rather than an interaction with the pooling choice.
+
+Two consequences carried forward rather than filed away:
+
+- **The weights are CC-BY-NC 4.0.** Accepted for a portfolio and research project; it
+  constrains commercial productization, and the anticipated risk in Risks / Assumptions has
+  now materialised rather than been avoided. CLAP remains the shippable fallback at a
+  measured cost of -0.099 R@10, and the `EncoderAdapter` contract makes the swap one config
+  change plus a re-index.
+- **It retrieves better and covers less catalogue** — hubness 8.0% vs CLAP's 4.9%, with 55
+  of 706 tracks never retrieved against 36. Recorded now as an input to Slice 6's
+  relevance/diversity work.
+
+Every result must record which encoder and version produced it; `EncoderAdapter.version`
+enforces this.
 
 ### Track representation — resolved by E1
 
