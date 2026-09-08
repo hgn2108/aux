@@ -4,53 +4,39 @@
   "tracks": 160,
   "queries": [
     {
-      "query": "dreamy atmospheric production with reverb",
-      "top": 0.18901380896568298,
-      "mean": -0.049843743443489075,
-      "sd": 0.0765940323472023,
-      "z_top": 3.11848783493042,
+      "query": "fast, upbeat rap and hip hop for running",
+      "top": 0.4196574091911316,
+      "mean": 0.12788192927837372,
+      "sd": 0.1957041174173355,
+      "z_top": 1.490900993347168,
       "top_genres": [
         "hiphop_rnb",
         "hiphop_rnb",
         "hiphop_rnb",
         "hiphop_rnb",
-        "jazz"
+        "hiphop_rnb"
       ]
     },
     {
-      "query": "lush reverb-heavy ambient texture",
-      "top": 0.24826845526695251,
-      "mean": -0.05236222594976425,
-      "sd": 0.0701608806848526,
-      "z_top": 4.284876346588135,
+      "query": "r&b songs about yearning",
+      "top": 0.701119601726532,
+      "mean": 0.3981119692325592,
+      "sd": 0.1958354115486145,
+      "z_top": 1.547256588935852,
       "top_genres": [
         "hiphop_rnb",
+        "vpop",
         "hiphop_rnb",
         "jazz",
-        "classical",
-        "dnb"
+        "hiphop_rnb"
       ]
     },
     {
-      "query": "spacious echoing production",
-      "top": 0.26697438955307007,
-      "mean": 0.07110635191202164,
-      "sd": 0.06467410922050476,
-      "z_top": 3.028538703918457,
-      "top_genres": [
-        "hiphop_rnb",
-        "hiphop_rnb",
-        "hiphop_rnb",
-        "hiphop_rnb",
-        "dnb"
-      ]
-    },
-    {
-      "query": "warm and nostalgic",
-      "top": 0.34975817799568176,
-      "mean": 0.15435215830802917,
-      "sd": 0.07360634207725525,
-      "z_top": 2.6547443866729736,
+      "query": "romantic classical piano",
+      "top": 0.45156151056289673,
+      "mean": 0.05752522870898247,
+      "sd": 0.0928855910897255,
+      "z_top": 4.242167949676514,
       "top_genres": [
         "classical",
         "classical",
@@ -60,143 +46,129 @@
       ]
     },
     {
-      "query": "upbeat energetic party track",
-      "top": 0.4235592484474182,
-      "mean": 0.18612827360630035,
-      "sd": 0.13381293416023254,
-      "z_top": 1.7743499279022217,
+      "query": "songs with heavy bass",
+      "top": 0.410824179649353,
+      "mean": 0.15601742267608643,
+      "sd": 0.11304669827222824,
+      "z_top": 2.253995656967163,
+      "top_genres": [
+        "hiphop_rnb",
+        "dnb",
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb"
+      ]
+    },
+    {
+      "query": "groovy jazz rap",
+      "top": 0.34030893445014954,
+      "mean": 0.04310248792171478,
+      "sd": 0.11706056445837021,
+      "z_top": 2.538911819458008,
+      "top_genres": [
+        "jazz",
+        "jazz",
+        "hiphop_rnb",
+        "jazz",
+        "jazz"
+      ]
+    },
+    {
+      "query": "chill r&b and hip hop for studying",
+      "top": 0.4712176024913788,
+      "mean": 0.20066027343273163,
+      "sd": 0.14862364530563354,
+      "z_top": 1.820419192314148,
+      "top_genres": [
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "jazz",
+        "hiphop_rnb"
+      ]
+    },
+    {
+      "query": "late night drive vibes",
+      "top": 0.43844035267829895,
+      "mean": 0.2695799469947815,
+      "sd": 0.11064519733190536,
+      "z_top": 1.5261430740356445,
+      "top_genres": [
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb"
+      ]
+    },
+    {
+      "query": "pre-game and club dance hip hop",
+      "top": 0.5193578600883484,
+      "mean": 0.22361645102500916,
+      "sd": 0.19999273121356964,
+      "z_top": 1.478760838508606,
+      "top_genres": [
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb"
+      ]
+    },
+    {
+      "query": "jersey club and dancey vibes",
+      "top": 0.3242693245410919,
+      "mean": 0.14234450459480286,
+      "sd": 0.10598750412464142,
+      "z_top": 1.716474175453186,
       "top_genres": [
         "edm",
-        "edm",
+        "hiphop_rnb",
         "edm",
         "edm",
         "edm"
       ]
     },
     {
-      "query": "aggressive hard-hitting trap with heavy 808s",
-      "top": 0.4302367866039276,
-      "mean": 0.05220355466008186,
-      "sd": 0.14931820333003998,
-      "z_top": 2.531728982925415,
+      "query": "west coast hip hop drive",
+      "top": 0.4108523726463318,
+      "mean": 0.1484830528497696,
+      "sd": 0.17055830359458923,
+      "z_top": 1.5382970571517944,
       "top_genres": [
         "hiphop_rnb",
         "hiphop_rnb",
         "hiphop_rnb",
-        "hiphop_rnb",
-        "dnb"
+        "jazz",
+        "hiphop_rnb"
       ]
     },
     {
-      "query": "slow smooth late-night R&B",
-      "top": 0.4907413423061371,
-      "mean": 0.1944521814584732,
-      "sd": 0.14344191551208496,
-      "z_top": 2.065568685531616,
+      "query": "afrobeats songs for the summer",
+      "top": 0.417763352394104,
+      "mean": 0.021865954622626305,
+      "sd": 0.11200136691331863,
+      "z_top": 3.534754991531372,
+      "top_genres": [
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "hiphop_rnb",
+        "jazz",
+        "edm"
+      ]
+    },
+    {
+      "query": "girly pop songs to get ready to",
+      "top": 0.5857431888580322,
+      "mean": 0.27665093541145325,
+      "sd": 0.15504994988441467,
+      "z_top": 1.9935011863708496,
       "top_genres": [
         "hiphop_rnb",
         "vpop",
         "hiphop_rnb",
-        "hiphop_rnb",
-        "jazz"
-      ]
-    },
-    {
-      "query": "stripped back and minimal, few instruments",
-      "top": 0.32341861724853516,
-      "mean": 0.16109776496887207,
-      "sd": 0.05214184895157814,
-      "z_top": 3.113062858581543,
-      "top_genres": [
-        "hiphop_rnb",
-        "hiphop_rnb",
-        "classical",
         "hiphop_rnb",
         "vpop"
-      ]
-    },
-    {
-      "query": "solo piano",
-      "top": 0.507141649723053,
-      "mean": 0.06176112964749336,
-      "sd": 0.08942180871963501,
-      "z_top": 4.980669975280762,
-      "top_genres": [
-        "classical",
-        "classical",
-        "classical",
-        "classical",
-        "classical"
-      ]
-    },
-    {
-      "query": "orchestral strings",
-      "top": 0.32999464869499207,
-      "mean": -0.009522592648863792,
-      "sd": 0.06224542111158371,
-      "z_top": 5.454493522644043,
-      "top_genres": [
-        "classical",
-        "jazz",
-        "hiphop_rnb",
-        "vpop",
-        "classical"
-      ]
-    },
-    {
-      "query": "acoustic jazz with upright bass",
-      "top": 0.2602238953113556,
-      "mean": -0.1224033385515213,
-      "sd": 0.11872053891420364,
-      "z_top": 3.222923755645752,
-      "top_genres": [
-        "jazz",
-        "jazz",
-        "jazz",
-        "jazz",
-        "jazz"
-      ]
-    },
-    {
-      "query": "fast breakbeat drums",
-      "top": 0.42702731490135193,
-      "mean": -0.002633457537740469,
-      "sd": 0.12503980100154877,
-      "z_top": 3.436192035675049,
-      "top_genres": [
-        "dnb",
-        "dnb",
-        "dnb",
-        "dnb",
-        "dnb"
-      ]
-    },
-    {
-      "query": "sung in Vietnamese",
-      "top": 0.24924913048744202,
-      "mean": 0.01560545526444912,
-      "sd": 0.07382523268461227,
-      "z_top": 3.1648213863372803,
-      "top_genres": [
-        "jazz",
-        "jazz",
-        "jazz",
-        "jazz",
-        "jazz"
-      ]
-    },
-    {
-      "query": "a saxophone solo",
-      "top": 0.3775075674057007,
-      "mean": 0.09765657037496567,
-      "sd": 0.08886270970106125,
-      "z_top": 3.1492512226104736,
-      "top_genres": [
-        "jazz",
-        "jazz",
-        "jazz",
-        "hiphop_rnb",
-        "jazz"
       ]
     }
   ]

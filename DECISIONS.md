@@ -651,6 +651,100 @@ Why does the E0 result hold at both 1 and 5 segments, and why does that matter?
 
 ---
 
+## DEC-013 — Context→acoustic translation as Slice 2's first mechanism
+
+**Status:** Proposed — the mechanism is designed; **building it is gated on Slice 1
+evidence**, and Slice 1 is not yet rated.
+
+**Current slice:** Slice 1
+
+**Question:**
+Irene's own query set is dominated by *context*: 7 of her 12 queries name an activity or
+setting ("for running", "for studying", "late night drive", "to get ready to"). Only 2 are
+purely acoustic. If real queries are mostly context and the encoder was trained on
+descriptive captions of *sound*, how does a context query reach the right audio?
+
+**The observation that prompted this.** A probe over Irene's queries
+(`evals/probe_query_response.json`) shows her compound genre+context queries separate poorly
+from the corpus: z-top 1.48-1.55 for "hip hop for running", "pre-game and club dance hip
+hop", "late night drive vibes", against 4.24 for "romantic classical piano". In a library
+that is 59% hip-hop, naming the genre selects nearly everything, so all the discriminating
+work falls on the context phrase — and there is little sign the encoder does much with it.
+
+**Decision (design, not yet implementation):**
+Slice 2's first mechanism is **context→acoustic translation**: rewrite a query that names a
+situation into one that names sound, then retrieve. This refines DEC-007 rather than
+replacing it — DEC-007 fixed that the planner is an LLM emitting schema-constrained output;
+this fixes *what the first useful thing to emit is*.
+
+Four rungs, cheapest first, each required to beat the one below it:
+
+| # | Mechanism | Cost | Beats |
+|---|---|---|---|
+| 0 | whole-query embedding | none | — (Slice 1 baseline) |
+| 1 | fixed lexicon: "for running" -> "fast tempo, driving percussion, high energy" | none, deterministic, offline | must beat 0 |
+| 2 | LLM rewrite of context into acoustic description | one API call | must beat 1 |
+| 3 | retrieve on both original and rewrite, fuse at rank level | 2x retrieval | must beat 2 |
+
+**Rung 1 exists to stop rung 2 being assumed.** A hand-written lexicon of perhaps thirty
+context terms is free, deterministic, needs no network, and captures the part of the mapping
+that is genuinely universal. If an LLM cannot beat that, the LLM is not earning its place --
+and per DEC-007's own framing, a measured "the simple version was enough" is a better
+result than an unmeasured planner.
+
+**The part no rewrite can fix.** Context→acoustic mapping splits in two:
+
+- **Universal** -- running is fast, sleeping is slow and quiet. Rungs 1-3 handle this.
+- **Personal** -- "for studying" means lo-fi hip-hop to one listener, solo piano to another,
+  and silence to a third. No lexicon and no LLM knows which. **Only behaviour resolves it**,
+  which is Slice 5's intent-specific preference layer.
+
+This is why DEC-004's authority order matters here rather than abstractly: the explicit
+query still wins, the intent profile only refines what "studying" means *for this user*.
+Slice 1B's playback events are what make that learnable, which is the concrete payoff of
+DEC-005 appearing in a specific mechanism rather than as a general argument.
+
+**Also observed, and out of scope for this mechanism:**
+- **"r&b songs about yearning"** has the highest mean score of any query (0.398) -- it
+  matches everything moderately, because "yearning" is lyrical content an audio encoder
+  cannot isolate. No acoustic rewrite fixes that; it is Slice 3.
+- **"sung in Vietnamese" returns jazz** despite 13 v-pop tracks. Language identity is not
+  represented. Also Slice 3, and a routing question for Slice 2.
+
+**Precondition — do not build before this evidence exists:**
+
+The Slice 1 query set includes a deliberate control: `hip hop for running`,
+`hip hop for studying`, `hip hop for falling asleep`, and bare `hip hop`. If those return
+substantially the same tracks, the context phrase contributes nothing and this decision is
+justified. If they diverge meaningfully, the baseline already handles context and rungs 1-3
+would be complexity without a problem to solve.
+
+That comparison needs no human ratings and should be run as soon as Slice 1's index is
+built.
+
+### Evidence
+- Direct evidence: probe z-scores above; Irene's query distribution (7 of 12 context-led).
+- Engineering inference: **primary basis.** That translating situation into sound moves the
+  query toward the language the encoder was trained on.
+- Open hypothesis: that context words currently contribute little. **Testable now**, by the
+  overlap control, and this decision should not be accepted before that result.
+
+**Removal/revisit condition:**
+If the overlap control shows context already works, this is withdrawn. If rung 1 beats
+rung 0 and rungs 2-3 do not beat rung 1, ship the lexicon and record that the LLM did not
+earn its place.
+
+**Files updated:**
+- STATUS.md: overlap control recorded as a Slice 1 deliverable
+- DESIGN.md: pending the Slice 1 result
+- EVALS.md: pending the Slice 1 result
+
+**Understanding check:**
+Why is the fixed lexicon in the ladder at all, given an LLM would almost certainly write a
+better one?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title
