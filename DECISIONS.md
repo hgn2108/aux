@@ -653,8 +653,9 @@ Why does the E0 result hold at both 1 and 5 segments, and why does that matter?
 
 ## DEC-013 — Context→acoustic translation as Slice 2's first mechanism
 
-**Status:** Proposed — the mechanism is designed; **building it is gated on Slice 1
-evidence**, and Slice 1 is not yet rated.
+**Status:** Proposed, with its original precondition **falsified** (2026-09-08). The
+mechanism still stands; the reason for building it has changed from "context is ignored" to
+"context works partially". Gated on Slice 1 human ratings.
 
 **Current slice:** Slice 1
 
@@ -711,16 +712,57 @@ DEC-005 appearing in a specific mechanism rather than as a general argument.
 - **"sung in Vietnamese" returns jazz** despite 13 v-pop tracks. Language identity is not
   represented. Also Slice 3, and a routing question for Slice 2.
 
-**Precondition — do not build before this evidence exists:**
+**Precondition — RUN, and it falsified the prediction.**
 
-The Slice 1 query set includes a deliberate control: `hip hop for running`,
-`hip hop for studying`, `hip hop for falling asleep`, and bare `hip hop`. If those return
-substantially the same tracks, the context phrase contributes nothing and this decision is
-justified. If they diverge meaningfully, the baseline already handles context and rungs 1-3
-would be complexity without a problem to solve.
+The stated test was: if `hip hop for running`, `for studying`, `for falling asleep` and bare
+`hip hop` return substantially the same tracks, context contributes nothing.
 
-That comparison needs no human ratings and should be run as soon as Slice 1's index is
-built.
+They do not. Top-10 Jaccard against bare `hip hop` is **0.05, 0.05 and 0.00**. Adding a
+context phrase almost wholly replaces the top of the list.
+
+Rank correlation against bare `hip hop` also falls in a sensible order --
+running 0.783, studying 0.716, falling asleep 0.694 -- so sleeping moves the ranking
+furthest from generic hip hop and running least.
+
+**But low overlap alone could not settle it.** Low top-K Jaccard with high rank correlation
+is equally consistent with a flat score distribution near the top, where any small shift
+reshuffles a noisy head. Instability is not discrimination, and the earlier z-top of ~1.5 on
+these queries made that explanation live. The Jaccard test as originally specified was the
+wrong instrument -- it could not distinguish the two.
+
+`scripts/acoustic_direction.py` settled it, using waveform features computed independently
+of the encoder. Retrieved sets differ in the direction the context word implies, on
+rhythmic density:
+
+| Query | loudness z | onset-rate z | brightness z |
+|---|---:|---:|---:|
+| hip hop for a workout | +0.28 | +0.08 | +0.12 |
+| hip hop for running | +0.09 | +0.05 | +0.04 |
+| hip hop for studying | +0.06 | -0.37 | +0.21 |
+| hip hop for falling asleep | +0.19 | -0.43 | -0.02 |
+| hip hop to relax to | -0.13 | -0.69 | +0.20 |
+
+running - sleeping = **+0.48** onset rate; workout - relax = **+0.77**. Two independently
+constructed pairs, same direction, on exactly the dimension those words imply. Noise does
+not do that.
+
+Loudness is inconsistent (-0.11 on one pair, +0.41 on the other) and brightness is flat --
+unsurprising in a library of modern loudness-normalised masters, where there is little
+variance to exploit.
+
+**Conclusion: context is not ignored. It is partially and unevenly used.** The encoder has
+an energy/activity dimension that context words reach, and does not appear to reach much
+else.
+
+**Revised precondition, for Slice 1's human ratings:**
+Build rung 1 only if context-bearing queries score **materially worse than acoustic
+queries** in the per-category ratings. That is now the open question: context changes
+retrieval, but changing it is not the same as improving it, and only a listener can say
+whether the changed results are better.
+
+If context queries rate comparably to acoustic ones, the baseline is adequate and this
+whole ladder is complexity without a problem -- the same conclusion the original
+precondition was reaching for, now via the right measurement.
 
 ### Evidence
 - Direct evidence: probe z-scores above; Irene's query distribution (7 of 12 context-led).
@@ -744,6 +786,22 @@ Why is the fixed lexicon in the ladder at all, given an LLM would almost certain
 better one?
 
 ---
+
+
+### Result of the precondition test (2026-09-08)
+
+The prediction recorded above -- that context phrases contribute little -- was **wrong**,
+and recording it in advance is what made that visible rather than arguable.
+
+The methodological lesson is the more useful one. The test as originally designed measured
+*whether the results changed*, when the question was *whether they changed for a reason*.
+Those need different instruments, and a set-overlap statistic cannot tell them apart. The
+deciding evidence had to come from outside the system being tested -- waveform features the
+encoder never sees.
+
+This is the same failure shape as the 0.724 cosine in Eval 0C: an absolute statistic
+crossing a threshold, where the real question needed a relative or independent measurement.
+Twice now the naive instrument would have produced a confident and wrong conclusion.
 
 # Decision entry template
 
