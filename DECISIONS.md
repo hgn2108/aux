@@ -1427,6 +1427,130 @@ well?
 
 ---
 
+## DEC-021 — Validation results: two signals, two jobs, and a per-library threshold
+
+**Status:** Proposed — revises DEC-020 on evidence from three validation phases
+(`docs/VALIDATION_PLAN.md`), all run without human rating time.
+
+**Current slice:** Slice 2
+
+### Phase A — the measure DEC-020 chose does not transfer
+
+Same 15 queries across seven collections, 26 to 1,500 tracks:
+
+| collection | n | z_top | relative_gap | crowding | top_k_entropy |
+|---|---:|---:|---:|---:|---:|
+| personal — electronic | 26 | 2.23 | 0.83 | 0.04 | 0.80 |
+| personal — acoustic | 40 | 2.40 | 0.69 | 0.03 | 0.85 |
+| personal — no hip-hop | 66 | 2.52 | 0.56 | 0.03 | 0.85 |
+| personal — hip-hop only | 94 | 2.88 | 0.56 | 0.01 | 0.81 |
+| personal — all | 160 | 2.91 | 0.46 | 0.01 | 0.82 |
+| Song Describer | 706 | 3.54 | 0.23 | 0.01 | 0.84 |
+| FMA | 1,500 | 3.51 | 0.21 | 0.00 | 0.83 |
+
+**`z_top` rises monotonically with collection size** — 2.23, 2.40, 2.52, 2.88, 2.91, 3.54.
+It is substantially measuring how large the library is. DEC-020's threshold of 3.0 sits at
+the median for the personal library and below the median for FMA, so it would gate
+differently in each. **It would not have transferred**, exactly as the plan suspected.
+
+Only `top_k_entropy` is stable (0.80-0.85, ratio 1.07).
+
+*Caveat on the verdict column:* `crowding` was scored "drifts" on a ratio of 14.42, but its
+values are 0.00-0.04 and a ratio between near-zero numbers is meaningless. Its absolute
+range, 0.04, is the smallest of the four. The ratio test is wrong for measures near zero.
+
+### Phase B — no confidence-shape measure detects a missing genre
+
+Each genre removed from the index in turn, then queried for. Ground truth is a fact about
+the index, not a judgement.
+
+| measure | present | absent | correctly detected |
+|---|---:|---:|---:|
+| z_top | 3.28 | 3.14 | 11/22 *(chance)* |
+| relative_gap | 0.47 | 0.51 | 7/22 *(worse than chance)* |
+| crowding | 0.02 | 0.01 | 13/22 |
+| top_k_entropy | 0.83 | 0.78 | 5/22 *(much worse than chance)* |
+| **raw top score** | **0.41** | **0.29** | **20/22** |
+
+**The shape of the score distribution does not change when the material is removed.**
+Something still stands out relative to the rest — it is simply a worse match. Only the
+*absolute* similarity of the best match falls.
+
+This exposes a conflation in DEC-020's design. Two different questions were being asked of
+one signal:
+
+- **"Is there a distinctive winner?"** — a shape question, answered by `z_top`.
+- **"Is the winner actually any good?"** — an absolute question, answered only by the raw
+  top score.
+
+Step 4 of that design needs the second and was given the first.
+
+### Phase C — the premise survives its strongest test
+
+Song Describer captions are already written in sound-describing language, so DEC-020's
+premise — that rewriting works by closing a language gap — predicts no effect there.
+
+150 captions, 706 candidate tracks, ground truth known: R@10 0.360 to 0.373, R@1 0.080 to
+0.067, McNemar p = 0.77 to 1.00 at every K. **No measurable effect**, which is what the
+premise predicts. The gate also behaved as designed, declining to rewrite on 74%.
+
+*The script's first automatic verdict said "premise CONTRADICTED" on a 0.013 difference in
+R@10. That comparison used a bare `<=` with no significance test and was wrong; it has been
+corrected to require significance. Recorded because an automated verdict that flips on noise
+is exactly the kind of error this project has been trying to catch.*
+
+### The impasse, and the resolution
+
+Re-testing the gate with each measure on the 10 rated queries:
+
+| gate fires when... | fires | declines | separation | p |
+|---|---:|---:|---:|---:|
+| **z_top low** | +1.07 | -0.27 | +1.33 | **0.048** |
+| relative_gap low | +1.00 | -0.20 | +1.20 | 0.079 |
+| crowding low | +1.08 | -0.06 | +1.14 | 0.124 |
+| **top_k_entropy low** | +0.47 | +0.33 | +0.13 | **0.889** |
+
+**The measure that works does not transfer, and the measure that transfers does not work.**
+
+The resolution is in how the working measure was tested: the gate above fires on
+`z_top < median(z_top for this library)` — a **percentile**, not a fixed value. That is
+self-calibrating by construction, so `z_top`'s drift with library size stops mattering: it
+shifts the whole distribution, and a percentile moves with it.
+
+DEC-020's error was not choosing `z_top`. It was choosing a **fixed threshold**.
+
+### Revised design
+
+```text
+query
+  -> split negation                      always; structural
+  -> retrieve on the plain query
+  -> raw top score low?                  -> library probably cannot answer; say so
+  -> z_top below this library's median?  -> rewrite and retrieve again
+     otherwise                           -> keep the plain result
+```
+
+Two signals, two jobs. The gap detector is absolute and needs no calibration; the rewrite
+gate is a percentile and calibrates itself per library from a reference query set computed
+once at index time.
+
+**What is still unvalidated:** the percentile gate on held-out queries (Phase D), the raw
+top-score threshold for the gap detector, and everything about other people's libraries.
+
+**Removal/revisit condition:**
+If the percentile gate does not reproduce on held-out queries, fall back to always-plain
+retrieval.
+
+**Files updated:**
+- DESIGN.md: revised architecture pending Phase D
+- STATUS.md: validation results, Phase D as the next step
+
+**Understanding check:**
+Why does a percentile threshold rescue a measure that drifts with library size, and what
+does it cost?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

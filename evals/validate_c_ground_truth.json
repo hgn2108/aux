@@ -1,0 +1,30 @@
+{
+  "run_at": "2026-09-09T14:10:09.818812+00:00",
+  "encoder": "OpenMuQ/MuQ-MuLan-large",
+  "planner": "claude-haiku-4-5-20251001",
+  "n_captions": 150,
+  "n_tracks": 706,
+  "baseline": {
+    "n_queries": 150,
+    "n_candidates": 706,
+    "recall@1": 0.08,
+    "recall@5": 0.2733333333333333,
+    "recall@10": 0.36,
+    "median_rank": 18.0,
+    "mean_rank": 38.88,
+    "mrr": 0.1813619445545527
+  },
+  "forced_rewrite": {
+    "n_queries": 150,
+    "n_candidates": 706,
+    "recall@1": 0.06666666666666667,
+    "recall@5": 0.2733333333333333,
+    "recall@10": 0.37333333333333335,
+    "median_rank": 19.0,
+    "mean_rank": 39.79333333333334,
+    "mrr": 0.17175489756541726
+  },
+  "z_top_median": 3.257400904511358,
+  "share_below_gate": 0.26,
+  "verdict": "premise SUPPORTED \u2014 rewriting has no measurable effect on queries already written in sound-describing language"
+}

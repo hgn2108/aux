@@ -111,9 +111,23 @@ def main() -> int:
     print("  DEC-020 predicts high confidence here, so the gate should mostly decline "
           "to rewrite.")
 
-    verdict = ("premise HOLDS — forcing rewrites does not help already-sound-language queries"
-               if mp["recall@10"] <= mb["recall@10"]
-               else "premise CONTRADICTED — rewriting helps even in-distribution queries")
+    # A bare <= comparison flips on differences far smaller than the noise floor. The
+    # premise predicts *no effect* here, so the test is whether any difference is
+    # significant -- not which of two nearly-equal numbers is larger.
+    significant = any(
+        mcnemar_exact(int(((base_ranks <= k) & (plan_ranks > k)).sum()),
+                      int(((base_ranks > k) & (plan_ranks <= k)).sum())) < 0.05
+        for k in (1, 5, 10)
+    )
+    if not significant:
+        verdict = ("premise SUPPORTED — rewriting has no measurable effect on queries "
+                   "already written in sound-describing language")
+    elif mp["recall@10"] > mb["recall@10"]:
+        verdict = ("premise CONTRADICTED — rewriting significantly helps even "
+                   "in-distribution queries")
+    else:
+        verdict = ("premise SUPPORTED and stronger — rewriting significantly hurts "
+                   "in-distribution queries")
     print(f"\nverdict: {verdict}")
 
     out = ROOT / "evals" / "validate_c_ground_truth.json"
