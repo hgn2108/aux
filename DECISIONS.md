@@ -1330,6 +1330,103 @@ Why is the overall p of 0.508 not evidence against this result?
 
 ---
 
+## DEC-020 — Generalise on library-relative confidence, not on query type
+
+**Status:** Proposed — a library-independent architecture, needing validation on held-out
+queries and ideally a second library.
+
+**Current slice:** Slice 2
+
+**Question:** DEC-019's rule — apply the planner to situation/mood queries, not to
+instrumentation queries — was fitted to one library. What generalises to *any* library?
+
+**The problem with the query-type rule.** Instrumentation queries failed here because *this*
+library has no rock and seven classical tracks. In a rock-heavy library "distorted electric
+guitar" would be answerable and the rule could invert. It encodes a fact about this
+collection as if it were a fact about queries.
+
+**A library-relative alternative, tested on the same data:** gate on **z-top** — how far the
+best match stands above the corpus mean, in standard deviations, for that query. It is
+computed against whatever library is present, so it adapts by construction.
+
+| split (negation query excluded, n=10) | applies | mean delta | positive | separation | p |
+|---|---:|---:|---:|---:|---:|
+| **z-top < 3.0** (library-relative) | 6 | **+1.00** | 5/6 | +1.50 | **0.029** |
+| names a situation not an instrument (DEC-019) | 6 | +1.06 | 5/6 | +1.64 | 0.019 |
+
+Both split the same queries and are statistically indistinguishable here. **The z-top rule
+is preferred not because it fits better but because it cannot be library-specific**: it
+measures the query against the collection rather than classifying the query.
+
+**Why it works, mechanically.** A high z-top means one track stands far above the rest — the
+query is already well-targeted for this collection, and elaborating it moves away from a
+match that was already found. A low z-top means nothing stands out, so the query is
+under-specified *for this library*, and elaboration adds the specificity that was missing.
+Note this is not "the library has a good answer": "orchestral strings" has z-top 5.6 and
+relevance 3.33. It means the library has a *distinctive* answer, good or not.
+
+### What generalises from the whole project, and what does not
+
+**Generalises — properties of contrastively trained joint encoders:**
+
+1. **Concrete sound language beats abstract language.** "solo piano" z = 4.97 against
+   "upbeat energetic party track" z = 1.77. These models are trained on captions describing
+   sound, so queries that name sound land in-distribution. This is why rewriting works at
+   all.
+2. **Negation cannot live inside the embedding.** "no vocals" contains "vocals" and lands
+   near vocal music. Splitting the query and subtracting at score level is a structural fix
+   that applies to any CLIP-family model, and it produced the single largest measured gain
+   in this project (1.00 to 5.00 on a rated query).
+3. **Whole-track pooling beats a single window.** Five segments beat one on two independent
+   encoders (DEC-011). Tracks are not uniform; one window is not the track.
+4. **Cosine order within the retrieved set carries little information.** NDCG 0.866 against
+   0.863 for the same items shuffled. Five reranking methods failed to beat it (DEC-015).
+5. **Elaboration amplifies error when the target is absent.** The planner made
+   "distorted electric guitar" worse, 2.33 to 1.00, in a library with no rock. A longer,
+   more specific query wanders further when there is nothing to find.
+
+**Does not generalise:** which genres and queries work, the 59% hip-hop composition, the
+specific library gaps, and any rule phrased in terms of query *type*.
+
+### Proposed general architecture
+
+```text
+query
+  -> split negation                    always; structural, no gate needed
+  -> retrieve on the plain query
+  -> measure z-top against this library
+       z-top high  -> keep the plain result; the query is already well-targeted
+       z-top low   -> rewrite and retrieve again; the query is under-specified here
+  -> if z-top low AND top score low -> the library probably cannot answer;
+                                       say so rather than returning the least-bad five
+```
+
+The last line is the part with no evidence yet and the largest potential value. Every
+failure in this project fell into two kinds — query-language mismatch, which rewriting
+fixes, and library gap, which nothing fixes and rewriting worsens. A system that
+distinguishes them can act correctly on both, and can tell the user which one happened
+instead of silently returning five wrong answers.
+
+**What this still needs:**
+- validation of the z-top threshold on held-out queries, with the threshold fixed in advance;
+- ideally a second, differently-composed library, since a library-relative rule can only be
+  shown library-independent by testing on more than one;
+- the threshold itself (3.0) is fitted to 10 queries and should be treated as a placeholder.
+
+**Removal/revisit condition:**
+If z-top does not reproduce as a gate on held-out queries, fall back to always-plain
+retrieval; the planner's measured benefit does not survive being applied indiscriminately.
+
+**Files updated:**
+- DESIGN.md: proposed general architecture, pending validation
+- STATUS.md: recorded as the generalising result
+
+**Understanding check:**
+Why is the z-top rule preferred over the query-type rule when both fit this data equally
+well?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title
