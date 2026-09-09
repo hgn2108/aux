@@ -6,96 +6,54 @@ gate: 1 — waived, not passed (2026-09-06)
 ## Current Slice
 
 name: Slice 2 — Complex intent → routed retrieval
-status: implementing (rung 1)
+status: **closed** (2026-09-10)
 
-## Slice Contract
+## Slice 2 outcome
 
-### Input
+**Shipped:** negation handling. A contrastive encoder cannot represent "not X", so the query
+is split and the exclusion applied at score level. Excluded-genre leakage fell 0.22 to 0.08,
+and a rated query moved **1.00 to 5.00** — the largest single measured gain in the project.
 
-- A free-form query, including ones naming a situation rather than a sound
-- The 160-track library indexed with MuQ-MuLan at 5 segments
+**Built, measured, off by default:** the LLM query planner. It helps vague queries (+1.07 on
+ones the baseline handled badly) and *harms* specific ones (-0.58), so applied
+indiscriminately it nets to nothing (+0.05, p = 1.000). It also costs ~1.7 s and an internet
+connection. Available behind `use_planner`; DEC-021 records the rule for when it is worth
+enabling, and that rule is not validated on held-out queries.
 
-### Output
+**Measured and rejected:** fixed context lexicon (DEC-016), five reranking methods
+(DEC-015), rank fusion (DEC-017).
 
-- A structured interpretation of the query
-- Retrieval driven by that interpretation
-- A per-category comparison against the Slice 1 whole-query baseline
+**Established about *why* rewriting works**, tested against ground truth: it closes a gap
+between the user's language and the encoder's. Where no gap exists — Song Describer
+captions, already written in sound-describing language — it has no effect (Phase C).
 
-### Expected Behavior
+**A design principle that outlives the component** (DEC-021): gate on how confidently *this
+library* answers, not on what kind of query it is. Two signals doing two jobs — an absolute
+top score to detect "the library cannot answer" (20/22 on synthetic gaps), and a
+library-relative percentile to decide whether rewriting is worth it. A fixed threshold does
+not transfer; z_top rises monotonically with collection size, 2.23 at 26 tracks to 3.54 at
+706.
 
-**Hypothesis:** translating a query that names a *situation* into one that names *sound*
-moves it closer to the language the encoder was trained on, and improves retrieval for the
-categories Slice 1 found weak — pure context (3.14) above all.
-
-Built as DEC-013's ladder, each rung required to beat the one below:
-
-| Rung | Mechanism | Status |
-|---|---|---|
-| 0 | whole-query embedding | Slice 1 baseline, measured |
-| 0.5 | negation split at score level | **done** (DEC-014), leakage 0.22 → 0.08 |
-| 1 | fixed context→acoustic lexicon | **in progress** |
-| 2 | LLM rewrite, schema-constrained (DEC-007) | blocked: needs an API key |
-| 3 | retrieve on both, fuse at rank level | after rung 2 |
-
-Rung 1 is not a placeholder. It is free, deterministic, offline, and captures the part of
-context→acoustic mapping that is genuinely universal. If the LLM cannot beat it, the LLM has
-not earned its network dependency — and a measured "the simple version was enough" is a real
-result, not a failure.
-
-Pass the slice if a rung beats the Slice 1 baseline on the weak categories without
-degrading the strong ones, or if the ladder is documented as not earning its place.
-
-### Not in scope
-
-Lyrical content ("r&b songs about yearning") and language identity ("sung in Vietnamese"
-returning jazz) are Slice 3. Both surfaced in Slice 1 and neither is fixable by acoustic
-rewriting.
+`src/aux/search.py` is now the single entry point carrying everything that survived.
 
 ## Next Action
 
-**Validate the selective rule on held-out queries** — the one thing standing between Slice 2
-and a shippable result. The rule is fitted to 9 queries; adopting it without testing it on
-queries it was not derived from would repeat DEC-018's error in the opposite direction.
+**Irene's call: Slice 3 (lyrics) or Slice 1B (player).** Her instinct is lyrics first.
 
-Needs ~10 new queries (Claude drafts, Irene confirms they are natural), the rule applied
-automatically, and one more ~8-minute rating round.
+The case for lyrics is measured, not speculative — two Slice 1 failures are lyrical:
+"r&b songs about yearning" had the *highest* mean score of any query (0.398), meaning it
+matched everything moderately because the audio encoder cannot isolate lyrical content; and
+"sung in Vietnamese" returns jazz despite 13 v-pop tracks, because language identity is not
+represented.
 
-### E2b result (DEC-019) — pre-registered at `540a5e4` before any data existed
+**The open question is sourcing, and PROJECT.md already constrains it.** Lyrics APIs match a
+track against a database, which is exactly the failure DEC-001 avoided — it does not work
+for arbitrary local files. Transcribing the audio does, and is the only source satisfying
+train/inference parity. That needs deciding before any of Slice 3 is built.
 
-| group (fixed in advance) | n | baseline | planner | delta | positive |
-|---|---:|---:|---:|---:|---:|
-| **predicted to help** | 5 | 3.00 | **4.07** | **+1.07** | **4/5** |
-| **predicted NOT to help** | 4 | 3.50 | 2.92 | **-0.58** | **0/4** |
-
-Separation +1.65, exact permutation test **p = 0.024**.
-
-The overall number is weak (2.97 to 3.70, sign test p = 0.508) because averaging a group the
-planner helps with a group it harms cancels the effect. **The cancellation is the finding.**
-
-**The planner harms instrumentation queries**, not merely fails to help: 0 of 4,
-"distorted electric guitar" 2.33 to 1.00. Asked for something the library lacks, it
-elaborates the query and wanders further from a target that was never there.
-
-**A confound recorded:** the biggest single gain, "solo piano, no vocals" 1.00 to 5.00, is
-negation handling the deterministic parser already provides free. Excluding it the overall
-delta falls +0.73 to +0.40. The predicted-to-help group does not contain it.
-
-**Objective and human agreed on the group that mattered** and disagreed on the other —
-intent match rose where ratings fell, because it rewards moving in the named acoustic
-direction rather than satisfying the request. The pre-registration named that as the more
-informative outcome. Where they disagreed, the ratings were right.
-
-### Slice 2 scoreboard
-
-| component | outcome |
-|---|---|
-| negation split (DEC-014) | **shipped** — leakage 0.22 to 0.08; confirmed by rating, 1.00 to 5.00 |
-| fixed lexicon (DEC-016) | rejected — dilutes the genre |
-| reranking (DEC-015) | rejected — no method beat cosine order |
-| rank fusion (DEC-017) | rejected — dilutes the planner |
-| LLM planner (DEC-019) | **selective adoption proposed**, pending validation |
-
-**Independent blocker:** ~1.7 s p50 latency, ~7 s on a first structured call.
+**The case for the player:** nothing in this project can currently be shown to anyone.
+There is no interface. It also unblocks Slice 5, which needs behavioural data that only
+in-product playback produces.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 
