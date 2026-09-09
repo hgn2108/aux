@@ -65,3 +65,45 @@ The planner ships **selectively** — applied only where the baseline is weak �
 both the objective intent-match and the human ratings on the "yes" queries. If only one
 improves, that is recorded as unresolved rather than argued in either direction. If neither,
 Slice 2 closes negative and the planner stays documented research.
+
+
+---
+
+## Amendment 1 (2026-09-09, after a first run returned no scores)
+
+**What happened.** The intent-match metric scored the retrieved audio against terms found in
+the *original query*. Every one of the 11 weak queries returned `n/a`, because none of them
+names a measurable property — and that is exactly why they are weak. "Something to fall
+asleep to" contains no word that maps to a waveform feature.
+
+**What was rejected.** Scoring the planner against terms in *its own rewrite*. It would
+grade the planner on its own homework: a rewrite could name "slow, quiet", retrieve slow
+quiet music, and score perfectly while ignoring what the user meant.
+
+**The fix.** A third source — the acoustic direction each query *implies*, written below from
+the plain meaning of the query and applied identically to both systems. These are a
+measurement standard, not a retrieval mechanism. DEC-016 rejected a hand-written
+context→acoustic table as a way to *retrieve*; using one to define what a query means for
+*scoring* is the same act as writing a relevance label by hand, which is how every human
+evaluation works.
+
+**Written before any intent score existed** — the first run produced `n/a` for every query,
+so no result could have informed these.
+
+| query | implied direction |
+|---|---|
+| solo piano, no vocals | quiet, sparse |
+| warming up before going out | loud, fast, bright |
+| distorted electric guitar | loud, bright |
+| background music while reading | quiet, sparse |
+| jersey club and dancey vibes | fast, loud |
+| orchestral strings | *none — instrumentation, not a physical direction* |
+| girly pop songs to get ready to | fast, bright, loud |
+| saxophone over an upright bass | *none — instrumentation* |
+| something for a rainy morning | quiet, slow |
+| playful and light-hearted | bright, fast |
+| something to fall asleep to | quiet, slow, sparse |
+
+Two queries name instrumentation with no honest physical direction and are scored `n/a`
+rather than assigned an invented mapping. Predictions from the original pre-registration are
+unchanged.

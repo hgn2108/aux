@@ -53,60 +53,49 @@ rewriting.
 
 ## Next Action
 
-**Irene's call.** Slice 2's planner did not beat the baseline for a listener, but the test
-was run on the wrong queries — see below. Three options:
+**Validate the selective rule on held-out queries** — the one thing standing between Slice 2
+and a shippable result. The rule is fitted to 9 queries; adopting it without testing it on
+queries it was not derived from would repeat DEC-018's error in the opposite direction.
 
-1. **Re-rate ~12 weak queries** (~10 min). Selected by Slice 1 scores *before* the run:
-   context-without-genre, plus the individual failures at 1.2-1.6. This is where headroom
-   exists, and it is the test that should have been run first.
-2. **Close Slice 2 negative.** The planner is documented, measured, and not adopted. Move to
-   Slice 3 (lyrics) or Slice 1B (playback).
-3. **Fix latency first** (~1 hour), then decide. 1.7 s p50 blocks interactive use regardless
-   of relevance.
+Needs ~10 new queries (Claude drafts, Irene confirms they are natural), the rule applied
+automatically, and one more ~8-minute rating round.
 
-### E2 human result — no measurable improvement (DEC-018)
+### E2b result (DEC-019) — pre-registered at `540a5e4` before any data existed
 
-14 queries, 70 clips, blind pooled A/B on the personal library.
+| group (fixed in advance) | n | baseline | planner | delta | positive |
+|---|---:|---:|---:|---:|---:|
+| **predicted to help** | 5 | 3.00 | **4.07** | **+1.07** | **4/5** |
+| **predicted NOT to help** | 4 | 3.50 | 2.92 | **-0.58** | **0/4** |
 
-| system | mean relevance | 95% CI | NDCG | success@1 |
-|---|---:|---|---:|---:|
-| baseline | 4.48 | [4.10, 4.79] | 0.952 | 86% |
-| planner | 4.52 | [4.24, 4.76] | 0.943 | 93% |
-| **difference** | **+0.05** | **[-0.33, +0.38]** | | |
+Separation +1.65, exact permutation test **p = 0.024**.
 
-Better on 4, worse on 3, **tied on 7**. Sign test p = 1.000.
+The overall number is weak (2.97 to 3.70, sign test p = 0.508) because averaging a group the
+planner helps with a group it harms cancels the effect. **The cancellation is the finding.**
 
-**The planner is not the default.** PROJECT.md requires every added component to beat the
-simpler baseline or be removed, and it did not.
+**The planner harms instrumentation queries**, not merely fails to help: 0 of 4,
+"distorted electric guitar" 2.33 to 1.00. Asked for something the library lacks, it
+elaborates the query and wanders further from a target that was never there.
 
-**The test was badly designed, and that is Claude's error.** The queries were chosen where
-the *objective* metric showed the planner helping — genre-anchored context. But Slice 1 had
-already shown that category was the baseline's **strongest** (compound 4.18 of four
-categories). So the comparison ran where the baseline scored 4.48 of 5, leaving 0.52 of
-headroom, and 7 of 14 queries tied outright at or near 5.00.
+**A confound recorded:** the biggest single gain, "solo piano, no vocals" 1.00 to 5.00, is
+negation handling the deterministic parser already provides free. Excluding it the overall
+delta falls +0.73 to +0.40. The predicted-to-help group does not contain it.
 
-The right criterion was **where the baseline was weak** — Slice 1 recorded context at 3.14
-with individual failures at 1.2 and 1.6. Those queries were excluded.
+**Objective and human agreed on the group that mattered** and disagreed on the other —
+intent match rose where ratings fell, because it rewards moving in the named acoustic
+direction rather than satisfying the request. The pre-registration named that as the more
+informative outcome. Where they disagreed, the ratings were right.
 
-So the honest reading is *"no improvement detected on queries that already worked"*, not
-*"the planner does not improve relevance"*.
+### Slice 2 scoreboard
 
-**Recorded as a hypothesis, not a finding:** the three largest gains were on the baseline's
-weakest queries (+1.00 each) and the two largest losses on queries it already answered
-perfectly (-1.67, -0.67). That suggests applying the planner only when the baseline is
-uncertain — post-hoc, from 14 queries, and not evidence.
+| component | outcome |
+|---|---|
+| negation split (DEC-014) | **shipped** — leakage 0.22 to 0.08; confirmed by rating, 1.00 to 5.00 |
+| fixed lexicon (DEC-016) | rejected — dilutes the genre |
+| reranking (DEC-015) | rejected — no method beat cosine order |
+| rank fusion (DEC-017) | rejected — dilutes the planner |
+| LLM planner (DEC-019) | **selective adoption proposed**, pending validation |
 
-### What stands from Slice 2
-
-- **Eval 2A:** 0% fallback, API-enforced schema, $1.11 per 1,000 queries.
-- **DEC-017:** the planner responds to context far better than the baseline, on waveform
-  features the encoder never sees (+0.26, 15/18 pairs, CI excluding zero).
-- **Negation (DEC-014):** shipped and working — leakage 0.22 to 0.08.
-- **Rejected on evidence:** fixed lexicon (DEC-016), reranking (DEC-015), rank fusion
-  (DEC-017).
-
-**Independently disqualifying for now:** ~1.7 s p50 latency, ~7 s on a first structured
-call. That blocks an interactive search box regardless of relevance.
+**Independent blocker:** ~1.7 s p50 latency, ~7 s on a first structured call.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 

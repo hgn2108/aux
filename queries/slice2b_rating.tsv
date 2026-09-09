@@ -1,0 +1,13 @@
+# E2b rating set: every Slice 1 query below 3.5 mean relevance.
+# Selected mechanically by threshold, per docs/PREREG_E2B.md.
+acoustic	claude	solo piano, no vocals
+context	claude	warming up before going out
+acoustic	claude	distorted electric guitar
+context	claude	background music while reading
+compound	irene	jersey club and dancey vibes
+acoustic	claude	orchestral strings
+compound	irene	girly pop songs to get ready to
+acoustic	claude	saxophone over an upright bass
+context	claude	something for a rainy morning
+mood	claude	playful and light-hearted
+context	claude	something to fall asleep to

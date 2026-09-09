@@ -1245,6 +1245,91 @@ this test able to tell the difference?
 
 ---
 
+## DEC-019 — E2b: the planner helps where predicted and harms where predicted
+
+**Status:** Proposed — adopt the planner **selectively**, under a rule that still needs
+validation on held-out queries.
+
+**Current slice:** Slice 2
+
+**Experiment:** E2b, pre-registered at commit `540a5e4` before any result existed
+(`docs/PREREG_E2B.md`). Queries selected mechanically: every Slice 1 query below 3.5 mean
+relevance, 11 of 36. Per-query predictions fixed in advance. 56 clips, blind pooled A/B.
+
+### Result — the pre-registered split separated cleanly
+
+| group (fixed in advance) | n | baseline | planner | delta | positive |
+|---|---:|---:|---:|---:|---:|
+| **predicted to help** | 5 | 3.00 | **4.07** | **+1.07** | **4/5** |
+| **predicted NOT to help** | 4 | 3.50 | 2.92 | **-0.58** | **0/4** |
+| uncertain | 2 | 1.83 | 4.33 | +2.50 | 2/2 |
+
+Separation between the two predicted groups: **+1.65**, exact permutation test over the
+group labels **p = 0.024**.
+
+The overall comparison is much weaker — baseline 2.97 to planner 3.70, sign test p = 0.508 —
+because averaging a group it helps with a group it harms cancels the effect out. **That
+cancellation is the finding**, not noise to be averaged away.
+
+### The planner actively harms instrumentation queries
+
+Not merely neutral: 0 of 4, mean -0.58. "distorted electric guitar" fell 2.33 to 1.00. The
+mechanism is visible in the rewrites — asked for something the library does not contain, the
+planner elaborates the query, and elaboration wanders further from a target that was never
+there. The plain query at least stays close to the words the user typed.
+
+This is why applying it blindly is worse than not applying it at all.
+
+### A confound in the headline number, recorded
+
+The largest single gain is "solo piano, no vocals", 1.00 to 5.00. The A/B baseline is plain
+embedding with **no negation handling**, while the deterministic parser (DEC-014) already
+ships that for free — so this query credits the planner with something the cheap fix also
+delivers. Excluding it, the overall delta falls from +0.73 to **+0.40**.
+
+The predicted-to-help group does not contain that query, so the +1.07 is unaffected.
+
+### What this confirms about DEC-018
+
+DEC-018 noted post-hoc that gains clustered where the baseline was weak and losses where it
+was strong, and recorded it as a hypothesis explicitly not evidence. E2b tested a related and
+sharper claim — *which kinds* of query — on different queries, with the split fixed in
+advance. It held.
+
+### Objective and subjective agreed this time, with one caveat worth keeping
+
+Intent match rose +0.60 on the predicted-to-help group (5/5) and human ratings rose +1.07
+(4/5). But intent match *also* rose on the group it was predicted not to help, while ratings
+fell there. The pre-registration named that outcome as the more informative one, and the
+reason is visible: intent match rewards moving in the named acoustic direction, so returning
+generic fast loud music satisfies "jersey club" acoustically without being jersey club.
+**Where the two disagreed, the ratings were right.**
+
+### Proposed rule, and what it still needs
+
+Apply the planner when the query names a **situation or mood** and no concrete
+instrumentation; use the plain query otherwise. The planner's own facets make this
+decidable at runtime — `context` or `mood` populated, `acoustic` absent from the original
+query.
+
+**This rule is fitted to 9 queries and is not yet validated.** It must be tested on
+held-out queries before it ships, with the rule fixed beforehand. Adopting it on this
+evidence alone would repeat the mistake DEC-018 made in the other direction.
+
+**Removal/revisit condition:**
+If the rule does not reproduce on held-out queries, the planner stays documented research.
+Latency (~1.7 s p50) is an independent blocker for interactive use regardless.
+
+**Files updated:**
+- STATUS.md: E2b result, Slice 2 outcome, validation as the next step
+- EVALS.md: E2b and its pre-registration
+- DESIGN.md: pending validation of the selective rule
+
+**Understanding check:**
+Why is the overall p of 0.508 not evidence against this result?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title
