@@ -973,6 +973,71 @@ Why is "no method beat the baseline" not the same claim as "reranking cannot hel
 
 ---
 
+## DEC-016 — Rung 1 (fixed context lexicon) does not beat the baseline
+
+**Status:** Accepted (2026-09-09) — rung 1 is not adopted. It remains in the codebase as the
+bar rung 2 must clear.
+
+**Current slice:** Slice 2
+
+**Experiment:** `scripts/eval_expansion.py`. A hand-written table of 30 context terms maps
+situations to acoustic descriptions ("running" -> "fast tempo, driving percussion, high
+energy"). The expansion is embedded separately and blended with the original query at
+weight *b*. Two metrics, neither needing human ratings:
+
+- **separation** -- how far apart two opposed contexts pull retrieval, on waveform features
+  the encoder never sees (onset rate), over four minimal pairs;
+- **genre fidelity** -- for genre-anchored queries, whether the named genre still dominates.
+
+**Result:**
+
+| weight | separation | genre fidelity |
+|---:|---:|---:|
+| **0.00 (baseline)** | 0.56 | **0.80** |
+| 0.15 | 0.45 | 0.82 |
+| 0.30 | 0.36 | 0.78 |
+| 0.45 | 0.66 | 0.68 |
+| 0.60 | 0.53 | 0.56 |
+| 0.80 | 0.72 | 0.46 |
+
+**Genre fidelity falls monotonically** as expansion weight rises — 0.80 to 0.46. Separation
+does rise at the high end, but non-monotonically (0.56, 0.45, 0.36, 0.66, 0.53, 0.72), which
+across only four pairs is not distinguishable from noise. The one clear effect is the cost.
+
+**Decision:** do not adopt. `DEFAULT_EXPANSION_WEIGHT` stays 0.0, which reproduces the
+Slice 1 baseline exactly.
+
+**Why it probably fails, which matters for rung 2.** The encoder already responds to context
+— that was established before this rung was built (running − sleeping = +0.48 onset rate at
+weight 0). Adding a generic acoustic phrase therefore contributes something largely
+redundant while pulling the query toward a generic "energetic music" direction and away from
+what the user actually specified. The lexicon is not adding information; it is diluting.
+
+**What this does and does not say about rung 2.** It does not predict the LLM will fail: a
+rewrite conditioned on the *whole* query can be specific where a fixed table can only be
+generic, and it could replace rather than dilute. It does mean the LLM's bar is **rung 0,
+the plain baseline**, not rung 1 — and that DEC-013's premise that translation is obviously
+the right mechanism is now weaker than when it was written.
+
+**Limitation of the metric, recorded rather than hidden:** "margin" sums a z-score
+difference and a proportion, which is not a principled combination. The conclusion does not
+rest on it — genre fidelity's monotonic decline and separation's noisiness are each legible
+on their own — but the summary number should not be quoted as if it were a score.
+
+**Removal/revisit condition:**
+Revisit if rung 2 shows that context translation helps when the rewrite is query-specific.
+That would suggest the idea was right and the table too crude, rather than the idea being
+wrong.
+
+**Files updated:**
+- STATUS.md: rung 1 result; rung 2 recorded as blocked on an API key
+- EVALS.md: E2 gains the rung 1 negative result
+
+**Understanding check:**
+Why is rung 0, not rung 1, now the bar the LLM has to clear?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

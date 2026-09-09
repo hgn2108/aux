@@ -91,7 +91,7 @@ def main() -> int:
     for w in WEIGHTS:
         leaks, bases, hits = [], [], []
         for query, excluded, expected in CASES:
-            scores, parsed = score_query(encoder, query, V, negation_weight=w)
+            scores, parsed, _ = score_query(encoder, query, V, negation_weight=w)
             top = np.argsort(-scores)[:K]
             leaks.append(float((genres[top] == excluded).mean()))
 
@@ -112,8 +112,8 @@ def main() -> int:
     best = max((w for w in WEIGHTS if w > 0), key=lambda w: results[w]["margin"])
     per_case = []
     for query, excluded, expected in CASES:
-        s0, _ = score_query(encoder, query, V, negation_weight=0.0)
-        sb, parsed = score_query(encoder, query, V, negation_weight=best)
+        s0, _, _ = score_query(encoder, query, V, negation_weight=0.0)
+        sb, parsed, _ = score_query(encoder, query, V, negation_weight=best)
         t0 = np.argsort(-s0)[:K]
         tb = np.argsort(-sb)[:K]
         row = {"query": query, "excluded": excluded, "expected": expected,
@@ -126,7 +126,7 @@ def main() -> int:
     print("\n=== minimal pair check ===")
     for q in ["solo piano", "solo piano, no vocals", "acoustic guitar and soft vocals",
               "acoustic guitar, no vocals"]:
-        s, _ = score_query(encoder, q, V, negation_weight=best)
+        s, _, _ = score_query(encoder, q, V, negation_weight=best)
         top = np.argsort(-s)[:K]
         print(f"  {q:34}{', '.join(genres[top])}")
 

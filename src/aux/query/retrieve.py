@@ -19,7 +19,13 @@ from __future__ import annotations
 import numpy as np
 
 from ..encode.base import l2_normalise
+from .lexicon import Expansion, expand
 from .negation import ParsedQuery, parse
+
+DEFAULT_EXPANSION_WEIGHT = 0.0
+"""How much weight the context→acoustic expansion carries. 0 reproduces the Slice 1
+baseline exactly, so the rung can be switched off for a clean comparison. Set by
+`scripts/eval_expansion.py`."""
 
 DEFAULT_NEGATION_WEIGHT = 0.5
 """Chosen by sweep in `scripts/eval_negation.py` (2026-09-09).
@@ -42,15 +48,35 @@ def score_query(
     track_vectors: np.ndarray,
     *,
     negation_weight: float = DEFAULT_NEGATION_WEIGHT,
-) -> tuple[np.ndarray, ParsedQuery]:
-    """Score every track for one query, subtracting any negated concepts."""
+    expansion_weight: float = DEFAULT_EXPANSION_WEIGHT,
+) -> tuple[np.ndarray, ParsedQuery, Expansion]:
+    """Score every track for one query: expand context, subtract negated concepts.
+
+        score = (1-b) * cos(positive) + b * cos(acoustic expansion)
+                - w * max_j cos(negative_j)
+
+    The original query keeps most of the weight by default. Slice 1 showed the genre and
+    mood words carry real signal -- genre-anchored context queries scored 4.18 against 3.14
+    for context alone -- so the expansion is added as evidence rather than substituted for
+    what the user actually typed.
+
+    Both extra terms are embedded separately rather than concatenated into one string. That
+    is the same lesson negation taught: a single embedding of "hip hop, fast tempo, driving
+    percussion" is one point in space, and there is no way to weight its parts afterwards.
+    """
     parsed = parse(query)
+    expansion = expand(parsed.positive)
+
     positive = l2_normalise(encoder.embed_text([parsed.positive]))[0]
     scores = track_vectors @ positive
+
+    if expansion.expanded and expansion_weight:
+        acoustic = l2_normalise(encoder.embed_text([expansion.acoustic]))[0]
+        scores = (1 - expansion_weight) * scores + expansion_weight * (track_vectors @ acoustic)
 
     if parsed.negatives and negation_weight:
         negatives = l2_normalise(encoder.embed_text(list(parsed.negatives)))
         penalty = (track_vectors @ negatives.T).max(axis=1)
         scores = scores - negation_weight * penalty
 
-    return scores, parsed
+    return scores, parsed, expansion

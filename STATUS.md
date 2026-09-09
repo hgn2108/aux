@@ -5,114 +5,81 @@ gate: 1 — waived, not passed (2026-09-06)
 
 ## Current Slice
 
-name: Slice 1 — Natural language → music
-status: verified, awaiting gate
+name: Slice 2 — Complex intent → routed retrieval
+status: implementing (rung 1)
 
 ## Slice Contract
 
 ### Input
 
-- A free-form natural-language query in the user's own words
-- The 160-track personal library, indexed with MuQ-MuLan at 5 segments (DEC-011, DEC-012)
+- A free-form query, including ones naming a situation rather than a sound
+- The 160-track library indexed with MuQ-MuLan at 5 segments
 
 ### Output
 
-- A ranked list of tracks per query
-- Human relevance ratings over pooled results, collected blind
-- Per-query-category performance, not a single aggregate number
+- A structured interpretation of the query
+- Retrieval driven by that interpretation
+- A per-category comparison against the Slice 1 whole-query baseline
 
-### Result — Eval 1 (2026-09-09)
+### Expected Behavior
 
-36 queries, 180 clips, all rated blind by Irene. Ranks, scores and filenames hidden.
+**Hypothesis:** translating a query that names a *situation* into one that names *sound*
+moves it closer to the language the encoder was trained on, and improves retrieval for the
+categories Slice 1 found weak — pure context (3.14) above all.
 
-| Group | n | mean | 95% CI | NDCG | NDCG-rand | succ@5 | succ@1 | irrelevant |
-|---|---:|---:|---|---:|---:|---:|---:|---:|
-| all | 36 | 3.78 | [3.42, 4.14] | 0.866 | 0.863 | 89% | 67% | 12% |
-| compound | 13 | 4.18 | [3.72, 4.58] | 0.925 | 0.925 | 85% | 69% | 3% |
-| mood | 8 | 4.05 | [3.72, 4.42] | 0.864 | 0.868 | 100% | 75% | 0% |
-| acoustic | 8 | 3.42 | [2.45, 4.40] | 0.853 | 0.817 | 88% | 62% | 25% |
-| context | 7 | 3.14 | [2.23, 4.03] | 0.775 | 0.797 | 86% | 57% | 29% |
-| Irene's queries | 12 | 4.20 | [3.67, 4.67] | 0.936 | 0.933 | 83% | 67% | 3% |
+Built as DEC-013's ladder, each rung required to beat the one below:
 
-**Slice 1 passes on retrieval and fails on ranking**, and the second half is the finding.
+| Rung | Mechanism | Status |
+|---|---|---|
+| 0 | whole-query embedding | Slice 1 baseline, measured |
+| 0.5 | negation split at score level | **done** (DEC-014), leakage 0.22 → 0.08 |
+| 1 | fixed context→acoustic lexicon | **in progress** |
+| 2 | LLM rewrite, schema-constrained (DEC-007) | blocked: needs an API key |
+| 3 | retrieve on both, fuse at rank level | after rung 2 |
 
-**1. Ranking within the top 5 is no better than chance.** NDCG 0.866 against 0.863 for the
-same five items in random order — the system finds relevant tracks and then orders them
-arbitrarily. Corroborated independently: success@1 is 67% while success@5 is 89%, so in a
-fifth of queries a clearly-relevant track was retrieved and *not* placed first. That is
-**22 points of success@1 available from reranking alone**, with no better retrieval.
+Rung 1 is not a placeholder. It is free, deterministic, offline, and captures the part of
+context→acoustic mapping that is genuinely universal. If the LLM cannot beat it, the LLM has
+not earned its network dependency — and a measured "the simple version was enough" is a real
+result, not a failure.
 
-**2. The category ordering inverted the prediction.** Acoustic was predicted strongest and
-came third. Compound — Irene's dominant form — came first.
+Pass the slice if a rung beats the Slice 1 baseline on the weak categories without
+degrading the strong ones, or if the ladder is documented as not earning its place.
 
-**3. Acoustic's weakness is not about acoustic language.** Its 8 queries contain two
-negation failures and two library gaps. Excluding those four, the rest score well
-("romantic classical piano" 5.0, "fast breakbeat drums" 5.0, "acoustic guitar and soft
-vocals" 4.8).
+### Not in scope
 
-**4. Negation is broken, and it is the clearest actionable defect**
-(`scripts/negation_check.py`). "solo piano" returns classical at every one of the top five;
-**"solo piano, no vocals" returns hip-hop and v-pop, with J@5 = 0.00** against the
-un-negated query. A contrastive encoder has no negation operator, so "no vocals" contains
-"vocals" and pulls toward what it was meant to exclude. The other failure mode is silence:
-"acoustic guitar and soft vocals" vs "acoustic guitar, no vocals" gives J@5 = **1.00**,
-identical results. Negation either inverts the query or does nothing.
-
-**5. Pure context is the weakest category, but genre-anchored context is the strongest.**
-"warming up before going out" 1.6 and "background music while reading" 1.6 name no genre.
-Irene's compound queries all pair a genre with a context and average 4.18. The genre word
-anchors retrieval; the context phrase alone does not.
-
-### Known limitation of this result
-
-**The compound score is not clean evidence that context works.** The library is 59%
-hip-hop and Irene's compound queries name hip-hop or R&B, so those queries return hip-hop
-whether or not the context phrase was honoured. The context control makes this explicit —
-"hip hop for running" 4.8, "for studying" 4.4, "for falling asleep" 4.2, bare "hip hop"
-4.6 — all high, with bare "hip hop" no worse than the contextual variants.
-
-A relevance rating conflates "right genre" with "right for this situation". Settling
-DEC-013 needs a rating question that isolates the second: *is this good for falling
-asleep?* rather than *is this relevant?*
+Lyrical content ("r&b songs about yearning") and language identity ("sung in Vietnamese"
+returning jazz) are Slice 3. Both surfaced in Slice 1 and neither is fixable by acoustic
+rewriting.
 
 ## Next Action
 
-**Irene's call: begin Slice 2.** DEC-014's two preparatory steps are done and one of them
-failed, which changes the recommendation.
+**Blocked on Irene: an `ANTHROPIC_API_KEY` is needed for rung 2.** Nothing else in Slice 2
+can proceed — rung 3 fuses rung 2's output, and rung 1 has been tested and rejected.
 
-### Negation — fixed (2026-09-09)
+Add it to `.env` as `ANTHROPIC_API_KEY=...` (already gitignored). Rung 2 sends **query text
+only** — never audio, never library contents, never file paths.
 
-A contrastively trained encoder has no negation operator, so the query is split and the
-exclusion applied at score level: `cos(positive) - w * max_j cos(negative_j)`, w = 0.5.
+### Rung 1 — tested and rejected (DEC-016)
 
-Genre folders gave ground truth for free, so the weight sweep cost no rating effort.
-Leakage of the excluded genre fell **0.22 → 0.08**, while correctly-targeted results rose
-**0.80 → 0.90**. "solo piano, no vocals" now returns classical five times over, having
-previously shared *nothing* with "solo piano".
+A 30-term context→acoustic lexicon, blended with the original query at weight *b*:
 
-The first selection rule was wrong and is recorded: minimising leakage alone chose w = 1.5,
-where leakage is 0.00 but on-target rate falls to 0.75 — the exclusion satisfied by
-returning things nobody asked for. Adding a positive-target metric changed the choice.
+| weight | separation | genre fidelity |
+|---:|---:|---:|
+| **0.00 (baseline)** | 0.56 | **0.80** |
+| 0.45 | 0.66 | 0.68 |
+| 0.80 | 0.72 | 0.46 |
 
-One case fails and is not a bug: "dance music, no edm" cannot be satisfied when the positive
-and the exclusion are near-synonyms.
+Genre fidelity falls monotonically with weight; separation rises only non-monotonically,
+which across four pairs is noise. `DEFAULT_EXPANSION_WEIGHT` stays 0.0.
 
-### Reranking — no measurable improvement (2026-09-09)
+**Why, and why it matters for rung 2:** the encoder already responds to context — that was
+measured at weight 0 before this rung existed. A generic acoustic phrase adds little and
+pulls the query toward "energetic music" generally, away from what was specified. The
+lexicon dilutes rather than informs.
 
-Five methods over the already-rated candidates, so no new ratings were needed. All
-directionally positive, **none significant**: best was query-z at 75% success@1 against 67%
-(p = 0.25), and every confidence interval overlaps the baseline's. CSLS posts the best NDCG
-(0.889 vs 0.866) and targets hubness independently measured in Eval 0C, so it is parked for
-retest rather than dismissed.
-
-The headroom is real (67% against an 89% ceiling) but not reachable by simple geometric
-reranking. A learned ranker is blocked by EVALS.md's E9 precondition — 180 ratings is far
-too few.
-
-**Therefore Slice 2, per DEC-015.** The remaining evidence points at query understanding:
-negation was a real defect with a cheap fix, pure-context queries are the weakest category,
-and "sung in Vietnamese" returning jazz is a routing failure. Slice 2 now begins against a
-measured baseline with reranking excluded on evidence.
+This does not predict the LLM will fail, since a rewrite conditioned on the whole query can
+be specific where a table can only be generic. It does mean **the LLM's bar is rung 0, the
+plain baseline** — and that DEC-013's premise is weaker than when written.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 
