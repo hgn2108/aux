@@ -902,6 +902,77 @@ Why does an arbitrary ranker make a later planner result harder to attribute?
 
 ---
 
+## DEC-015 — Reranking does not close the gap; proceed to Slice 2
+
+**Status:** Proposed — Irene asked to be consulted before Slice 2 begins.
+
+**Current slice:** Slice 1 (post-verification work under DEC-014)
+
+**Question:**
+Eval 1 found ordering within the returned top 5 no better than chance, with success@1 (67%)
+trailing success@5 (89%). DEC-014 chose to attack that before building the Slice 2 planner.
+Does reranking capture the gap?
+
+**Experiment:** five reranking methods over **exactly the five already-rated candidates per
+query**, so the existing ratings score them and no new rating effort was needed. Paired
+across the same 36 queries (`scripts/eval_rerank.py`).
+
+**Result — no method is distinguishable from the current behaviour:**
+
+| Method | NDCG | 95% CI | succ@1 | vs base | p |
+|---|---:|---|---:|---:|---:|
+| cosine (current) | 0.866 | [0.814, 0.914] | 67% | — | — |
+| max-segment | 0.860 | [0.803, 0.911] | 69% | +3% | 1.000 |
+| mean+max | 0.863 | [0.810, 0.913] | 72% | +6% | 0.625 |
+| CSLS (hubness) | **0.889** | [0.836, 0.935] | 72% | +6% | 0.625 |
+| query-z | 0.877 | [0.819, 0.927] | **75%** | +8% | 0.250 |
+| *ceiling* | 1.000 | | *89%* | | |
+
+Every method is directionally positive and none is significant. Confidence intervals all
+overlap the baseline's. With 36 queries, an 8-point change is three queries.
+
+**Conclusion:** the headroom is real — 67% against an 89% ceiling — but it is **not
+reachable by simple geometric reranking of the existing candidates**. The information that
+would order these five correctly does not appear to live in segment maxima, local density,
+or cross-query normalisation.
+
+**Two caveats that matter more than the ranking:**
+
+- **Underpowered, not disproven.** 36 queries cannot detect effects of this size. CSLS in
+  particular targets hubness that was independently measured in this space (Eval 0C) and
+  posts the best NDCG; it deserves re-testing on a larger rated set rather than dismissal.
+- **query-z is not shippable anyway.** It standardises a track's score against how it scores
+  for *other* queries, so it needs the query batch at serving time. It was included to
+  probe whether the signal exists at all, not as a candidate.
+
+The obvious next rung — a learned ranker — is explicitly blocked by EVALS.md's E9
+precondition: 180 ratings over 36 queries is far too little to train and honestly evaluate
+one.
+
+**Recommendation: proceed to Slice 2.** DEC-014's premise was that ranking had cheap
+measurable headroom and routing did not. Half of that has now been tested and failed. The
+remaining evidence points at query understanding rather than ordering: negation was a
+genuine defect and a cheap fix worked; pure-context queries are the weakest category; the
+"sung in Vietnamese" failure is a routing problem. Those are Slice 2's subject.
+
+**What this changes about Slice 2's framing.** It arrives with a *measured* baseline and two
+documented findings behind it, which is the outcome DEC-014 was reaching for. It also
+arrives with reranking excluded on evidence rather than left unexamined — so if Slice 2
+improves results, the improvement is attributable to query understanding.
+
+**Removal/revisit condition:**
+Revisit reranking when a larger rated set exists — either from a wider Slice 2 evaluation or
+from first-party behaviour after Slice 1B. Retest CSLS first.
+
+**Files updated:**
+- STATUS.md: reranking result; Slice 2 recorded as the recommended next step
+- EVALS.md: Slice 4 gains the negative reranking result
+
+**Understanding check:**
+Why is "no method beat the baseline" not the same claim as "reranking cannot help here"?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

@@ -77,18 +77,42 @@ asleep?* rather than *is this relevant?*
 
 ## Next Action
 
-**Irene's call on slice ordering (DEC-014, Proposed).** Eval 1 found measured headroom in
-*ranking* — 22 points of success@1 — while the evidence for a query planner came out
-ambiguous. The roadmap has Slice 2 (routed retrieval) before Slice 4 (query-aware ranking).
-This result argues for reversing them. That is a roadmap decision, not a routine one.
+**Irene's call: begin Slice 2.** DEC-014's two preparatory steps are done and one of them
+failed, which changes the recommendation.
 
-Whichever comes first, two findings are ready to act on:
+### Negation — fixed (2026-09-09)
 
-- **negation** — a measured, reproducible defect with an obvious cheap first fix (split the
-  query, retrieve on the positive part, penalise the negated part) that must be compared
-  against an LLM rewrite before the LLM is assumed;
-- **context isolation** — re-rate a small slice with a context-specific question, so
-  DEC-013 can be settled rather than left ambiguous.
+A contrastively trained encoder has no negation operator, so the query is split and the
+exclusion applied at score level: `cos(positive) - w * max_j cos(negative_j)`, w = 0.5.
+
+Genre folders gave ground truth for free, so the weight sweep cost no rating effort.
+Leakage of the excluded genre fell **0.22 → 0.08**, while correctly-targeted results rose
+**0.80 → 0.90**. "solo piano, no vocals" now returns classical five times over, having
+previously shared *nothing* with "solo piano".
+
+The first selection rule was wrong and is recorded: minimising leakage alone chose w = 1.5,
+where leakage is 0.00 but on-target rate falls to 0.75 — the exclusion satisfied by
+returning things nobody asked for. Adding a positive-target metric changed the choice.
+
+One case fails and is not a bug: "dance music, no edm" cannot be satisfied when the positive
+and the exclusion are near-synonyms.
+
+### Reranking — no measurable improvement (2026-09-09)
+
+Five methods over the already-rated candidates, so no new ratings were needed. All
+directionally positive, **none significant**: best was query-z at 75% success@1 against 67%
+(p = 0.25), and every confidence interval overlaps the baseline's. CSLS posts the best NDCG
+(0.889 vs 0.866) and targets hubness independently measured in Eval 0C, so it is parked for
+retest rather than dismissed.
+
+The headroom is real (67% against an 89% ceiling) but not reachable by simple geometric
+reranking. A learned ranker is blocked by EVALS.md's E9 precondition — 180 ratings is far
+too few.
+
+**Therefore Slice 2, per DEC-015.** The remaining evidence points at query understanding:
+negation was a real defect with a cheap fix, pure-context queries are the weakest category,
+and "sung in Vietnamese" returning jazz is a routing failure. Slice 2 now begins against a
+measured baseline with reranking excluded on evidence.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 
