@@ -803,6 +803,97 @@ This is the same failure shape as the 0.724 cosine in Eval 0C: an absolute stati
 crossing a threshold, where the real question needed a relative or independent measurement.
 Twice now the naive instrument would have produced a confident and wrong conclusion.
 
+
+### Slice 1 outcome (2026-09-09): still unsettled, and now we know why
+
+The revised precondition was: build rung 1 only if context-bearing queries rate materially
+worse than acoustic queries.
+
+Context scored 3.14 and acoustic 3.42 — context is lower, but the intervals overlap almost
+entirely ([2.23, 4.03] vs [2.45, 4.40]) and both categories are dragged down by unrelated
+problems: acoustic by two negation failures and two library gaps, context by queries that
+name no genre.
+
+**The context control failed to discriminate, for a reason worth recording.** All four
+variants rated 4.2-4.8, with bare "hip hop" (4.6) no worse than "hip hop for running" (4.8).
+That is not evidence that context works — it is evidence that *a relevance rating cannot
+measure this*. In a library that is 59% hip-hop, "hip hop for X" returns hip-hop regardless
+of whether the context was honoured, and the rater scores it relevant on genre alone.
+
+The measurement conflates two questions. Settling DEC-013 requires asking the second one
+directly: **"is this good for falling asleep?"** rather than **"is this relevant?"** — a
+small re-rating over genre-matched, context-varying queries.
+
+What Eval 1 *did* establish about context: queries naming a context **without** a genre
+anchor are the weakest in the set ("warming up before going out" 1.6, "background music
+while reading" 1.6), while genre-anchored context queries average 4.18. The genre word
+anchors retrieval; context alone does not carry it.
+
+## DEC-014 — Consider ranking (Slice 4) before routed retrieval (Slice 2)
+
+**Status:** Proposed — roadmap ordering is Irene's call.
+
+**Current slice:** Slice 1 (verified)
+
+**Question:**
+The roadmap runs Slice 2 (routed retrieval) before Slice 4 (query-aware ranking). Eval 1
+produced measured headroom for ranking and ambiguous evidence for routing. Should the order
+change?
+
+**Evidence:**
+
+*For ranking, measured:* NDCG over the returned top 5 is **0.866 against 0.863** for the
+same items shuffled. The system orders its own results no better than chance. Independently
+corroborated by success@1 = 67% versus success@5 = 89% — in roughly a fifth of queries a
+clearly-relevant track was retrieved and not placed first. **22 points of success@1 are
+available from reranking alone**, with no improvement to retrieval.
+
+*For routing, ambiguous:* the context control did not separate. "hip hop for running" 4.8,
+"for studying" 4.4, "for falling asleep" 4.2, bare "hip hop" 4.6 — all high, and the bare
+query no worse. That is not evidence context works; it is evidence **the measurement cannot
+tell**, because a relevance rating conflates "right genre" with "right for this situation"
+in a library that is 59% hip-hop.
+
+*A third finding, orthogonal to both:* negation is broken and reproducible.
+
+**Why this ordering question matters rather than being bookkeeping:**
+DEC-003 requires each addition to beat a simpler baseline. Ranking currently *has* no
+baseline — results are returned in raw cosine order, which is measurably arbitrary. Adding a
+query planner on top of an arbitrary ranker means a planner improvement and a ranking
+improvement become hard to attribute separately. Fixing ranking first gives Slice 2 a
+non-trivial baseline to beat, which is the same argument DEC-003 already makes for why
+Slice 1 precedes Slice 2.
+
+**Argument against:** PROJECT.md frames Slice 2 as the test of whether structured query
+decomposition beats whole-query embedding, and negation — the clearest defect found — is a
+*query understanding* problem that ranking cannot fix. A reranker cannot rescue "solo piano,
+no vocals" when retrieval returned hip-hop.
+
+**A middle option:** take negation out of Slice 2 and handle it first as a narrow, cheap fix
+— split the query, retrieve on the positive part, penalise proximity to the negated part —
+measured against an LLM rewrite before the LLM is assumed to be needed. That addresses the
+one defect with clear evidence without committing to the full planner.
+
+### Evidence classification
+- Direct evidence: the Eval 1 numbers above, `evals/eval_1_relevance_20260909.json`.
+- Engineering inference: that an arbitrary ranker makes later attribution harder.
+- Not established: that fixing ranking would raise relevance in practice. NDCG-vs-random
+  shows ordering is arbitrary; it does not prove a better ordering is learnable from what is
+  available.
+
+**Removal/revisit condition:**
+If a reranking experiment cannot beat raw cosine order on held-out human ratings, ranking is
+not the bottleneck and Slice 2 resumes its original position.
+
+**Files updated:**
+- STATUS.md: recorded as the open next action
+- PROJECT.md, DESIGN.md, EVALS.md: pending Irene's call
+
+**Understanding check:**
+Why does an arbitrary ranker make a later planner result harder to attribute?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

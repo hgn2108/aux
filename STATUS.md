@@ -6,7 +6,7 @@ gate: 1 — waived, not passed (2026-09-06)
 ## Current Slice
 
 name: Slice 1 — Natural language → music
-status: specifying
+status: verified, awaiting gate
 
 ## Slice Contract
 
@@ -21,67 +21,74 @@ status: specifying
 - Human relevance ratings over pooled results, collected blind
 - Per-query-category performance, not a single aggregate number
 
-### Expected Behavior
+### Result — Eval 1 (2026-09-09)
 
-**Hypothesis:** whole-query embedding — no decomposition, no routing — produces results a
-listener judges relevant for expressive queries, and its weaknesses fall along *category*
-lines rather than being uniform.
+36 queries, 180 clips, all rated blind by Irene. Ranks, scores and filenames hidden.
 
-This slice establishes the baseline DEC-003 requires to exist before any query planner can
-claim incremental value. It is a characterisation, not an A/B test: there is nothing yet to
-compare against.
+| Group | n | mean | 95% CI | NDCG | NDCG-rand | succ@5 | succ@1 | irrelevant |
+|---|---:|---:|---|---:|---:|---:|---:|---:|
+| all | 36 | 3.78 | [3.42, 4.14] | 0.866 | 0.863 | 89% | 67% | 12% |
+| compound | 13 | 4.18 | [3.72, 4.58] | 0.925 | 0.925 | 85% | 69% | 3% |
+| mood | 8 | 4.05 | [3.72, 4.42] | 0.864 | 0.868 | 100% | 75% | 0% |
+| acoustic | 8 | 3.42 | [2.45, 4.40] | 0.853 | 0.817 | 88% | 62% | 25% |
+| context | 7 | 3.14 | [2.23, 4.03] | 0.775 | 0.797 | 86% | 57% | 29% |
+| Irene's queries | 12 | 4.20 | [3.67, 4.67] | 0.936 | 0.933 | 83% | 67% | 3% |
 
-Pass the slice if:
+**Slice 1 passes on retrieval and fails on ranking**, and the second half is the finding.
 
-- mean human relevance is meaningfully above what random ranking scores;
-- per-category results are reported with enough queries per category to be readable;
-- categories where the baseline is weak are identified and recorded, since those are what
-  Slice 2 must beat.
+**1. Ranking within the top 5 is no better than chance.** NDCG 0.866 against 0.863 for the
+same five items in random order — the system finds relevant tracks and then orders them
+arbitrarily. Corroborated independently: success@1 is 67% while success@5 is 89%, so in a
+fifth of queries a clearly-relevant track was retrieved and *not* placed first. That is
+**22 points of success@1 available from reranking alone**, with no better retrieval.
 
-### Prior evidence shaping the design
+**2. The category ordering inverted the prediction.** Acoustic was predicted strongest and
+came third. Compound — Irene's dominant form — came first.
 
-A diagnostic over 14 probe queries (`scripts/probe_queries.py`,
-`evals/probe_query_response.json`) settled three things before any rating effort was spent:
+**3. Acoustic's weakness is not about acoustic language.** Its 8 queries contain two
+negation failures and two library gaps. Excluding those four, the rest score well
+("romantic classical piano" 5.0, "fast breakbeat drums" 5.0, "acoustic guitar and soft
+vocals" 4.8).
 
-1. **"Dreamy atmospheric" was a library gap, not an encoder weakness.** Its z-top of 3.12
-   shows the encoder ranks something clearly first; the top results are hip-hop because the
-   library holds no ambient material. Low absolute score with healthy spread means "nothing
-   here matches", not "cannot represent this".
-2. **Concrete instrumentation language outperforms abstract mood language.** "solo piano"
-   z = 4.98, "orchestral strings" z = 5.45, "fast breakbeat drums" z = 3.44 — against
-   "upbeat energetic party track" z = 1.77 and "slow smooth late-night R&B" z = 2.07. The
-   caption-language-vs-query-language gap from DESIGN.md, appearing in measurement rather
-   than in argument. Quantifying it properly is Slice 1's central job.
-3. **A real failure: "sung in Vietnamese" returns jazz**, despite 13 v-pop tracks present.
-   The encoder does not represent language identity — yet Vietnamese ballads *did* top
-   "melodic and melancholy, sung rather than rapped". The audio tower captures the mood and
-   texture of that music while being blind to its language. Directly relevant to Slice 3
-   (lyrics) and Slice 2 (routing).
+**4. Negation is broken, and it is the clearest actionable defect**
+(`scripts/negation_check.py`). "solo piano" returns classical at every one of the top five;
+**"solo piano, no vocals" returns hip-hop and v-pop, with J@5 = 0.00** against the
+un-negated query. A contrastive encoder has no negation operator, so "no vocals" contains
+"vocals" and pulls toward what it was meant to exclude. The other failure mode is silence:
+"acoustic guitar and soft vocals" vs "acoustic guitar, no vocals" gives J@5 = **1.00**,
+identical results. Negation either inverts the query or does nothing.
+
+**5. Pure context is the weakest category, but genre-anchored context is the strongest.**
+"warming up before going out" 1.6 and "background music while reading" 1.6 name no genre.
+Irene's compound queries all pair a genre with a context and average 4.18. The genre word
+anchors retrieval; the context phrase alone does not.
+
+### Known limitation of this result
+
+**The compound score is not clean evidence that context works.** The library is 59%
+hip-hop and Irene's compound queries name hip-hop or R&B, so those queries return hip-hop
+whether or not the context phrase was honoured. The context control makes this explicit —
+"hip hop for running" 4.8, "for studying" 4.4, "for falling asleep" 4.2, bare "hip hop"
+4.6 — all high, with bare "hip hop" no worse than the contextual variants.
+
+A relevance rating conflates "right genre" with "right for this situation". Settling
+DEC-013 needs a rating question that isolates the second: *is this good for falling
+asleep?* rather than *is this relevant?*
 
 ## Next Action
 
-Assemble the Slice 1 query set: ~20 drafted by Claude across categories, plus **~15 written
-by Irene in her own words**. Her phrasing is the only real sample of the query distribution
-the product actually faces, and the probe diagnostic suggests that distribution is exactly
-where the baseline is weakest.
+**Irene's call on slice ordering (DEC-014, Proposed).** Eval 1 found measured headroom in
+*ranking* — 22 points of success@1 — while the evidence for a query planner came out
+ambiguous. The roadmap has Slice 2 (routed retrieval) before Slice 4 (query-aware ranking).
+This result argues for reversing them. That is a roadmap decision, not a routine one.
 
-### Steps
+Whichever comes first, two findings are ready to act on:
 
-1. **Query set** — four categories: acoustic/instrumentation, mood/emotion,
-   context/activity, mixed/compound. Roughly 8–10 each. Categories chosen because the probe
-   diagnostic shows they behave differently, so one aggregate number would hide the finding.
-2. **Retrieval + pooling** — run every query, pool top-K, strip all system identity.
-3. **Blind rating harness** — a local page with an audio player and a 1–5 relevance scale,
-   randomised order, query visible, rank hidden.
-4. **Metrics** — mean relevance, graded NDCG, success@K, per category, with intervals wide
-   enough to be honest about ~10 queries per category.
-5. **Record** — which categories the whole-query baseline handles and which it does not.
-   That list is Slice 2's target.
-
-**Scope note on the rating harness.** It needs audio playback, because relevance to a music
-query cannot be judged from a filename. It is an evaluation tool, not the Slice 1B player:
-no queue, no library UI, no feedback logging, and nothing from it carries into the product.
-Slice 1B remains unstarted.
+- **negation** — a measured, reproducible defect with an obvious cheap first fix (split the
+  query, retrieve on the positive part, penalise the negated part) that must be compared
+  against an LLM rewrite before the LLM is assumed;
+- **context isolation** — re-rate a small slice with a context-specific question, so
+  DEC-013 can be settled rather than left ambiguous.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 

@@ -1,0 +1,894 @@
+{
+  "eval": "1",
+  "run_at": "2026-09-09T03:47:40.582618+00:00",
+  "encoder": "OpenMuQ/MuQ-MuLan-large",
+  "n_segments": 5,
+  "overall": {
+    "label": "all queries",
+    "n_queries": 36,
+    "mean_relevance": 3.783333333333333,
+    "mean_relevance_ci": [
+      3.416666666666666,
+      4.138888888888889
+    ],
+    "ndcg": 0.8663157038212396,
+    "ndcg_ci": [
+      0.8140965729134572,
+      0.9139806069451718
+    ],
+    "ndcg_random_order": 0.8631803080912162,
+    "success_at_5": 0.8888888888888888,
+    "success_at_1": 0.6666666666666666,
+    "irrelevant_rate": 0.12222222222222222
+  },
+  "by_category": {
+    "acoustic": {
+      "label": "acoustic",
+      "n_queries": 8,
+      "mean_relevance": 3.425,
+      "mean_relevance_ci": [
+        2.45,
+        4.4
+      ],
+      "ndcg": 0.8531408449814503,
+      "ndcg_ci": [
+        0.7009194868927814,
+        0.9782249179073972
+      ],
+      "ndcg_random_order": 0.8171971979421684,
+      "success_at_5": 0.875,
+      "success_at_1": 0.625,
+      "irrelevant_rate": 0.25
+    },
+    "compound": {
+      "label": "compound",
+      "n_queries": 13,
+      "mean_relevance": 4.184615384615385,
+      "mean_relevance_ci": [
+        3.7226923076923066,
+        4.584615384615384
+      ],
+      "ndcg": 0.9250487865493139,
+      "ndcg_ci": [
+        0.8820706385682048,
+        0.9654139077301419
+      ],
+      "ndcg_random_order": 0.92453004585714,
+      "success_at_5": 0.8461538461538461,
+      "success_at_1": 0.6923076923076923,
+      "irrelevant_rate": 0.03076923076923077
+    },
+    "context": {
+      "label": "context",
+      "n_queries": 7,
+      "mean_relevance": 3.142857142857143,
+      "mean_relevance_ci": [
+        2.228571428571428,
+        4.028571428571429
+      ],
+      "ndcg": 0.7751709251641413,
+      "ndcg_ci": [
+        0.6365205723482797,
+        0.8837884613123099
+      ],
+      "ndcg_random_order": 0.7967149630662222,
+      "success_at_5": 0.8571428571428571,
+      "success_at_1": 0.5714285714285714,
+      "irrelevant_rate": 0.2857142857142857
+    },
+    "mood": {
+      "label": "mood",
+      "n_queries": 8,
+      "mean_relevance": 4.050000000000001,
+      "mean_relevance_ci": [
+        3.7249999999999996,
+        4.425
+      ],
+      "ndcg": 0.8638009845528689,
+      "ndcg_ci": [
+        0.7986782379160872,
+        0.9396248036987103
+      ],
+      "ndcg_random_order": 0.8676272712675073,
+      "success_at_5": 1.0,
+      "success_at_1": 0.75,
+      "irrelevant_rate": 0.0
+    }
+  },
+  "by_source": {
+    "claude": {
+      "label": "claude",
+      "n_queries": 24,
+      "mean_relevance": 3.5749999999999997,
+      "mean_relevance_ci": [
+        3.1,
+        4.016666666666667
+      ],
+      "ndcg": 0.8312868259961904,
+      "ndcg_ci": [
+        0.7609737062002421,
+        0.891915082902485
+      ],
+      "ndcg_random_order": 0.8280394134069192,
+      "success_at_5": 0.9166666666666666,
+      "success_at_1": 0.6666666666666666,
+      "irrelevant_rate": 0.16666666666666666
+    },
+    "irene": {
+      "label": "irene",
+      "n_queries": 12,
+      "mean_relevance": 4.2,
+      "mean_relevance_ci": [
+        3.6666666666666665,
+        4.666666666666665
+      ],
+      "ndcg": 0.936373459471338,
+      "ndcg_ci": [
+        0.8928981952451297,
+        0.9762037693882244
+      ],
+      "ndcg_random_order": 0.9334620974598101,
+      "success_at_5": 0.8333333333333334,
+      "success_at_1": 0.6666666666666666,
+      "irrelevant_rate": 0.03333333333333333
+    }
+  },
+  "per_query": [
+    {
+      "query_id": 0,
+      "query": "romantic classical piano",
+      "category": "acoustic",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "mean_relevance": 5.0,
+      "top1_relevance": 5.0,
+      "ndcg": 1.0,
+      "ndcg_random_order": 1.0,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 1,
+      "query": "songs with heavy bass",
+      "category": "acoustic",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        4,
+        4,
+        4,
+        4
+      ],
+      "mean_relevance": 4.2,
+      "top1_relevance": 5.0,
+      "ndcg": 1.0,
+      "ndcg_random_order": 0.8854358391320409,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 2,
+      "query": "solo piano, no vocals",
+      "category": "acoustic",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        1,
+        1,
+        1,
+        1,
+        2
+      ],
+      "mean_relevance": 1.2,
+      "top1_relevance": 1.0,
+      "ndcg": 0.38685280723454163,
+      "ndcg_random_order": 0.5910016474393733,
+      "success_at_5": false,
+      "success_at_1": false,
+      "n_irrelevant": 4
+    },
+    {
+      "query_id": 3,
+      "query": "acoustic guitar and soft vocals",
+      "category": "acoustic",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        4,
+        5
+      ],
+      "mean_relevance": 4.8,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9914764791784341,
+      "ndcg_random_order": 0.9616638682958751,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 4,
+      "query": "saxophone over an upright bass",
+      "category": "acoustic",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        3,
+        3,
+        4,
+        3,
+        2
+      ],
+      "mean_relevance": 3.0,
+      "top1_relevance": 3.0,
+      "ndcg": 0.8343228640807433,
+      "ndcg_random_order": 0.8298268323573162,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 5,
+      "query": "fast breakbeat drums",
+      "category": "acoustic",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "mean_relevance": 5.0,
+      "top1_relevance": 5.0,
+      "ndcg": 1.0,
+      "ndcg_random_order": 1.0,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 6,
+      "query": "orchestral strings",
+      "category": "acoustic",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        3,
+        1,
+        1,
+        3
+      ],
+      "mean_relevance": 2.6,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9815448557864253,
+      "ndcg_random_order": 0.6745275892626361,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 2
+    },
+    {
+      "query_id": 7,
+      "query": "distorted electric guitar",
+      "category": "acoustic",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        1,
+        4,
+        1,
+        1,
+        1
+      ],
+      "mean_relevance": 1.6,
+      "top1_relevance": 1.0,
+      "ndcg": 0.6309297535714575,
+      "ndcg_random_order": 0.5951218070501059,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 4
+    },
+    {
+      "query_id": 8,
+      "query": "melancholy and heartbroken",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        3,
+        5,
+        5,
+        4
+      ],
+      "mean_relevance": 4.2,
+      "top1_relevance": 4.0,
+      "ndcg": 0.7953177106858745,
+      "ndcg_random_order": 0.8599593169085687,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 9,
+      "query": "triumphant and celebratory",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        4,
+        3,
+        4,
+        3
+      ],
+      "mean_relevance": 3.8,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9890696237795747,
+      "ndcg_random_order": 0.813594476473087,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 10,
+      "query": "tense and unsettling",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        3,
+        2,
+        4,
+        5
+      ],
+      "mean_relevance": 3.6,
+      "top1_relevance": 4.0,
+      "ndcg": 0.7403955259774456,
+      "ndcg_random_order": 0.7910305383707376,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 11,
+      "query": "calm and peaceful",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "mean_relevance": 5.0,
+      "top1_relevance": 5.0,
+      "ndcg": 1.0,
+      "ndcg_random_order": 1.0,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 12,
+      "query": "angry and confrontational",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        4,
+        5,
+        4
+      ],
+      "mean_relevance": 4.6,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9852842450037123,
+      "ndcg_random_order": 0.9231604762779859,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 13,
+      "query": "playful and light-hearted",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        3,
+        3,
+        3,
+        4,
+        3
+      ],
+      "mean_relevance": 3.2,
+      "top1_relevance": 3.0,
+      "ndcg": 0.8227149188007639,
+      "ndcg_random_order": 0.870446261932279,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 14,
+      "query": "bittersweet, happy and sad at once",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        4,
+        3,
+        4,
+        5
+      ],
+      "mean_relevance": 4.0,
+      "top1_relevance": 4.0,
+      "ndcg": 0.8022366251646473,
+      "ndcg_random_order": 0.8494526660856253,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 15,
+      "query": "dreamy and floating",
+      "category": "mood",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        3,
+        5,
+        4,
+        5,
+        3
+      ],
+      "mean_relevance": 4.0,
+      "top1_relevance": 3.0,
+      "ndcg": 0.7753892270109326,
+      "ndcg_random_order": 0.8333744340917753,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 16,
+      "query": "late night drive vibes",
+      "category": "context",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        5,
+        5,
+        5,
+        5
+      ],
+      "mean_relevance": 4.8,
+      "top1_relevance": 4.0,
+      "ndcg": 0.8807456512921771,
+      "ndcg_random_order": 0.9605137726937494,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 17,
+      "query": "something for a rainy morning",
+      "category": "context",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        4,
+        2,
+        4,
+        1
+      ],
+      "mean_relevance": 3.0,
+      "top1_relevance": 4.0,
+      "ndcg": 0.9728979186682316,
+      "ndcg_random_order": 0.8451822174040551,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 1
+    },
+    {
+      "query_id": 18,
+      "query": "music for cooking dinner with friends",
+      "category": "context",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        3,
+        4,
+        4,
+        3,
+        4
+      ],
+      "mean_relevance": 3.6,
+      "top1_relevance": 3.0,
+      "ndcg": 0.8587958337793852,
+      "ndcg_random_order": 0.9179460977940315,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 19,
+      "query": "background music while reading",
+      "category": "context",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        1,
+        4,
+        1,
+        1,
+        1
+      ],
+      "mean_relevance": 1.6,
+      "top1_relevance": 1.0,
+      "ndcg": 0.6309297535714575,
+      "ndcg_random_order": 0.5951218070501059,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 4
+    },
+    {
+      "query_id": 20,
+      "query": "something to fall asleep to",
+      "category": "context",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        5,
+        1,
+        3,
+        4
+      ],
+      "mean_relevance": 3.4,
+      "top1_relevance": 4.0,
+      "ndcg": 0.8453193526746153,
+      "ndcg_random_order": 0.7825674819544813,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 1
+    },
+    {
+      "query_id": 21,
+      "query": "warming up before going out",
+      "category": "context",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        1,
+        1,
+        1,
+        2,
+        1
+      ],
+      "mean_relevance": 1.2,
+      "top1_relevance": 1.0,
+      "ndcg": 0.43067655807339306,
+      "ndcg_random_order": 0.5839583366392666,
+      "success_at_5": false,
+      "success_at_1": false,
+      "n_irrelevant": 4
+    },
+    {
+      "query_id": 22,
+      "query": "long solo walk in the cold",
+      "category": "context",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        4,
+        4,
+        5,
+        5
+      ],
+      "mean_relevance": 4.4,
+      "top1_relevance": 4.0,
+      "ndcg": 0.8068314080897301,
+      "ndcg_random_order": 0.8917150279278667,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 23,
+      "query": "fast, upbeat rap and hip hop for running",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        4,
+        5
+      ],
+      "mean_relevance": 4.8,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9914764791784341,
+      "ndcg_random_order": 0.9616638682958751,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 24,
+      "query": "r&b songs about yearning",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        5,
+        4,
+        3,
+        3
+      ],
+      "mean_relevance": 3.8,
+      "top1_relevance": 4.0,
+      "ndcg": 0.8836158005685877,
+      "ndcg_random_order": 0.8159671140658793,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 25,
+      "query": "groovy jazz rap",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        3,
+        5,
+        5,
+        5,
+        5
+      ],
+      "mean_relevance": 4.6,
+      "top1_relevance": 3.0,
+      "ndcg": 0.8141257851806453,
+      "ndcg_random_order": 0.9384553135692363,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 26,
+      "query": "chill r&b and hip hop for studying",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        4,
+        5
+      ],
+      "mean_relevance": 4.8,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9914764791784341,
+      "ndcg_random_order": 0.9616638682958751,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 27,
+      "query": "pre-game and club dance hip hop",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        5,
+        5
+      ],
+      "mean_relevance": 5.0,
+      "top1_relevance": 5.0,
+      "ndcg": 1.0,
+      "ndcg_random_order": 1.0,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 28,
+      "query": "jersey club and dancey vibes",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        3,
+        3,
+        2,
+        3,
+        1
+      ],
+      "mean_relevance": 2.4,
+      "top1_relevance": 3.0,
+      "ndcg": 0.9796808707575757,
+      "ndcg_random_order": 0.8639833539484737,
+      "success_at_5": false,
+      "success_at_1": false,
+      "n_irrelevant": 1
+    },
+    {
+      "query_id": 29,
+      "query": "west coast hip hop drive",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        2,
+        4,
+        4,
+        4,
+        4
+      ],
+      "mean_relevance": 3.6,
+      "top1_relevance": 2.0,
+      "ndcg": 0.799166738834693,
+      "ndcg_random_order": 0.933502233780522,
+      "success_at_5": true,
+      "success_at_1": false,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 30,
+      "query": "afrobeats songs for the summer",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        4,
+        5
+      ],
+      "mean_relevance": 4.8,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9914764791784341,
+      "ndcg_random_order": 0.9616638682958751,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 31,
+      "query": "girly pop songs to get ready to",
+      "category": "compound",
+      "source": "irene",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        3,
+        1,
+        3,
+        3,
+        3
+      ],
+      "mean_relevance": 2.6,
+      "top1_relevance": 3.0,
+      "ndcg": 0.9047172294870752,
+      "ndcg_random_order": 0.918695937440195,
+      "success_at_5": false,
+      "success_at_1": false,
+      "n_irrelevant": 1
+    },
+    {
+      "query_id": 32,
+      "query": "hip hop for running",
+      "category": "compound",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        5,
+        5,
+        4,
+        5
+      ],
+      "mean_relevance": 4.8,
+      "top1_relevance": 5.0,
+      "ndcg": 0.9914764791784341,
+      "ndcg_random_order": 0.9616638682958751,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 33,
+      "query": "hip hop for studying",
+      "category": "compound",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        4,
+        5,
+        4,
+        5
+      ],
+      "mean_relevance": 4.4,
+      "top1_relevance": 4.0,
+      "ndcg": 0.8232945323475436,
+      "ndcg_random_order": 0.8927949639702023,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 34,
+      "query": "hip hop for falling asleep",
+      "category": "compound",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        5,
+        4,
+        4,
+        4,
+        4
+      ],
+      "mean_relevance": 4.2,
+      "top1_relevance": 5.0,
+      "ndcg": 1.0,
+      "ndcg_random_order": 0.8854358391320409,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    },
+    {
+      "query_id": 35,
+      "query": "hip hop",
+      "category": "compound",
+      "source": "claude",
+      "n_rated": 5,
+      "ratings_in_rank_order": [
+        4,
+        5,
+        4,
+        5,
+        5
+      ],
+      "mean_relevance": 4.6,
+      "top1_relevance": 4.0,
+      "ndcg": 0.8551273512512252,
+      "ndcg_random_order": 0.9234003670527718,
+      "success_at_5": true,
+      "success_at_1": true,
+      "n_irrelevant": 0
+    }
+  ]
+}
