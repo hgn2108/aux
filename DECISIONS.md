@@ -1038,6 +1038,26 @@ Why is rung 0, not rung 1, now the bar the LLM has to clear?
 
 ---
 
+
+### Audit, 2026-09-09: half this evidence is void, the conclusion survives
+
+`scripts/diagnose_depth.py` later established that most context queries have only one or two
+genuinely good matches in the 160-track library, so any top-K separation metric over it was
+comparing one real match against filler. The baseline's own separation swings between -0.04
+and 1.01 depending on K, which is the signature of noise.
+
+**The separation column in the table above is therefore not evidence.** It should not be
+cited, and the "0.66 at w=0.45" figure quoted in later documents is unreliable.
+
+**The genre-fidelity column stands**, and it alone is sufficient. Fidelity fell monotonically
+across six weights — 0.82, 0.78, 0.68, 0.56, 0.46 — with an unambiguous direction and no
+dependence on how many good matches a query had. A monotonic cost with no demonstrated
+benefit is the disqualification case a cheap proxy handles reliably.
+
+So the decision stands with **one supporting metric rather than two**, and the confidence
+should be read down accordingly. Rung 1 was rejected for diluting the genre, not for failing
+to separate contexts — that second claim was never actually measured.
+
 # Decision entry template
 
 ## DEC-XXX — Short title
