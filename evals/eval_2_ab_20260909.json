@@ -1,0 +1,347 @@
+{
+  "run_at": "2026-09-09T13:03:23.236580+00:00",
+  "encoder": "OpenMuQ/MuQ-MuLan-large",
+  "planner": {
+    "mean_relevance": 4.523809523809524,
+    "ci": [
+      4.238095238095239,
+      4.761904761904762
+    ],
+    "ndcg": 0.9430774439303142,
+    "success_at_1": 0.9285714285714286
+  },
+  "k": 3,
+  "n_queries": 14,
+  "baseline": {
+    "mean_relevance": 4.476190476190476,
+    "ci": [
+      4.095238095238095,
+      4.785714285714286
+    ],
+    "ndcg": 0.9524555755229311,
+    "success_at_1": 0.8571428571428571
+  },
+  "difference": {
+    "mean": 0.04761904761904764,
+    "ci": [
+      -0.3333333333333333,
+      0.38095238095238104
+    ],
+    "better": 4,
+    "worse": 3,
+    "sign_test_p": 1.0,
+    "s1_gained": 2,
+    "s1_lost": 1,
+    "s1_mcnemar_p": 1.0
+  },
+  "per_query": [
+    {
+      "query": "fast, upbeat rap and hip hop for running",
+      "category": "compound",
+      "rewritten": "fast upbeat rap and hip hop with driving percussion, rapid tempo, energetic flow, propulsive beats",
+      "overlap": 3,
+      "baseline_mean": 4.333333333333333,
+      "planner_mean": 4.333333333333333,
+      "baseline_ratings": [
+        4,
+        4,
+        5
+      ],
+      "planner_ratings": [
+        4,
+        5,
+        4
+      ],
+      "baseline_ndcg": 0.8254533390514981,
+      "planner_ndcg": 0.8711600416609142,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "chill r&b and hip hop for studying",
+      "category": "compound",
+      "rewritten": "mellow r&b and hip hop with steady understated groove, soft vocals, warm production, relaxed tempo",
+      "overlap": 1,
+      "baseline_mean": 4.666666666666667,
+      "planner_mean": 4.333333333333333,
+      "baseline_ratings": [
+        5,
+        5,
+        4
+      ],
+      "planner_ratings": [
+        5,
+        4,
+        4
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 1.0,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "pre-game and club dance hip hop",
+      "category": "compound",
+      "rewritten": "energetic club hip hop with heavy bass, driving percussion, fast tempo, hype energy",
+      "overlap": 2,
+      "baseline_mean": 4.333333333333333,
+      "planner_mean": 4.666666666666667,
+      "baseline_ratings": [
+        4,
+        5,
+        4
+      ],
+      "planner_ratings": [
+        4,
+        5,
+        5
+      ],
+      "baseline_ndcg": 0.8711600416609142,
+      "planner_ndcg": 0.856958672550123,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "west coast hip hop drive",
+      "category": "compound",
+      "rewritten": "west coast hip hop with a cruising tempo, laid-back groove, smooth production, steady rhythm",
+      "overlap": 0,
+      "baseline_mean": 4.0,
+      "planner_mean": 5.0,
+      "baseline_ratings": [
+        3,
+        5,
+        4
+      ],
+      "planner_ratings": [
+        5,
+        5,
+        5
+      ],
+      "baseline_ndcg": 0.7632223358547978,
+      "planner_ndcg": 1.0,
+      "baseline_s1": false,
+      "planner_s1": true
+    },
+    {
+      "query": "afrobeats songs for the summer",
+      "category": "compound",
+      "rewritten": "upbeat energetic afrobeats with bright percussion, warm groove, fast-paced rhythm, infectious drums",
+      "overlap": 0,
+      "baseline_mean": 5.0,
+      "planner_mean": 3.3333333333333335,
+      "baseline_ratings": [
+        5,
+        5,
+        5
+      ],
+      "planner_ratings": [
+        3,
+        3,
+        4
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 0.8075588805057204,
+      "baseline_s1": true,
+      "planner_s1": false
+    },
+    {
+      "query": "girly pop songs to get ready to",
+      "category": "compound",
+      "rewritten": "upbeat pop with energetic rhythm, catchy melodies, bright production, confident vocal delivery",
+      "overlap": 0,
+      "baseline_mean": 2.6666666666666665,
+      "planner_mean": 3.6666666666666665,
+      "baseline_ratings": [
+        3,
+        2,
+        3
+      ],
+      "planner_ratings": [
+        4,
+        4,
+        3
+      ],
+      "baseline_ndcg": 0.9514426589871553,
+      "planner_ndcg": 1.0,
+      "baseline_s1": false,
+      "planner_s1": true
+    },
+    {
+      "query": "groovy jazz rap",
+      "category": "compound",
+      "rewritten": "jazz rap with groovy rhythm, syncopated beats, smooth instrumentation, laid-back swagger",
+      "overlap": 0,
+      "baseline_mean": 3.6666666666666665,
+      "planner_mean": 4.666666666666667,
+      "baseline_ratings": [
+        5,
+        2,
+        4
+      ],
+      "planner_ratings": [
+        5,
+        4,
+        5
+      ],
+      "baseline_ndcg": 0.9605564132737651,
+      "planner_ndcg": 0.962543268492907,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "late night drive vibes",
+      "category": "context",
+      "rewritten": "smooth atmospheric production with steady driving rhythm, warm synths or mellow instrumentation, moderate tempo, laid-back groove",
+      "overlap": 0,
+      "baseline_mean": 5.0,
+      "planner_mean": 5.0,
+      "baseline_ratings": [
+        5,
+        5,
+        5
+      ],
+      "planner_ratings": [
+        5,
+        5,
+        5
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 1.0,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "romantic classical piano",
+      "category": "acoustic",
+      "rewritten": "expressive classical piano with lyrical phrasing, warm tones, emotional dynamics",
+      "overlap": 3,
+      "baseline_mean": 5.0,
+      "planner_mean": 5.0,
+      "baseline_ratings": [
+        5,
+        5,
+        5
+      ],
+      "planner_ratings": [
+        5,
+        5,
+        5
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 1.0,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "songs with heavy bass",
+      "category": "acoustic",
+      "rewritten": "tracks with prominent deep bass, strong low-end foundation driving the groove",
+      "overlap": 1,
+      "baseline_mean": 5.0,
+      "planner_mean": 4.333333333333333,
+      "baseline_ratings": [
+        5,
+        5,
+        5
+      ],
+      "planner_ratings": [
+        4,
+        5,
+        4
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 0.8711600416609142,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "melancholy and heartbroken",
+      "category": "mood",
+      "rewritten": "slow sparse production with sorrowful vocals, minor key, subdued dynamics, emotional restraint",
+      "overlap": 1,
+      "baseline_mean": 4.666666666666667,
+      "planner_mean": 4.666666666666667,
+      "baseline_ratings": [
+        5,
+        4,
+        5
+      ],
+      "planner_ratings": [
+        5,
+        4,
+        5
+      ],
+      "baseline_ndcg": 0.962543268492907,
+      "planner_ndcg": 0.962543268492907,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "calm and peaceful",
+      "category": "mood",
+      "rewritten": "calm and peaceful music with soft dynamics, gentle pace, tranquil texture",
+      "overlap": 1,
+      "baseline_mean": 5.0,
+      "planner_mean": 5.0,
+      "baseline_ratings": [
+        5,
+        5,
+        5
+      ],
+      "planner_ratings": [
+        5,
+        5,
+        5
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 1.0,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "hip hop for falling asleep",
+      "category": "compound",
+      "rewritten": "downtempo hip hop with soft beats, minimal percussion, warm production, slow steady groove",
+      "overlap": 0,
+      "baseline_mean": 4.333333333333333,
+      "planner_mean": 4.333333333333333,
+      "baseline_ratings": [
+        5,
+        5,
+        3
+      ],
+      "planner_ratings": [
+        4,
+        5,
+        4
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 0.8711600416609142,
+      "baseline_s1": true,
+      "planner_s1": true
+    },
+    {
+      "query": "jazz for studying",
+      "category": "compound",
+      "rewritten": "understated jazz with steady rhythm, soft instrumentation, relaxed tempo, minimal distractions",
+      "overlap": 2,
+      "baseline_mean": 5.0,
+      "planner_mean": 5.0,
+      "baseline_ratings": [
+        5,
+        5,
+        5
+      ],
+      "planner_ratings": [
+        5,
+        5,
+        5
+      ],
+      "baseline_ndcg": 1.0,
+      "planner_ndcg": 1.0,
+      "baseline_s1": true,
+      "planner_s1": true
+    }
+  ]
+}

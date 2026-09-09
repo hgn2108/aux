@@ -53,37 +53,60 @@ rewriting.
 
 ## Next Action
 
-**Rate ~12 queries (~10 minutes) to confirm the planner improves relevance, not just
-acoustics.** The rating set is built; run `python scripts/rate.py`.
+**Irene's call.** Slice 2's planner did not beat the baseline for a listener, but the test
+was run on the wrong queries — see below. Three options:
 
-### E2 result of record (DEC-017)
+1. **Re-rate ~12 weak queries** (~10 min). Selected by Slice 1 scores *before* the run:
+   context-without-genre, plus the individual failures at 1.2-1.6. This is where headroom
+   exists, and it is the test that should have been run first.
+2. **Close Slice 2 negative.** The planner is documented, measured, and not adopted. Move to
+   Slice 3 (lyrics) or Slice 1B (playback).
+3. **Fix latency first** (~1 hour), then decide. 1.7 s p50 blocks interactive use regardless
+   of relevance.
 
-1,489 FMA tracks, 18 pairs, K=25. Schema-enforced output, plans cached, verified
-byte-identical across two consecutive runs.
+### E2 human result — no measurable improvement (DEC-018)
 
-| group | n | baseline | planner | fused | delta | wins |
-|---|---:|---:|---:|---:|---:|---:|
-| genre-anchored context | 6 | 0.16 | **0.47** | 0.24 | +0.30 | **6/6** |
-| mood only (control) | 6 | 0.21 | **0.64** | 0.51 | +0.43 | **6/6** |
-| context, no genre | 6 | 0.25 | 0.29 | 0.49 | +0.04 | 3/6 |
-| **all** | 18 | 0.21 | **0.47** | 0.41 | **+0.26** | 15/18 |
+14 queries, 70 clips, blind pooled A/B on the personal library.
 
-95% CI [+0.08, +0.44], excluding zero. **Rung 3 (fusion) rejected** — +0.20 against the
-planner's +0.26, so combining dilutes rather than adds.
+| system | mean relevance | 95% CI | NDCG | success@1 |
+|---|---:|---|---:|---:|
+| baseline | 4.48 | [4.10, 4.79] | 0.952 | 86% |
+| planner | 4.52 | [4.24, 4.76] | 0.943 | 93% |
+| **difference** | **+0.05** | **[-0.33, +0.38]** | | |
 
-Two defects were found and fixed while adding rung 3, and both had invalidated earlier
-numbers: the planner had no temperature set and was re-sampling its own inputs between runs,
-and the schema was being *requested in a prompt* rather than enforced by the API. DEC-007
-had specified enforcement. Both are fixed; the result above is reproducible.
+Better on 4, worse on 3, **tied on 7**. Sign test p = 1.000.
 
-**What remains unproven:** that results are more *relevant*. Onset separation says the
-context registered, not that a listener prefers the outcome.
+**The planner is not the default.** PROJECT.md requires every added component to beat the
+simpler baseline or be removed, and it did not.
 
-### Still open
+**The test was badly designed, and that is Claude's error.** The queries were chosen where
+the *objective* metric showed the planner helping — genre-anchored context. But Slice 1 had
+already shown that category was the baseline's **strongest** (compound 4.18 of four
+categories). So the comparison ran where the baseline scored 4.48 of 5, leaving 0.52 of
+headroom, and 7 of 14 queries tied outright at or near 5.00.
 
-- **Latency** — 1.7 s p50, and structured output pushed the first call to ~7 s. A real
-  obstacle to interactive search; caching rewrites or a local model (E2a) are the options.
-- **E2a** — does a local model match? Ollama backend is written and untested.
+The right criterion was **where the baseline was weak** — Slice 1 recorded context at 3.14
+with individual failures at 1.2 and 1.6. Those queries were excluded.
+
+So the honest reading is *"no improvement detected on queries that already worked"*, not
+*"the planner does not improve relevance"*.
+
+**Recorded as a hypothesis, not a finding:** the three largest gains were on the baseline's
+weakest queries (+1.00 each) and the two largest losses on queries it already answered
+perfectly (-1.67, -0.67). That suggests applying the planner only when the baseline is
+uncertain — post-hoc, from 14 queries, and not evidence.
+
+### What stands from Slice 2
+
+- **Eval 2A:** 0% fallback, API-enforced schema, $1.11 per 1,000 queries.
+- **DEC-017:** the planner responds to context far better than the baseline, on waveform
+  features the encoder never sees (+0.26, 15/18 pairs, CI excluding zero).
+- **Negation (DEC-014):** shipped and working — leakage 0.22 to 0.08.
+- **Rejected on evidence:** fixed lexicon (DEC-016), reranking (DEC-015), rank fusion
+  (DEC-017).
+
+**Independently disqualifying for now:** ~1.7 s p50 latency, ~7 s on a first structured
+call. That blocks an interactive search box regardless of relevance.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 

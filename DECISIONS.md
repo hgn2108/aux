@@ -1169,6 +1169,82 @@ baseline sharper at K=5, the planner better beyond — but combining them dilute
 planner's advantage rather than adding to it. `reciprocal_rank_fusion` stays in the codebase
 for the multi-modality fusion Slice 3 will need; it is simply not useful here.
 
+## DEC-018 — E2 human result: the planner does not earn its place as the default
+
+**Status:** Accepted (2026-09-09) — the planner is **not adopted as the default**. It stays
+in the codebase, behind a flag, with its measured behaviour recorded.
+
+**Current slice:** Slice 2
+
+**Result:** 14 queries, 70 clips, blind pooled A/B on Irene's library.
+
+| system | mean relevance | 95% CI | NDCG | success@1 |
+|---|---:|---|---:|---:|
+| baseline | 4.48 | [4.10, 4.79] | 0.952 | 86% |
+| planner | 4.52 | [4.24, 4.76] | 0.943 | 93% |
+| **difference** | **+0.05** | **[-0.33, +0.38]** | | |
+
+Better on 4, worse on 3, tied on 7. Sign test p = 1.000. success@1 gained 2 and lost 1,
+McNemar p = 1.000.
+
+**Decision:** PROJECT.md's rule is that every added component must beat the simpler baseline
+on a stated metric or be removed. The planner did not. It is not the default.
+
+### The test was badly designed, and that is mine
+
+The queries were chosen because E2's objective metric showed the planner helping there —
+genre-anchored context. But Slice 1 had already measured that **the same category was the
+baseline's strongest** (compound 4.18, the best of four). So the test was run where the
+baseline scored 4.48 out of 5, leaving 0.52 of headroom, and 7 of 14 queries tied outright,
+most of them at a perfect 5.00.
+
+The right selection criterion was **where the baseline was weak**, not where the objective
+proxy showed movement. Slice 1 had that data: context 3.14, and individual failures at 1.2
+and 1.6. Those queries had room to improve and were excluded.
+
+So this result is better read as *"no improvement detected on queries that already worked"*
+than as *"the planner does not improve relevance"*. Those are different claims and only the
+first is supported.
+
+### A pattern, recorded as a hypothesis and not as a finding
+
+The three largest gains came where the baseline was weakest — "west coast hip hop drive"
+(4.00 to 5.00), "girly pop songs to get ready to" (2.67 to 3.67), "groovy jazz rap" (3.67 to
+4.67). The two largest losses came where it was already perfect — "afrobeats songs for the
+summer" (5.00 to 3.33) and "songs with heavy bass" (5.00 to 4.33).
+
+That suggests applying the planner **selectively**, only when the baseline is uncertain. It
+is post-hoc, drawn from 14 queries, and is not evidence. It is a hypothesis for a future
+experiment with a pre-registered rule.
+
+### What stands, and what does not
+
+**Stands:** the planner responds to context far better than the baseline does, measured on
+waveform features the encoder never sees (DEC-017, +0.26 overall, 15/18 pairs, CI excluding
+zero). Eval 2A stands too: 0% fallback, schema-enforced, $1.11 per 1,000 queries.
+
+**Does not stand:** any claim that this improves what a listener gets. It was tested and it
+did not, on the queries tested.
+
+**Also disqualifying, independently of relevance:** ~1.7 s p50 latency, rising to ~7 s on a
+first structured call. That alone would block it from an interactive search box.
+
+**Removal/revisit condition:**
+Re-test on queries where the baseline is *weak*, selected by Slice 1 scores before the run
+rather than after. If the planner beats the baseline there, adopt it selectively under a
+rule fixed in advance. If not, it stays documented research and Slice 2 closes negative.
+
+**Files updated:**
+- STATUS.md: E2 human result, Slice 2 outcome
+- EVALS.md: E2 result and the design error
+- DESIGN.md: planner not in the default retrieval path
+
+**Understanding check:**
+Why is "no improvement detected" not the same as "no improvement", and what would have made
+this test able to tell the difference?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

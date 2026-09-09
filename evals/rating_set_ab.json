@@ -1,0 +1,714 @@
+{
+  "queries": [
+    {
+      "category": "compound",
+      "source": "irene",
+      "query": "fast, upbeat rap and hip hop for running"
+    },
+    {
+      "category": "compound",
+      "source": "irene",
+      "query": "chill r&b and hip hop for studying"
+    },
+    {
+      "category": "compound",
+      "source": "irene",
+      "query": "pre-game and club dance hip hop"
+    },
+    {
+      "category": "compound",
+      "source": "irene",
+      "query": "west coast hip hop drive"
+    },
+    {
+      "category": "compound",
+      "source": "irene",
+      "query": "afrobeats songs for the summer"
+    },
+    {
+      "category": "compound",
+      "source": "irene",
+      "query": "girly pop songs to get ready to"
+    },
+    {
+      "category": "compound",
+      "source": "irene",
+      "query": "groovy jazz rap"
+    },
+    {
+      "category": "context",
+      "source": "irene",
+      "query": "late night drive vibes"
+    },
+    {
+      "category": "acoustic",
+      "source": "irene",
+      "query": "romantic classical piano"
+    },
+    {
+      "category": "acoustic",
+      "source": "irene",
+      "query": "songs with heavy bass"
+    },
+    {
+      "category": "mood",
+      "source": "claude",
+      "query": "melancholy and heartbroken"
+    },
+    {
+      "category": "mood",
+      "source": "claude",
+      "query": "calm and peaceful"
+    },
+    {
+      "category": "compound",
+      "source": "claude",
+      "query": "hip hop for falling asleep"
+    },
+    {
+      "category": "compound",
+      "source": "claude",
+      "query": "jazz for studying"
+    }
+  ],
+  "items": [
+    {
+      "query_id": 0,
+      "alias": "hiphop_rnb/t076",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 0,
+      "alias": "hiphop_rnb/t060",
+      "position": 1,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 0,
+      "alias": "hiphop_rnb/t074",
+      "position": 2,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 1,
+      "alias": "hiphop_rnb/t045",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 1,
+      "alias": "hiphop_rnb/t028",
+      "position": 1,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 1,
+      "alias": "jazz/t013",
+      "position": 2,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 1,
+      "alias": "hiphop_rnb/t042",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 1,
+      "alias": "hiphop_rnb/t047",
+      "position": 4,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 2,
+      "alias": "hiphop_rnb/t060",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 2,
+      "alias": "hiphop_rnb/t074",
+      "position": 1,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 2,
+      "alias": "hiphop_rnb/t041",
+      "position": 2,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 2,
+      "alias": "hiphop_rnb/t076",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 3,
+      "alias": "hiphop_rnb/t077",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 3,
+      "alias": "hiphop_rnb/t076",
+      "position": 1,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 3,
+      "alias": "jazz/t007",
+      "position": 2,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 3,
+      "alias": "hiphop_rnb/t090",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 3,
+      "alias": "hiphop_rnb/t073",
+      "position": 4,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 3,
+      "alias": "hiphop_rnb/t062",
+      "position": 5,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 4,
+      "alias": "hiphop_rnb/t089",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 4,
+      "alias": "dnb/t004",
+      "position": 1,
+      "genre": "dnb"
+    },
+    {
+      "query_id": 4,
+      "alias": "dnb/t002",
+      "position": 2,
+      "genre": "dnb"
+    },
+    {
+      "query_id": 4,
+      "alias": "hiphop_rnb/t035",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 4,
+      "alias": "dnb/t010",
+      "position": 4,
+      "genre": "dnb"
+    },
+    {
+      "query_id": 4,
+      "alias": "hiphop_rnb/t036",
+      "position": 5,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 5,
+      "alias": "hiphop_rnb/t029",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 5,
+      "alias": "edm/t008",
+      "position": 1,
+      "genre": "edm"
+    },
+    {
+      "query_id": 5,
+      "alias": "edm/t012",
+      "position": 2,
+      "genre": "edm"
+    },
+    {
+      "query_id": 5,
+      "alias": "edm/t013",
+      "position": 3,
+      "genre": "edm"
+    },
+    {
+      "query_id": 5,
+      "alias": "hiphop_rnb/t026",
+      "position": 4,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 5,
+      "alias": "vpop/t007",
+      "position": 5,
+      "genre": "vpop"
+    },
+    {
+      "query_id": 6,
+      "alias": "jazz/t019",
+      "position": 0,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 6,
+      "alias": "jazz/t002",
+      "position": 1,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 6,
+      "alias": "hiphop_rnb/t056",
+      "position": 2,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 6,
+      "alias": "jazz/t009",
+      "position": 3,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 6,
+      "alias": "jazz/t007",
+      "position": 4,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 6,
+      "alias": "jazz/t013",
+      "position": 5,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 7,
+      "alias": "hiphop_rnb/t001",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 7,
+      "alias": "hiphop_rnb/t015",
+      "position": 1,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 7,
+      "alias": "hiphop_rnb/t090",
+      "position": 2,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 7,
+      "alias": "hiphop_rnb/t077",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 7,
+      "alias": "hiphop_rnb/t094",
+      "position": 4,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 7,
+      "alias": "hiphop_rnb/t050",
+      "position": 5,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 8,
+      "alias": "classical/t003",
+      "position": 0,
+      "genre": "classical"
+    },
+    {
+      "query_id": 8,
+      "alias": "classical/t006",
+      "position": 1,
+      "genre": "classical"
+    },
+    {
+      "query_id": 8,
+      "alias": "classical/t007",
+      "position": 2,
+      "genre": "classical"
+    },
+    {
+      "query_id": 9,
+      "alias": "dnb/t009",
+      "position": 0,
+      "genre": "dnb"
+    },
+    {
+      "query_id": 9,
+      "alias": "hiphop_rnb/t064",
+      "position": 1,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 9,
+      "alias": "hiphop_rnb/t078",
+      "position": 2,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 9,
+      "alias": "hiphop_rnb/t033",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 9,
+      "alias": "edm/t006",
+      "position": 4,
+      "genre": "edm"
+    },
+    {
+      "query_id": 10,
+      "alias": "vpop/t001",
+      "position": 0,
+      "genre": "vpop"
+    },
+    {
+      "query_id": 10,
+      "alias": "vpop/t012",
+      "position": 1,
+      "genre": "vpop"
+    },
+    {
+      "query_id": 10,
+      "alias": "vpop/t004",
+      "position": 2,
+      "genre": "vpop"
+    },
+    {
+      "query_id": 10,
+      "alias": "hiphop_rnb/t055",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 10,
+      "alias": "vpop/t013",
+      "position": 4,
+      "genre": "vpop"
+    },
+    {
+      "query_id": 11,
+      "alias": "jazz/t011",
+      "position": 0,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 11,
+      "alias": "jazz/t015",
+      "position": 1,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 11,
+      "alias": "classical/t004",
+      "position": 2,
+      "genre": "classical"
+    },
+    {
+      "query_id": 11,
+      "alias": "jazz/t004",
+      "position": 3,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 11,
+      "alias": "jazz/t020",
+      "position": 4,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 12,
+      "alias": "hiphop_rnb/t093",
+      "position": 0,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 12,
+      "alias": "hiphop_rnb/t056",
+      "position": 1,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 12,
+      "alias": "hiphop_rnb/t078",
+      "position": 2,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 12,
+      "alias": "hiphop_rnb/t062",
+      "position": 3,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 12,
+      "alias": "hiphop_rnb/t047",
+      "position": 4,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 12,
+      "alias": "hiphop_rnb/t066",
+      "position": 5,
+      "genre": "hiphop_rnb"
+    },
+    {
+      "query_id": 13,
+      "alias": "jazz/t003",
+      "position": 0,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 13,
+      "alias": "jazz/t017",
+      "position": 1,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 13,
+      "alias": "jazz/t010",
+      "position": 2,
+      "genre": "jazz"
+    },
+    {
+      "query_id": 13,
+      "alias": "jazz/t001",
+      "position": 3,
+      "genre": "jazz"
+    }
+  ],
+  "k": 3,
+  "encoder": "OpenMuQ/MuQ-MuLan-large",
+  "n_segments": 5,
+  "planner": "claude-haiku-4-5-20251001",
+  "systems": {
+    "0": {
+      "query": "fast, upbeat rap and hip hop for running",
+      "rewritten": "fast upbeat rap and hip hop with driving percussion, rapid tempo, energetic flow, propulsive beats",
+      "baseline": [
+        73,
+        75,
+        59
+      ],
+      "planner": [
+        73,
+        59,
+        75
+      ],
+      "overlap": 3
+    },
+    "1": {
+      "query": "chill r&b and hip hop for studying",
+      "rewritten": "mellow r&b and hip hop with steady understated groove, soft vocals, warm production, relaxed tempo",
+      "baseline": [
+        41,
+        46,
+        44
+      ],
+      "planner": [
+        27,
+        44,
+        139
+      ],
+      "overlap": 1
+    },
+    "2": {
+      "query": "pre-game and club dance hip hop",
+      "rewritten": "energetic club hip hop with heavy bass, driving percussion, fast tempo, hype energy",
+      "baseline": [
+        73,
+        59,
+        75
+      ],
+      "planner": [
+        73,
+        59,
+        40
+      ],
+      "overlap": 2
+    },
+    "3": {
+      "query": "west coast hip hop drive",
+      "rewritten": "west coast hip hop with a cruising tempo, laid-back groove, smooth production, steady rhythm",
+      "baseline": [
+        76,
+        61,
+        75
+      ],
+      "planner": [
+        89,
+        72,
+        133
+      ],
+      "overlap": 0
+    },
+    "4": {
+      "query": "afrobeats songs for the summer",
+      "rewritten": "upbeat energetic afrobeats with bright percussion, warm groove, fast-paced rhythm, infectious drums",
+      "baseline": [
+        88,
+        35,
+        34
+      ],
+      "planner": [
+        102,
+        100,
+        108
+      ],
+      "overlap": 0
+    },
+    "5": {
+      "query": "girly pop songs to get ready to",
+      "rewritten": "upbeat pop with energetic rhythm, catchy melodies, bright production, confident vocal delivery",
+      "baseline": [
+        25,
+        153,
+        28
+      ],
+      "planner": [
+        124,
+        119,
+        123
+      ],
+      "overlap": 0
+    },
+    "6": {
+      "query": "groovy jazz rap",
+      "rewritten": "jazz rap with groovy rhythm, syncopated beats, smooth instrumentation, laid-back swagger",
+      "baseline": [
+        145,
+        135,
+        139
+      ],
+      "planner": [
+        55,
+        133,
+        128
+      ],
+      "overlap": 0
+    },
+    "7": {
+      "query": "late night drive vibes",
+      "rewritten": "smooth atmospheric production with steady driving rhythm, warm synths or mellow instrumentation, moderate tempo, laid-back groove",
+      "baseline": [
+        76,
+        49,
+        14
+      ],
+      "planner": [
+        89,
+        0,
+        126
+      ],
+      "overlap": 0
+    },
+    "8": {
+      "query": "romantic classical piano",
+      "rewritten": "expressive classical piano with lyrical phrasing, warm tones, emotional dynamics",
+      "baseline": [
+        94,
+        98,
+        97
+      ],
+      "planner": [
+        97,
+        98,
+        94
+      ],
+      "overlap": 3
+    },
+    "9": {
+      "query": "songs with heavy bass",
+      "rewritten": "tracks with prominent deep bass, strong low-end foundation driving the groove",
+      "baseline": [
+        63,
+        107,
+        77
+      ],
+      "planner": [
+        32,
+        77,
+        117
+      ],
+      "overlap": 1
+    },
+    "10": {
+      "query": "melancholy and heartbroken",
+      "rewritten": "slow sparse production with sorrowful vocals, minor key, subdued dynamics, emotional restraint",
+      "baseline": [
+        159,
+        54,
+        158
+      ],
+      "planner": [
+        158,
+        147,
+        150
+      ],
+      "overlap": 1
+    },
+    "11": {
+      "query": "calm and peaceful",
+      "rewritten": "calm and peaceful music with soft dynamics, gentle pace, tranquil texture",
+      "baseline": [
+        137,
+        146,
+        95
+      ],
+      "planner": [
+        141,
+        146,
+        130
+      ],
+      "overlap": 1
+    },
+    "12": {
+      "query": "hip hop for falling asleep",
+      "rewritten": "downtempo hip hop with soft beats, minimal percussion, warm production, slow steady groove",
+      "baseline": [
+        65,
+        77,
+        61
+      ],
+      "planner": [
+        46,
+        111,
+        55
+      ],
+      "overlap": 0
+    },
+    "13": {
+      "query": "jazz for studying",
+      "rewritten": "understated jazz with steady rhythm, soft instrumentation, relaxed tempo, minimal distractions",
+      "baseline": [
+        127,
+        143,
+        129
+      ],
+      "planner": [
+        143,
+        127,
+        136
+      ],
+      "overlap": 2
+    }
+  },
+  "shuffle_seed": 20260909,
+  "note": "Track identities are pseudonymised; the personal library is never published."
+}
