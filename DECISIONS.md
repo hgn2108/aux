@@ -829,9 +829,10 @@ anchor are the weakest in the set ("warming up before going out" 1.6, "backgroun
 while reading" 1.6), while genre-anchored context queries average 4.18. The genre word
 anchors retrieval; context alone does not carry it.
 
-## DEC-014 — Consider ranking (Slice 4) before routed retrieval (Slice 2)
+## DEC-014 — Fix negation, then ranking, then routed retrieval
 
-**Status:** Proposed — roadmap ordering is Irene's call.
+**Status:** Accepted (2026-09-09) — option C, timeboxed. Negation first as a narrow fix,
+then reranking, then reassess before committing to the Slice 2 planner.
 
 **Current slice:** Slice 1 (verified)
 
@@ -869,10 +870,17 @@ decomposition beats whole-query embedding, and negation — the clearest defect 
 *query understanding* problem that ranking cannot fix. A reranker cannot rescue "solo piano,
 no vocals" when retrieval returned hip-hop.
 
-**A middle option:** take negation out of Slice 2 and handle it first as a narrow, cheap fix
-— split the query, retrieve on the positive part, penalise proximity to the negated part —
-measured against an LLM rewrite before the LLM is assumed to be needed. That addresses the
-one defect with clear evidence without committing to the full planner.
+**Chosen: the middle option.** Negation comes out of Slice 2 and is handled first as a
+narrow fix — split the query, retrieve on the positive part, penalise proximity to the
+negated part. Then reranking, which has the measured headroom. Then reassess Slice 2 with a
+real baseline to beat.
+
+Taken with the timeline tension stated openly: the evidence favours this order, while the
+portfolio argument favours building the LLM planner sooner, since Slice 2 is the only place
+an LLM appears in this project. The compromise is that both earlier steps are small and
+produce clean results, so the planner is reached with two documented findings behind it and
+a non-trivial baseline — which is a better account of the planner than building it first
+would give.
 
 ### Evidence classification
 - Direct evidence: the Eval 1 numbers above, `evals/eval_1_relevance_20260909.json`.
