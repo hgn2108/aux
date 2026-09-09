@@ -53,33 +53,64 @@ rewriting.
 
 ## Next Action
 
-**Blocked on Irene: an `ANTHROPIC_API_KEY` is needed for rung 2.** Nothing else in Slice 2
-can proceed — rung 3 fuses rung 2's output, and rung 1 has been tested and rejected.
+**Irene's call: run a paired rating round to settle E2, or stop here.** The objective
+metrics cannot decide this one, and the reason is recorded below.
 
-Add it to `.env` as `ANTHROPIC_API_KEY=...` (already gitignored). Rung 2 sends **query text
-only** — never audio, never library contents, never file paths.
+### Eval 2A — planner output (claude-haiku-4-5, 45 queries)
 
-### Rung 1 — tested and rejected (DEC-016)
+| | |
+|---|---|
+| fallback rate | **0.0%** (0 of 45) |
+| recovered on retry | 0 |
+| latency p50 / p95 | 1657 / 1893 ms |
+| cost | $0.05 for the run — **$1.11 per 1,000 queries** |
+| facets populated | acoustic 45/45, mood 36/45, context 26/45, genre 20/45, exclude 1/45 |
 
-A 30-term context→acoustic lexicon, blended with the original query at weight *b*:
+Schema conformance is perfect and cost is negligible. Latency is the only practical concern:
+~1.7 s is material for interactive search and would need caching or a smaller model.
 
-| weight | separation | genre fidelity |
-|---:|---:|---:|
-| **0.00 (baseline)** | 0.56 | **0.80** |
-| 0.45 | 0.66 | 0.68 |
-| 0.80 | 0.72 | 0.46 |
+### E2 objective half — inconclusive, and the proxy is the reason
 
-Genre fidelity falls monotonically with weight; separation rises only non-monotonically,
-which across four pairs is noise. `DEFAULT_EXPANSION_WEIGHT` stays 0.0.
+| System | context separation | genre fidelity |
+|---|---:|---:|
+| baseline (Slice 1) | **0.56** | **0.80** |
+| planner | 0.39 | 0.76 |
+| rung 1 lexicon, w=0.45 | 0.66 | 0.68 *(rejected, DEC-016)* |
 
-**Why, and why it matters for rung 2:** the encoder already responds to context — that was
-measured at weight 0 before this rung existed. A generic acoustic phrase adds little and
-pulls the query toward "energetic music" generally, away from what was specified. The
-lexicon dilutes rather than informs.
+The planner changes 72% of results (top-10 overlap 0.28) while scoring slightly worse on
+both proxies. Read alone that is a rejection, as it was for rung 1.
 
-This does not predict the LLM will fail, since a rewrite conditioned on the whole query can
-be specific where a table can only be generic. It does mean **the LLM's bar is rung 0, the
-plain baseline** — and that DEC-013's premise is weaker than when written.
+**But the planner is demonstrably doing its job at the query level.** Opposed contexts that
+the encoder saw as near-identical are now clearly distinct:
+
+| Pair | original cos | rewritten cos |
+|---|---:|---:|
+| running vs falling asleep | 0.818 | **0.306** |
+| workout vs relax | 0.805 | **0.151** |
+| *mean over 8 queries* | 0.480 | **0.293** |
+
+So the mechanism works and the proxy says the outcome does not improve. Three explanations,
+and this evidence cannot separate them:
+
+1. the library genuinely lacks the material the separated queries now ask for — there may be
+   no sleepy hip-hop to retrieve;
+2. **the proxy measures the wrong dimension.** Onset rate captures rhythmic density; the
+   rewrites emphasise production, texture and dynamics, which it does not measure;
+3. the planner really does retrieve worse.
+
+Only (3) is a reason to stop. Distinguishing them needs a listener.
+
+**This is the third time an objective proxy has been the wrong instrument** — after the
+0.724 cosine in Eval 0C and the Jaccard test for context contribution. The pattern is
+consistent: proxies are excellent at cheap disqualification and unreliable at confirmation.
+Rung 1 was rejected on a proxy showing a *monotonic* cost with no benefit; this shows a
+working mechanism with an ambiguous outcome, which is not the same evidence.
+
+### Proposed: paired rating round
+
+Pool top-3 from baseline and top-3 from planner per query, blind and shuffled, ~180 clips
+and about 25 minutes — the same harness and the same cost as the Slice 1 round. That gives a
+paired comparison on identical queries and settles E2 properly.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 

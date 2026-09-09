@@ -80,3 +80,30 @@ def score_query(
         scores = scores - negation_weight * penalty
 
     return scores, parsed, expansion
+
+
+def score_plan(
+    encoder,
+    plan,
+    track_vectors: np.ndarray,
+    *,
+    negation_weight: float = DEFAULT_NEGATION_WEIGHT,
+) -> np.ndarray:
+    """Score every track against a planner's output.
+
+    Retrieval runs on `plan.rewritten` and pushes away from `plan.exclude`, reusing the same
+    score-level negation the deterministic path uses. Sharing that machinery is deliberate:
+    it means an E2 difference is attributable to the *rewrite*, not to two different
+    exclusion implementations.
+
+    A fallback plan has `rewritten == original` and no exclusions, so this reduces exactly
+    to the Slice 1 baseline.
+    """
+    query_vec = l2_normalise(encoder.embed_text([plan.rewritten]))[0]
+    scores = track_vectors @ query_vec
+
+    if plan.exclude and negation_weight:
+        negatives = l2_normalise(encoder.embed_text(list(plan.exclude)))
+        scores = scores - negation_weight * (track_vectors @ negatives.T).max(axis=1)
+
+    return scores

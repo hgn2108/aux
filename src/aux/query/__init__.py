@@ -5,6 +5,7 @@ from .negation import ParsedQuery, parse
 from .retrieve import (
     DEFAULT_EXPANSION_WEIGHT,
     DEFAULT_NEGATION_WEIGHT,
+    score_plan,
     score_query,
 )
 
@@ -16,5 +17,6 @@ __all__ = [
     "ParsedQuery",
     "expand",
     "parse",
+    "score_plan",
     "score_query",
 ]
