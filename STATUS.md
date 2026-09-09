@@ -53,42 +53,37 @@ rewriting.
 
 ## Next Action
 
-**Irene's call: a focused rating round (~15 min) to settle E2, or ship on the objective
-result.**
+**Rate ~12 queries (~10 minutes) to confirm the planner improves relevance, not just
+acoustics.** The rating set is built; run `python scripts/rate.py`.
 
-### E2 objective result — the planner works, where a genre anchors the query
+### E2 result of record (DEC-017)
 
-1,489 FMA tracks, 18 opposed pairs, K=25 (DEC-017):
+1,489 FMA tracks, 18 pairs, K=25. Schema-enforced output, plans cached, verified
+byte-identical across two consecutive runs.
 
-| group | n | baseline | planner | delta | se | wins |
+| group | n | baseline | planner | fused | delta | wins |
 |---|---:|---:|---:|---:|---:|---:|
-| **genre-anchored context** | 6 | 0.16 | **0.51** | **+0.34** | 0.07 | **6/6** |
-| context, no genre | 6 | 0.25 | 0.24 | -0.01 | 0.22 | 2/6 |
-| mood only (control) | 6 | 0.21 | 0.51 | +0.30 | 0.21 | 5/6 |
+| genre-anchored context | 6 | 0.16 | **0.47** | 0.24 | +0.30 | **6/6** |
+| mood only (control) | 6 | 0.21 | **0.64** | 0.51 | +0.43 | **6/6** |
+| context, no genre | 6 | 0.25 | 0.29 | 0.49 | +0.04 | 3/6 |
+| **all** | 18 | 0.21 | **0.47** | 0.41 | **+0.26** | 15/18 |
 
-Six of six on the form Irene actually writes, at a delta near 5x its standard error. Nothing
-for context without a genre — the hypothesis stated before the run.
+95% CI [+0.08, +0.44], excluding zero. **Rung 3 (fusion) rejected** — +0.20 against the
+planner's +0.26, so combining dilutes rather than adds.
 
-Earlier runs at 4 and 6 pairs were underpowered and were reported as inconclusive rather
-than as findings; the first was also invalid, since the personal library holds one or two
-real matches per context query. The metric never changed — only depth and power, each for a
-stated reason beforehand.
+Two defects were found and fixed while adding rung 3, and both had invalidated earlier
+numbers: the planner had no temperature set and was re-sampling its own inputs between runs,
+and the schema was being *requested in a prompt* rather than enforced by the API. DEC-007
+had specified enforcement. Both are fixed; the result above is reproducible.
 
-**What it does not show:** that results are more *relevant*. Onset separation is a proxy for
-"the context registered", not for "a listener prefers these".
+**What remains unproven:** that results are more *relevant*. Onset separation says the
+context registered, not that a listener prefers the outcome.
 
-### Proposed rating round
+### Still open
 
-Genre-anchored context queries only, top-3 per system, ~12 queries and 15 minutes. Narrow
-because the objective evidence has localised the effect; rating the null groups would spend
-time confirming nothing.
-
-### Still open regardless of the ratings
-
-- **Latency.** Eval 2A: ~1.7 s p50. Real obstacle to interactive search. Caching planned
-  rewrites, or a smaller/local model (E2a), are the options.
-- **Rung 3** (fuse planner and baseline rankings) is untested. The K sweep suggests it might
-  help: the baseline is sharper at K=5, the planner better from K=10 out.
+- **Latency** — 1.7 s p50, and structured output pushed the first call to ~7 s. A real
+  obstacle to interactive search; caching rewrites or a local model (E2a) are the options.
+- **E2a** — does a local model match? Ollama backend is written and untested.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 

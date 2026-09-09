@@ -36,6 +36,7 @@ from aux.encode.base import l2_normalise  # noqa: E402
 from aux.index import build_index  # noqa: E402
 from aux.ingest import IngestError, decode  # noqa: E402
 from aux.plan.schema import validate  # noqa: E402
+from aux.rank import reciprocal_rank_fusion  # noqa: E402
 from aux.query import score_plan  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -96,7 +97,7 @@ def main() -> int:
     args = ap.parse_args()
 
     from aux.encode.muq import MuQMuLanAdapter
-    from aux.plan import build_planner
+    from aux.plan import build_planner, plan_all
 
     encoder = MuQMuLanAdapter()
     V, paths, _ = build_index(args.root, encoder, n_segments=args.n_segments,
@@ -115,7 +116,7 @@ def main() -> int:
 
     planner = build_planner(args.planner)
     queries = [q for pair in PAIRS for q in pair]
-    plans = {q: planner.plan(q)[0] for q in queries}
+    plans = plan_all(planner, queries, ROOT / '.cache' / 'plans.json')
 
     def base(q):
         return V @ l2_normalise(encoder.embed_text([q]))[0]
@@ -123,44 +124,54 @@ def main() -> int:
     def plan_(q):
         return score_plan(encoder, plans[q], V)
 
-    print(f"\n{'K':>5}{'K as % of lib':>15}{'baseline':>11}{'planner':>10}{'delta':>9}")
+    def fused_(q):
+        """Rung 3: the two rankings combined at rank level (DESIGN.md's fusion rule)."""
+        return reciprocal_rank_fusion([base(q), plan_(q)])
+
+    print(f"\n{'K':>5}{'K as % of lib':>15}{'baseline':>11}{'planner':>10}{'fused':>9}")
     print("-" * 50)
     sweep = {}
     for k in (5, 10, 25, 50, 100):
-        b = [float(oz[np.argsort(-base(hi))[:k]].mean() - oz[np.argsort(-base(lo))[:k]].mean())
-             for hi, lo in PAIRS]
-        p = [float(oz[np.argsort(-plan_(hi))[:k]].mean() - oz[np.argsort(-plan_(lo))[:k]].mean())
-             for hi, lo in PAIRS]
+        sep = lambda fn: [  # noqa: E731
+            float(oz[np.argsort(-fn(hi))[:k]].mean() - oz[np.argsort(-fn(lo))[:k]].mean())
+            for hi, lo in PAIRS]
+        b, p, f = sep(base), sep(plan_), sep(fused_)
         sweep[k] = {"baseline": float(np.mean(b)), "planner": float(np.mean(p)),
-                    "baseline_per_pair": b, "planner_per_pair": p}
+                    "fused": float(np.mean(f)), "baseline_per_pair": b,
+                    "planner_per_pair": p, "fused_per_pair": f}
         sweep[k]["delta"] = sweep[k]["planner"] - sweep[k]["baseline"]
         print(f"{k:>5}{100 * k / V.shape[0]:>14.1f}%{sweep[k]['baseline']:>11.2f}"
-              f"{sweep[k]['planner']:>10.2f}{sweep[k]['delta']:>+9.2f}")
+              f"{sweep[k]['planner']:>10.2f}{sweep[k]['fused']:>9.2f}")
 
     k = 25
     print(f"\n=== by pair group at K={k} ===")
-    print(f"{'group':26}{'n':>4}{'base':>8}{'planner':>10}{'delta':>9}{'se':>7}{'wins':>7}")
+    print(f"{'group':26}{'n':>4}{'base':>8}{'planner':>10}{'fused':>8}{'p-b':>9}{'wins':>7}")
     print("-" * 71)
     groups = {}
     for name, sl in PAIR_GROUPS.items():
         b = np.array(sweep[k]["baseline_per_pair"][sl])
         p = np.array(sweep[k]["planner_per_pair"][sl])
+        f = np.array(sweep[k]["fused_per_pair"][sl])
         d = p - b
         se = float(d.std(ddof=1) / np.sqrt(d.size)) if d.size > 1 else float("nan")
         groups[name] = {"n": int(d.size), "baseline": float(b.mean()),
-                        "planner": float(p.mean()), "delta": float(d.mean()),
-                        "stderr": se, "wins": int((d > 0).sum())}
-        print(f"{name:26}{d.size:>4}{b.mean():>8.2f}{p.mean():>10.2f}"
-              f"{d.mean():>+9.2f}{se:>7.2f}{groups[name]['wins']:>4}/{d.size}")
+                        "planner": float(p.mean()), "fused": float(f.mean()),
+                        "delta": float(d.mean()), "stderr": se,
+                        "wins": int((d > 0).sum()),
+                        "fused_wins": int((f - b > 0).sum())}
+        print(f"{name:26}{d.size:>4}{b.mean():>8.2f}{p.mean():>10.2f}{f.mean():>8.2f}"
+              f"{d.mean():>+9.2f}{groups[name]['wins']:>4}/{d.size}")
     allb = np.array(sweep[k]["baseline_per_pair"])
     allp = np.array(sweep[k]["planner_per_pair"])
-    alld = allp - allb
-    se = float(alld.std(ddof=1) / np.sqrt(alld.size))
+    allf = np.array(sweep[k]["fused_per_pair"])
     print("-" * 71)
-    print(f"{'all pairs':26}{alld.size:>4}{allb.mean():>8.2f}{allp.mean():>10.2f}"
-          f"{alld.mean():>+9.2f}{se:>7.2f}{int((alld > 0).sum()):>4}/{alld.size}")
-    print(f"\n95% CI on the overall delta: "
-          f"[{alld.mean() - 1.96 * se:+.2f}, {alld.mean() + 1.96 * se:+.2f}]")
+    for label, arr in (("planner", allp), ("fused", allf)):
+        d = arr - allb
+        se = float(d.std(ddof=1) / np.sqrt(d.size))
+        print(f"{'all pairs — ' + label:26}{d.size:>4}{allb.mean():>8.2f}{arr.mean():>10.2f}"
+              f"{'':>8}{d.mean():>+9.2f}{int((d > 0).sum()):>4}/{d.size}")
+        print(f"{'':26}{'':>4}{'':>8}{'':>10}{'':>8}  95% CI "
+              f"[{d.mean() - 1.96 * se:+.2f}, {d.mean() + 1.96 * se:+.2f}]")
 
     out = ROOT / "evals" / "eval_2_deep_corpus.json"
     out.write_text(json.dumps({"run_at": datetime.now(timezone.utc).isoformat(),

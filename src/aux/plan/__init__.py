@@ -1,6 +1,7 @@
 """Query planning — DEC-007's LLM rung, behind one interface."""
 
 from .base import Planner, extract_json
+from .cache import PlanCache, plan_all
 from .schema import PlanValidationError, QueryPlan, passthrough, validate
 
 
@@ -18,11 +19,13 @@ def build_planner(name: str = "claude", model: str | None = None) -> Planner:
 
 
 __all__ = [
+    "PlanCache",
     "PlanValidationError",
     "Planner",
     "QueryPlan",
     "build_planner",
     "extract_json",
+    "plan_all",
     "passthrough",
     "validate",
 ]

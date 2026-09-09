@@ -14,6 +14,7 @@ from pathlib import Path
 
 from .base import Planner
 from .prompt import SYSTEM, build_messages
+from .schema import JSON_SCHEMA
 
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 """Short text to a small JSON object is well within Haiku, and latency matters for search.
@@ -35,7 +36,7 @@ def load_api_key() -> str | None:
 
 class ClaudePlanner(Planner):
     def __init__(self, model: str = DEFAULT_MODEL, *, max_tokens: int = 400,
-                 api_key: str | None = None) -> None:
+                 structured: bool = True, api_key: str | None = None) -> None:
         import anthropic
 
         key = api_key or load_api_key()
@@ -47,16 +48,31 @@ class ClaudePlanner(Planner):
         self.name = "claude"
         self.version = model
         self.max_tokens = max_tokens
+        self.structured = structured
+        """Enforce the JSON schema server-side rather than asking for it in the prompt.
+
+        This API version exposes no temperature control, so the planner cannot be made
+        deterministic by sampling settings — and it is not deterministic: an E2 measurement
+        moved from +0.34 to +0.40 between two runs whose baseline was identical to two
+        decimal places, which was the planner re-sampling its own inputs. Reproducibility is
+        therefore handled by caching plans (`plan.cache`), and schema enforcement removes the
+        other source of variation, which is response *shape*."""
         self._client = anthropic.Anthropic(api_key=key)
 
     def _complete(self, query: str) -> tuple[str, dict]:
         started = time.perf_counter()
+        kwargs = {}
+        if self.structured:
+            kwargs["output_config"] = {
+                "format": {"type": "json_schema", "schema": JSON_SCHEMA}
+            }
         response = self._client.messages.create(
             model=self.version,
             max_tokens=self.max_tokens,
             system=SYSTEM,
             # The query string is the only user data in this request.
             messages=build_messages(query),
+            **kwargs,
         )
         text = "".join(block.text for block in response.content if block.type == "text")
         return text, {

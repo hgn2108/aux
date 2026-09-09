@@ -1130,6 +1130,45 @@ Why is "three runs gave three answers" not evidence that this result is unreliab
 
 ---
 
+
+### Corrected and reproducible result (2026-09-09)
+
+Two defects were found while adding rung 3, and both invalidated the earlier numbers.
+
+**1. The planner was re-sampling its own inputs.** No temperature was set, so plans differed
+between runs — an E2 delta moved +0.34 to +0.40 while the baseline stayed at 0.21 to two
+decimal places. That variance was the planner, not the result. This API version exposes no
+temperature control, so determinism is provided instead by caching plans on disk
+(`plan.cache`), keyed on planner version and query.
+
+**2. The schema was requested, not enforced.** DEC-007 specified *schema-constrained*
+output; what was built asked for JSON in a prompt and parsed whatever came back. The API's
+`output_config.format` enforces a JSON schema server-side, which removes the failure rather
+than recovering from it. `validate` still runs afterwards: the schema constrains shape,
+`validate` constrains content.
+
+**Result of record** — 1,489 FMA tracks, 18 pairs, K=25, schema-enforced, plans cached, and
+verified byte-identical across two consecutive runs:
+
+| group | n | baseline | planner | fused | delta | wins |
+|---|---:|---:|---:|---:|---:|---:|
+| genre-anchored context | 6 | 0.16 | **0.47** | 0.24 | +0.30 | **6/6** |
+| mood only (control) | 6 | 0.21 | **0.64** | 0.51 | +0.43 | **6/6** |
+| context, no genre | 6 | 0.25 | 0.29 | 0.49 | +0.04 | 3/6 |
+| **all** | 18 | 0.21 | **0.47** | 0.41 | **+0.26** | 15/18 |
+
+95% CI on the overall delta **[+0.08, +0.44]**, excluding zero.
+
+The direction has now held across every run: the planner helps, most clearly where a genre
+anchors the query, and does close to nothing for context with no genre. The magnitude moved
+between runs until the two defects above were fixed; it no longer does.
+
+**Rung 3 (fusion) is rejected.** Fusing the two rankings scores +0.20 against the planner's
++0.26 and wins fewer pairs. The K sweep had suggested the systems were complementary — the
+baseline sharper at K=5, the planner better beyond — but combining them dilutes the
+planner's advantage rather than adding to it. `reciprocal_rank_fusion` stays in the codebase
+for the multi-modality fusion Slice 3 will need; it is simply not useful here.
+
 # Decision entry template
 
 ## DEC-XXX — Short title

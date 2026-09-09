@@ -104,3 +104,28 @@ def passthrough(query: str) -> QueryPlan:
     degrades to measured behaviour rather than to something unknown.
     """
     return QueryPlan(original=query, rewritten=query)
+
+
+JSON_SCHEMA: dict = {
+    "type": "object",
+    "properties": {
+        "rewritten": {"type": "string",
+                      "description": "The query restated as a description of sound"},
+        "acoustic": {"type": "array", "items": {"type": "string"}},
+        "mood": {"type": "array", "items": {"type": "string"}},
+        "genre": {"type": "array", "items": {"type": "string"}},
+        "context": {"type": "array", "items": {"type": "string"}},
+        "exclude": {"type": "array", "items": {"type": "string"}},
+        "lyrical": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["rewritten"],
+    "additionalProperties": False,
+}
+"""The schema enforced by the API, so "schema-constrained" is a contract rather than a
+request in a prompt.
+
+This is what DEC-007 actually specified. Prompting for JSON and parsing it leaves the model
+free to return prose, and the recovery path in `base.extract_json` exists for that. Enforcing
+the schema server-side removes the failure rather than handling it — and `validate` still
+runs afterwards, because the schema constrains shape while `validate` constrains content
+(trimming, capping list length, defaulting an empty rewrite to the original query)."""
