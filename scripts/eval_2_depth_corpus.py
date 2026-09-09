@@ -33,22 +33,48 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from aux.encode.base import l2_normalise  # noqa: E402
-from aux.ingest import IngestError, decode, discover  # noqa: E402
+from aux.index import build_index  # noqa: E402
+from aux.ingest import IngestError, decode  # noqa: E402
 from aux.plan.schema import validate  # noqa: E402
 from aux.query import score_plan  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
 PAIRS = [
+    # Genre-anchored context, the form Irene actually writes.
     ("hip hop for running", "hip hop for falling asleep"),
     ("hip hop for a workout", "hip hop to relax to"),
+    ("rock for a workout", "rock for winding down"),
+    ("electronic music for running", "electronic music for sleeping"),
+    ("jazz for a party", "jazz for studying"),
+    ("pop for dancing", "pop for reading"),
+    # Context with no genre anchor — Slice 1's weakest category.
     ("music for a party", "music for reading"),
     ("music for the gym", "music for sleeping"),
+    ("music for running", "music for meditation"),
+    ("music for a night out", "music for a quiet evening"),
+    ("music for cleaning the house", "music for falling asleep"),
+    ("music to wake up to", "music to fall asleep to"),
+    # Pure mood and energy, no context at all — the control.
     ("energetic music", "calm music"),
-    ("music for dancing", "music for meditation"),
+    ("aggressive music", "gentle music"),
+    ("fast music", "slow music"),
+    ("loud intense music", "quiet subdued music"),
+    ("upbeat cheerful music", "sombre reflective music"),
+    ("dense busy production", "sparse minimal production"),
 ]
-"""Two extra pairs beyond the personal-library set: with a deep corpus the metric can
-support more pairs, and four was too few to distinguish signal from noise."""
+"""Eighteen pairs, up from six.
+
+The first run could not adjudicate: per-pair deltas swung between -0.52 and +0.37 with a
+mean of -0.01, so the standard error over six pairs swamped the difference. Deepening the
+corpus fixed a different problem than the binding one.
+
+Grouped in three, because the six-pair run hinted that the two losses were both the
+genre-less "music for X" form. Eighteen pairs can test that rather than hint at it."""
+
+PAIR_GROUPS = {"genre-anchored context": slice(0, 6),
+               "context, no genre": slice(6, 12),
+               "mood only (control)": slice(12, 18)}
 
 
 def onset(samples: np.ndarray, sr: int) -> float:
@@ -73,19 +99,17 @@ def main() -> int:
     from aux.plan import build_planner
 
     encoder = MuQMuLanAdapter()
-    paths = [f.path for f in discover(args.root)][: args.limit]
-    vectors, onsets = [], []
-    for i, path in enumerate(paths, 1):
+    V, paths, _ = build_index(args.root, encoder, n_segments=args.n_segments,
+                              cache_path=ROOT / ".cache" / "fma_small.npz",
+                              limit=args.limit)
+    # Waveform features are cheap relative to encoding, but still worth not recomputing.
+    onsets = []
+    for path in paths:
         try:
             asset = decode(path)
-            vec, _ = encoder.embed_track(asset, n_segments=args.n_segments)
+            onsets.append(onset(asset.samples, asset.sample_rate))
         except (IngestError, Exception):  # noqa: BLE001
-            continue
-        vectors.append(vec)
-        onsets.append(onset(asset.samples, asset.sample_rate))
-        if i % 200 == 0:
-            print(f"  {i}/{len(paths)}", file=sys.stderr)
-    V = np.stack(vectors)
+            onsets.append(0.0)
     oz = (np.array(onsets) - np.mean(onsets)) / np.std(onsets)
     print(f"{V.shape[0]} tracks indexed", file=sys.stderr)
 
@@ -114,20 +138,35 @@ def main() -> int:
               f"{sweep[k]['planner']:>10.2f}{sweep[k]['delta']:>+9.2f}")
 
     k = 25
-    print(f"\n=== per pair at K={k} ===")
-    print(f"{'pair':50}{'base':>8}{'planner':>10}{'delta':>9}")
-    print("-" * 77)
-    wins = 0
-    for i, (hi, lo) in enumerate(PAIRS):
-        b, p = sweep[k]["baseline_per_pair"][i], sweep[k]["planner_per_pair"][i]
-        wins += p > b
-        print(f"{hi[:22]} vs {lo[:22]:26}{b:>8.2f}{p:>10.2f}{p - b:>+9.2f}")
-    print(f"\nplanner wins {wins}/{len(PAIRS)} pairs at K={k}")
+    print(f"\n=== by pair group at K={k} ===")
+    print(f"{'group':26}{'n':>4}{'base':>8}{'planner':>10}{'delta':>9}{'se':>7}{'wins':>7}")
+    print("-" * 71)
+    groups = {}
+    for name, sl in PAIR_GROUPS.items():
+        b = np.array(sweep[k]["baseline_per_pair"][sl])
+        p = np.array(sweep[k]["planner_per_pair"][sl])
+        d = p - b
+        se = float(d.std(ddof=1) / np.sqrt(d.size)) if d.size > 1 else float("nan")
+        groups[name] = {"n": int(d.size), "baseline": float(b.mean()),
+                        "planner": float(p.mean()), "delta": float(d.mean()),
+                        "stderr": se, "wins": int((d > 0).sum())}
+        print(f"{name:26}{d.size:>4}{b.mean():>8.2f}{p.mean():>10.2f}"
+              f"{d.mean():>+9.2f}{se:>7.2f}{groups[name]['wins']:>4}/{d.size}")
+    allb = np.array(sweep[k]["baseline_per_pair"])
+    allp = np.array(sweep[k]["planner_per_pair"])
+    alld = allp - allb
+    se = float(alld.std(ddof=1) / np.sqrt(alld.size))
+    print("-" * 71)
+    print(f"{'all pairs':26}{alld.size:>4}{allb.mean():>8.2f}{allp.mean():>10.2f}"
+          f"{alld.mean():>+9.2f}{se:>7.2f}{int((alld > 0).sum()):>4}/{alld.size}")
+    print(f"\n95% CI on the overall delta: "
+          f"[{alld.mean() - 1.96 * se:+.2f}, {alld.mean() + 1.96 * se:+.2f}]")
 
     out = ROOT / "evals" / "eval_2_deep_corpus.json"
     out.write_text(json.dumps({"run_at": datetime.now(timezone.utc).isoformat(),
                                "corpus": str(args.root), "tracks": int(V.shape[0]),
                                "planner": planner.version, "pairs": PAIRS,
+                               "groups_at_k25": groups,
                                "sweep": {str(k): v for k, v in sweep.items()}}, indent=2))
     print(f"\nwrote {out.relative_to(ROOT)}", file=sys.stderr)
     return 0

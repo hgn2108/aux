@@ -53,64 +53,42 @@ rewriting.
 
 ## Next Action
 
-**Irene's call: run a paired rating round to settle E2, or stop here.** The objective
-metrics cannot decide this one, and the reason is recorded below.
+**Irene's call: a focused rating round (~15 min) to settle E2, or ship on the objective
+result.**
 
-### Eval 2A — planner output (claude-haiku-4-5, 45 queries)
+### E2 objective result — the planner works, where a genre anchors the query
 
-| | |
-|---|---|
-| fallback rate | **0.0%** (0 of 45) |
-| recovered on retry | 0 |
-| latency p50 / p95 | 1657 / 1893 ms |
-| cost | $0.05 for the run — **$1.11 per 1,000 queries** |
-| facets populated | acoustic 45/45, mood 36/45, context 26/45, genre 20/45, exclude 1/45 |
+1,489 FMA tracks, 18 opposed pairs, K=25 (DEC-017):
 
-Schema conformance is perfect and cost is negligible. Latency is the only practical concern:
-~1.7 s is material for interactive search and would need caching or a smaller model.
+| group | n | baseline | planner | delta | se | wins |
+|---|---:|---:|---:|---:|---:|---:|
+| **genre-anchored context** | 6 | 0.16 | **0.51** | **+0.34** | 0.07 | **6/6** |
+| context, no genre | 6 | 0.25 | 0.24 | -0.01 | 0.22 | 2/6 |
+| mood only (control) | 6 | 0.21 | 0.51 | +0.30 | 0.21 | 5/6 |
 
-### E2 objective half — inconclusive, and the proxy is the reason
+Six of six on the form Irene actually writes, at a delta near 5x its standard error. Nothing
+for context without a genre — the hypothesis stated before the run.
 
-| System | context separation | genre fidelity |
-|---|---:|---:|
-| baseline (Slice 1) | **0.56** | **0.80** |
-| planner | 0.39 | 0.76 |
-| rung 1 lexicon, w=0.45 | 0.66 | 0.68 *(rejected, DEC-016)* |
+Earlier runs at 4 and 6 pairs were underpowered and were reported as inconclusive rather
+than as findings; the first was also invalid, since the personal library holds one or two
+real matches per context query. The metric never changed — only depth and power, each for a
+stated reason beforehand.
 
-The planner changes 72% of results (top-10 overlap 0.28) while scoring slightly worse on
-both proxies. Read alone that is a rejection, as it was for rung 1.
+**What it does not show:** that results are more *relevant*. Onset separation is a proxy for
+"the context registered", not for "a listener prefers these".
 
-**But the planner is demonstrably doing its job at the query level.** Opposed contexts that
-the encoder saw as near-identical are now clearly distinct:
+### Proposed rating round
 
-| Pair | original cos | rewritten cos |
-|---|---:|---:|
-| running vs falling asleep | 0.818 | **0.306** |
-| workout vs relax | 0.805 | **0.151** |
-| *mean over 8 queries* | 0.480 | **0.293** |
+Genre-anchored context queries only, top-3 per system, ~12 queries and 15 minutes. Narrow
+because the objective evidence has localised the effect; rating the null groups would spend
+time confirming nothing.
 
-So the mechanism works and the proxy says the outcome does not improve. Three explanations,
-and this evidence cannot separate them:
+### Still open regardless of the ratings
 
-1. the library genuinely lacks the material the separated queries now ask for — there may be
-   no sleepy hip-hop to retrieve;
-2. **the proxy measures the wrong dimension.** Onset rate captures rhythmic density; the
-   rewrites emphasise production, texture and dynamics, which it does not measure;
-3. the planner really does retrieve worse.
-
-Only (3) is a reason to stop. Distinguishing them needs a listener.
-
-**This is the third time an objective proxy has been the wrong instrument** — after the
-0.724 cosine in Eval 0C and the Jaccard test for context contribution. The pattern is
-consistent: proxies are excellent at cheap disqualification and unreliable at confirmation.
-Rung 1 was rejected on a proxy showing a *monotonic* cost with no benefit; this shows a
-working mechanism with an ambiguous outcome, which is not the same evidence.
-
-### Proposed: paired rating round
-
-Pool top-3 from baseline and top-3 from planner per query, blind and shuffled, ~180 clips
-and about 25 minutes — the same harness and the same cost as the Slice 1 round. That gives a
-paired comparison on identical queries and settles E2 properly.
+- **Latency.** Eval 2A: ~1.7 s p50. Real obstacle to interactive search. Caching planned
+  rewrites, or a smaller/local model (E2a), are the options.
+- **Rung 3** (fuse planner and baseline rankings) is untested. The K sweep suggests it might
+  help: the baseline is sharper at K=5, the planner better from K=10 out.
 
 ### Encoder: MuQ-MuLan (DEC-012, accepted)
 

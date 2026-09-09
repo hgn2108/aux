@@ -1058,6 +1058,78 @@ So the decision stands with **one supporting metric rather than two**, and the c
 should be read down accordingly. Rung 1 was rejected for diluting the genre, not for failing
 to separate contexts — that second claim was never actually measured.
 
+## DEC-017 — E2: the planner helps genre-anchored context queries
+
+**Status:** Proposed — objective evidence is positive; human relevance not yet measured.
+
+**Current slice:** Slice 2
+
+**Result** (`scripts/eval_2_depth_corpus.py`, 1,489 FMA tracks, 18 opposed pairs, K=25):
+
+| group | n | baseline | planner | delta | se | wins |
+|---|---:|---:|---:|---:|---:|---:|
+| **genre-anchored context** | 6 | 0.16 | **0.51** | **+0.34** | 0.07 | **6/6** |
+| context, no genre | 6 | 0.25 | 0.24 | -0.01 | 0.22 | 2/6 |
+| mood only (control) | 6 | 0.21 | 0.51 | +0.30 | 0.21 | 5/6 |
+| all | 18 | 0.21 | 0.42 | +0.21 | 0.11 | 13/18 |
+
+The planner wins **6 of 6** genre-anchored context pairs at a delta near 5x its standard
+error — the form Irene actually writes, 7 of her 12 queries. It does nothing for context
+queries carrying no genre.
+
+**This was a pre-registered test.** The six-pair run hinted that both its losses were the
+genre-less "music for X" form; the grouping and the hypothesis were stated in the script
+docstring and to Irene *before* this run returned. The result is a test of that hypothesis,
+not a pattern found after the fact.
+
+### Three runs, and why only the third counts
+
+| run | corpus | pairs | result |
+|---|---|---:|---|
+| 1 | personal, 160 | 4 | planner worse |
+| 2 | FMA, 1,489 | 6 | worse at low K, better at high K |
+| 3 | FMA, 1,489 | 18 | **better, driven by genre-anchored context** |
+
+The honest reading is not that three runs disagreed. It is that runs 1 and 2 were
+**underpowered and uninformative**, and were reported as inconclusive at the time rather
+than as findings. Run 1 was additionally invalid: the personal library holds one or two real
+matches per context query, so its top-K compared one match against filler.
+
+The metric never changed between runs — only the corpus depth and the number of pairs, each
+for a stated reason before the run. That is what makes this a power correction rather than
+a search for a favourable result.
+
+### What this does and does not establish
+
+**Does:** the planner makes genre-anchored context queries retrieve tracks that differ
+acoustically in the direction the context implies, measured on waveform features the encoder
+never sees.
+
+**Does not:** that the results are more *relevant*. Onset-rate separation is a proxy for
+"the context registered", not for "a listener prefers these". Those are different claims and
+only ratings settle the second.
+
+**Also does not:** say anything about latency, which Eval 2A puts at ~1.7 s p50 and which is
+a real obstacle to interactive search regardless of quality.
+
+**Recommendation:** a focused rating round — the genre-anchored context queries only, top-3
+from each system, roughly 12 queries and 15 minutes. Narrow because the objective evidence
+has already localised where the effect is, so rating the null groups would spend time
+confirming nothing.
+
+**Removal/revisit condition:**
+If human ratings show no relevance gain on genre-anchored context queries, the planner has
+moved retrieval without improving it and does not ship.
+
+**Files updated:**
+- STATUS.md: E2 result; rating round proposed
+- EVALS.md: E2 gains the objective result and the power correction
+
+**Understanding check:**
+Why is "three runs gave three answers" not evidence that this result is unreliable?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

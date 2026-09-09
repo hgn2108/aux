@@ -37,3 +37,6 @@ data/music/
 
 # Eval outputs naming the personal library stay local
 evals/*.private.json
+
+# Embedding cache — derived, regenerable, large
+.cache/
