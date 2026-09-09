@@ -1,5 +1,14 @@
 """Evaluation metrics, paired comparison and graded relevance, shared across slices."""
 
+from .confidence import (
+    HIGHER_MEANS_MORE_CONFIDENT,
+    MEASURES,
+    all_measures,
+    crowding,
+    relative_gap,
+    top_k_entropy,
+    z_top,
+)
 from .intent import INTENT_TERMS, intent_match, terms_in
 from .metrics import random_baseline, ranks_of_truth, retrieval_metrics, space_diagnostics
 from .paired import bonferroni_threshold, compare_at_k, mcnemar_exact, sign_test_on_ranks
@@ -13,7 +22,14 @@ from .relevance import (
 )
 
 __all__ = [
+    "HIGHER_MEANS_MORE_CONFIDENT",
     "INTENT_TERMS",
+    "MEASURES",
+    "all_measures",
+    "crowding",
+    "relative_gap",
+    "top_k_entropy",
+    "z_top",
     "bonferroni_threshold",
     "bootstrap_ci",
     "compare_at_k",
