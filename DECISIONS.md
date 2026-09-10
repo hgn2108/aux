@@ -1630,6 +1630,89 @@ Why does a lyrics API break on this library where transcription does not?
 
 ---
 
+## DEC-023 — E3: lyrics work, and naive fusion is actively harmful
+
+**Status:** Proposed — adopt lyric retrieval; **do not** fuse modalities unconditionally.
+
+**Current slice:** Slice 3
+
+### Test 1 — find a track from a line of its own lyrics
+
+126 queries, 160 candidates, ground truth exact.
+
+| modality | R@1 | R@5 | R@10 | median rank | MRR |
+|---|---:|---:|---:|---:|---:|
+| audio | 0.008 | 0.048 | 0.063 | 64 | 0.042 |
+| **lyrics** | **0.460** | **0.603** | **0.706** | **2** | **0.542** |
+| fused (RRF) | 0.056 | 0.262 | 0.349 | 14 | 0.159 |
+| *chance* | *0.006* | *0.031* | *0.062* | *80* | — |
+
+**Audio sits exactly at chance** — 0.008 against 0.006 at R@1, 0.063 against 0.062 at R@10.
+That is the expected result and it is worth stating plainly: no audio encoder can identify a
+song from its words, and this measures the size of the capability lyrics add rather than
+merely asserting one.
+
+Lyrics put the correct track at **median rank 2 of 160**.
+
+**Fusion is catastrophic here: 0.706 to 0.349 at R@10, half the performance of lyrics
+alone.** Reciprocal rank fusion weights both inputs equally, so blending a strong ranker
+with a chance-level one drags the good result toward the bad one. Nothing about RRF is
+wrong; the fault is applying it where one modality carries no information.
+
+### Test 2 — language
+
+13 Vietnamese tracks, measured as how many land in the top 13.
+
+| query | audio | lyrics | fused |
+|---|---:|---:|---:|
+| "sung in Vietnamese" | **0/13** | 6/13 | **9/13** |
+| "a song with Vietnamese lyrics" | 9/13 | 7/13 | **10/13** |
+| "vietnamese vocals" | 8/13 | 6/13 | 7/13 |
+| **mean** | 5.7 | 6.3 | **8.7** |
+
+Here fusion is the **best** of the three, because both modalities carry partial signal.
+
+Also visible: audio scores 0/13 on "sung in Vietnamese" and 9/13 on "a song with Vietnamese
+lyrics" — same intent, same library, opposite outcome. The phrasing sensitivity measured in
+Slice 1 has not gone away.
+
+### The conclusion, which is the one Slice 2 could not reach
+
+Fusion helped in one test and halved performance in the other. The difference is whether
+both modalities know anything about the query:
+
+- **lyric-line retrieval** — audio is at chance, so fusion destroys a working result;
+- **language** — both carry partial signal, so fusion combines them productively.
+
+**This is objective evidence for routing**, with exact ground truth and no human rating.
+Slice 2 set out to test whether structured query handling beats a single path and could not
+show it — the planner's benefit stayed inside the noise. E3 shows it plainly, because the
+two modalities differ so much more than two phrasings of one query did.
+
+The routing rule this implies is narrow and testable: **do not consult a modality that
+cannot answer the question**. Deciding *which* modality can is the open problem, and DEC-021
+already offers the shape of an answer — measure each modality's confidence for this query
+against this library, and drop the ones that have nothing to say.
+
+**Not yet established:** thematic lyric queries ("songs about yearning"), which have no
+objective ground truth and need human ratings; whether the routing rule can be automated;
+and section-level chunking (E4).
+
+**Removal/revisit condition:**
+If routing cannot be automated reliably, ship lyrics as an explicitly separate search mode
+rather than fusing — better a user-chosen modality than an automatic choice that halves
+results when it guesses wrong.
+
+**Files updated:**
+- STATUS.md: E3 result
+- EVALS.md: E3 result and the fusion finding
+- DESIGN.md: routing, pending an automatable rule
+
+**Understanding check:**
+Why did rank fusion help one test and halve the other, given it is the same algorithm?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

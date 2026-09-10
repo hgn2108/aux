@@ -29,23 +29,44 @@ everything moderately because the encoder cannot isolate what a song is about; a
 
 ### Transcription — done (DEC-022)
 
-160/160 transcribed, 0 failures, 18x realtime over 9.2 h of audio.
+160/160 transcribed, 0 failures, 18x realtime. 127 usable for lyric search; 32 flagged
+instrumental (7/7 classical, 11/20 jazz); **13/13 Vietnamese detected**, exactly the v-pop
+folder.
 
-| signal | result |
-|---|---|
-| usable for lyric search | 127 of 160, median 376 words |
-| likely instrumental | 32 — including **7/7 classical, 11/20 jazz** |
-| Vietnamese detected | **13/13**, exactly the v-pop folder |
+Whisper's language detection needed E1's fix — it detects from one 30-second window and got
+3/5 on v-pop, then *translated* a Vietnamese song into English. Voting over five windows
+gets 13/13.
 
-**Language detection needed the same fix E1 found.** Whisper detects from one 30-second
-window at the start; on v-pop that got 3/5, and having guessed "English" it *translated* a
-Vietnamese song rather than transcribing it. Voting over five windows gets 13/13.
+The two signals cross-validate unplanned: 12 tracks reported as Javanese and 3 as Norwegian
+Nynorsk are **all 15 flagged instrumental**. Whisper was guessing at audio with nothing sung
+in it.
 
-**The two signals cross-validate, unplanned.** Whisper reported 12 tracks as Javanese and 3
-as Norwegian Nynorsk. **All 15 are flagged instrumental** — it was guessing at audio with
-nothing sung. Neither signal was built to check the other and they agree 15/15.
+### E3 — lyrics work, and naive fusion is harmful (DEC-023)
 
-## Slice 2 outcome## Slice 2 outcome
+**Test 1 — find a track from a line of its own lyrics** (126 queries, 160 candidates):
+
+| modality | R@1 | R@10 | median rank |
+|---|---:|---:|---:|
+| audio | 0.008 | 0.063 | 64 |
+| **lyrics** | **0.460** | **0.706** | **2** |
+| fused | 0.056 | 0.349 | 14 |
+| *chance* | *0.006* | *0.062* | *80* |
+
+Audio is **exactly at chance**, as it must be — no audio encoder identifies a song from its
+words. Lyrics put the right track at median rank 2 of 160. **Fusion halves that**, because
+rank fusion weights both inputs equally and one of them knows nothing.
+
+**Test 2 — language** (13 Vietnamese tracks in the top 13): audio 5.7, lyrics 6.3,
+**fused 8.7**. Here fusion is best, because both modalities carry partial signal.
+
+**This is the routing evidence Slice 2 could not produce.** The same algorithm helps in one
+test and halves the other; the difference is whether both modalities know anything about the
+query. The rule is narrow and testable: do not consult a modality that cannot answer.
+
+Also visible: audio scores 0/13 on "sung in Vietnamese" and 9/13 on "a song with Vietnamese
+lyrics". The phrasing sensitivity from Slice 1 has not gone away.
+
+## Slice 2 outcome## Slice 2 outcome## Slice 2 outcome
 
 **Shipped:** negation handling. A contrastive encoder cannot represent "not X", so the query
 is split and the exclusion applied at score level. Excluded-genre leakage fell 0.22 to 0.08,
