@@ -1,0 +1,22 @@
+{
+  "summary": {
+    "run_at": "2026-09-10T02:07:10.579467+00:00",
+    "model": "whisper-small",
+    "root": "data/music",
+    "files": 160,
+    "transcribed": 160,
+    "failed": 0,
+    "languages": {
+      "en": 132,
+      "vi": 13,
+      "jw": 12,
+      "nn": 3
+    },
+    "likely_instrumental": 32,
+    "reliable": 127,
+    "median_words": 376.5,
+    "audio_hours": 9.189884807256236,
+    "realtime_factor": 18.388111001416302
+  },
+  "note": "Transcripts are the lyrics of a personal library and stay in the .private.json alongside this file, which is gitignored."
+}

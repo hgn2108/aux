@@ -1551,6 +1551,85 @@ does it cost?
 
 ---
 
+## DEC-022 — Lyrics come from transcription, not from a lyrics database
+
+**Status:** Accepted (2026-09-10)
+
+**Current slice:** Slice 3
+
+**Question:** EVALS.md lists "lyric semantics cannot be sourced legally/reliably" as a stop
+condition. Where do lyrics come from for arbitrary local files?
+
+**Decision:** transcribe the audio (Whisper), rather than looking the track up in a lyrics
+database.
+
+**Why:** a lyrics API matches a *file* to a *catalogue entry*, which is the failure DEC-001
+was written to avoid. It breaks on remixes, live versions, mashups and mislabelled files —
+and this library is full of them ("BD12 Remix", "Jr Stit Mashup", "Live From The 68th
+Grammy Awards"). Transcription reads whatever audio is actually present, so it satisfies
+train/inference parity: anything computed in development is computable for an arbitrary
+local file at inference.
+
+**Result over the full library — 160/160 transcribed, 0 failures, 18x realtime:**
+
+| signal | outcome |
+|---|---|
+| usable for lyric search | 127 of 160, median 376 words |
+| likely instrumental | 32, including **7/7 classical and 11/20 jazz** |
+| Vietnamese detected | **13/13**, exactly the v-pop folder |
+
+**Three capabilities from one pass, two of them unplanned.** Beyond the lyrics text:
+
+- **Language identity**, which fixes a measured Slice 1 failure — "sung in Vietnamese"
+  returned jazz, because the audio encoder does not represent language at all.
+- **An instrumental flag**, from Whisper's per-segment `no_speech_prob`, aimed at Slice 1's
+  worst-scoring query ("solo piano, no vocals", mean 1.20).
+
+### Language detection needed fixing, and the fix was E1's finding again
+
+Whisper detects language from **one 30-second window at the start of the file**. On five
+v-pop tracks it identified three, calling one English (0.47) and one Korean (0.27) — both
+low-confidence guesses from an unrepresentative intro. Worse, having decided "English", it
+*translated* a Vietnamese song into English rather than transcribing it.
+
+Voting over five windows spread across the track gets 5/5, and 13/13 across the library.
+This is E1 restated in a different component: **one window is not the track**. The window
+layout deliberately matches segment selection so both halves of the pipeline sample audio
+the same way.
+
+### The two signals cross-validate each other, unplanned
+
+Whisper reported 12 tracks as Javanese and 3 as Norwegian Nynorsk — implausible for this
+library. **All 15 are flagged instrumental**, and their mean `no_speech` is 0.58-0.70
+against 0.31 for English and Vietnamese. The nonsense languages are Whisper guessing at
+audio with nothing sung in it.
+
+Neither signal was built to check the other, and they agree completely: 15/15. That is
+stronger evidence for both than either could give alone.
+
+**Known limitation:** transcription quality on sung vocals is uneven. One jazz track produced
+"I'm not sure if you can hear me" eight times — a pure hallucination, correctly excluded by
+`reliable = False`. Quality is recorded per track (`mean_logprob`, `mean_no_speech`) so
+unreliable transcripts are excluded by measurement rather than assumed good.
+
+**Privacy:** transcripts are the *lyrics* of a personal library — more identifying than
+filenames, since they are the words themselves. Full output goes to a gitignored
+`.private.json`; only aggregates are committed.
+
+**Removal/revisit condition:**
+If lyric retrieval on these transcripts does not beat audio-only retrieval on lyrical
+queries (E3), transcription stays as a language and instrumental detector — both of which
+already fix measured failures — and lyric *search* is dropped.
+
+**Files updated:**
+- STATUS.md: Slice 3 progress
+- EVALS.md: transcription result, E3 pending
+
+**Understanding check:**
+Why does a lyrics API break on this library where transcription does not?
+
+---
+
 # Decision entry template
 
 ## DEC-XXX — Short title

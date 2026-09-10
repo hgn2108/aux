@@ -40,3 +40,6 @@ evals/*.private.json
 
 # Embedding cache — derived, regenerable, large
 .cache/
+
+# Transcripts of the personal library are its lyrics — never committed
+.cache/transcripts_*.json

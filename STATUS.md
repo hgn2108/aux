@@ -5,10 +5,47 @@ gate: 1 — waived, not passed (2026-09-06)
 
 ## Current Slice
 
-name: Slice 2 — Complex intent → routed retrieval
-status: **closed** (2026-09-10)
+name: Slice 3 — Audio + lyrical semantics
+status: implementing
 
-## Slice 2 outcome
+## Slice Contract
+
+### Input
+
+- The 160-track library, already indexed by audio
+- Transcribed lyrics for each track, from its own audio
+
+### Output
+
+- Lyric-based retrieval alongside audio retrieval
+- A measured comparison: audio only, lyrics only, both (E3)
+
+### Expected Behavior
+
+**Hypothesis:** two Slice 1 failures are lyrical and unfixable by any audio method —
+"r&b songs about yearning" had the *highest* mean score of any query (0.398), matching
+everything moderately because the encoder cannot isolate what a song is about; and
+"sung in Vietnamese" returns jazz despite 13 v-pop tracks.
+
+### Transcription — done (DEC-022)
+
+160/160 transcribed, 0 failures, 18x realtime over 9.2 h of audio.
+
+| signal | result |
+|---|---|
+| usable for lyric search | 127 of 160, median 376 words |
+| likely instrumental | 32 — including **7/7 classical, 11/20 jazz** |
+| Vietnamese detected | **13/13**, exactly the v-pop folder |
+
+**Language detection needed the same fix E1 found.** Whisper detects from one 30-second
+window at the start; on v-pop that got 3/5, and having guessed "English" it *translated* a
+Vietnamese song rather than transcribing it. Voting over five windows gets 13/13.
+
+**The two signals cross-validate, unplanned.** Whisper reported 12 tracks as Javanese and 3
+as Norwegian Nynorsk. **All 15 are flagged instrumental** — it was guessing at audio with
+nothing sung. Neither signal was built to check the other and they agree 15/15.
+
+## Slice 2 outcome## Slice 2 outcome
 
 **Shipped:** negation handling. A contrastive encoder cannot represent "not X", so the query
 is split and the exclusion applied at score level. Excluded-genre leakage fell 0.22 to 0.08,
