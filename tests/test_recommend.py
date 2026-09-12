@@ -1,0 +1,133 @@
+"""Recommender tests."""
+
+from __future__ import annotations
+
+import numpy as np
+import pytest
+
+from aux.recommend import Recommender
+
+
+def unit(x):
+    x = np.asarray(x, dtype=np.float32)
+    return x / np.linalg.norm(x, axis=-1, keepdims=True)
+
+
+@pytest.fixture
+def rec():
+    # audio: 0 and 1 are close; lyrics: 0 and 2 are close. So the modalities disagree,
+    # which is the only configuration that makes a fusion test meaningful.
+    audio = unit(np.array([[1, 0], [0.99, 0.14], [0, 1], [0.1, 1]]))
+    lyrics = unit(np.array([[1, 0], [0, 1], [0.99, 0.14], [0, 1]]))
+    return Recommender(audio, lyric_vectors=lyrics, has_lyrics=np.array([1, 1, 1, 1], bool))
+
+
+def test_query_track_is_excluded(rec):
+    for modality in ("audio", "lyrics", "fused"):
+        assert all(r.index != 0 for r in rec.recommend(0, modality=modality))
+
+
+def test_returns_the_requested_number(rec):
+    assert len(rec.recommend(0, top_k=2)) == 2
+    assert len(rec.recommend(0, top_k=99)) == len(rec) - 1
+
+
+def test_scores_descend(rec):
+    for modality in ("audio", "lyrics", "fused"):
+        scores = [r.score for r in rec.recommend(0, modality=modality)]
+        assert scores == sorted(scores, reverse=True)
+
+
+def test_ranks_are_sequential_from_one(rec):
+    assert [r.rank for r in rec.recommend(0, top_k=3)] == [1, 2, 3]
+
+
+# --- fusion behaviour ---------------------------------------------------------------
+
+def test_alpha_one_reproduces_audio_only(rec):
+    fused = [r.index for r in rec.recommend(0, modality="fused", alpha=1.0)]
+    audio = [r.index for r in rec.recommend(0, modality="audio")]
+    assert fused == audio
+
+
+def test_alpha_zero_reproduces_lyrics_only(rec):
+    fused = [r.index for r in rec.recommend(0, modality="fused", alpha=0.0)]
+    lyrics = [r.index for r in rec.recommend(0, modality="lyrics")]
+    assert fused == lyrics
+
+
+def test_the_modalities_actually_disagree(rec):
+    """Guards the fixture: if both modalities agreed, the two tests above prove nothing."""
+    assert rec.recommend(0, modality="audio")[0].index != \
+           rec.recommend(0, modality="lyrics")[0].index
+
+
+def test_alpha_interpolates_between_them(rec):
+    top = {a: rec.recommend(0, modality="fused", alpha=a)[0].index for a in (0.0, 0.5, 1.0)}
+    assert top[0.0] != top[1.0]
+    assert top[0.5] in (top[0.0], top[1.0])
+
+
+def test_per_query_normalisation_keeps_alpha_meaningful():
+    """Raw cosines with different spreads would let one modality dominate regardless of alpha."""
+    audio = unit(np.array([[1, 0], [0.9, 0.1], [0.8, 0.2]]))
+    lyrics = unit(np.array([[1, 0], [0.1, 0.9], [0.99, 0.1]]))
+    r = Recommender(audio, lyric_vectors=lyrics, has_lyrics=np.ones(3, bool))
+    scores = r.score(0, modality="fused", alpha=0.5)
+    assert np.isfinite(scores).all()
+    assert scores.max() <= 1.0 + 1e-6
+
+
+# --- missing modality ---------------------------------------------------------------
+
+def test_a_candidate_without_lyrics_keeps_its_audio_score():
+    """Zeroing it would make fusion a vocal-music filter, sinking every instrumental."""
+    audio = unit(np.array([[1, 0], [0.99, 0.1], [0, 1]]))
+    lyrics = unit(np.array([[1, 0], [0, 1], [0, 1]]))
+    r = Recommender(audio, lyric_vectors=lyrics, has_lyrics=np.array([True, False, True]))
+    top = r.recommend(0, modality="fused", alpha=0.5)
+    assert top[0].index == 1                      # acoustically nearest, despite no lyrics
+    assert top[0].lyric_score is None             # and says so rather than faking a zero
+
+
+def test_a_query_without_lyrics_falls_back_to_audio():
+    audio = unit(np.array([[1, 0], [0.99, 0.1], [0, 1]]))
+    lyrics = unit(np.array([[1, 0], [0, 1], [0, 1]]))
+    r = Recommender(audio, lyric_vectors=lyrics, has_lyrics=np.array([False, True, True]))
+    fused = [x.index for x in r.recommend(0, modality="fused")]
+    assert fused == [x.index for x in r.recommend(0, modality="audio")]
+
+
+def test_lyrics_mode_without_lyric_vectors_raises():
+    with pytest.raises(ValueError):
+        Recommender(unit(np.eye(3))).recommend(0, modality="lyrics")
+
+
+def test_unknown_modality_raises(rec):
+    with pytest.raises(ValueError):
+        rec.recommend(0, modality="telepathy")
+
+
+# --- text-to-track and explanations --------------------------------------------------
+
+def test_text_query_ranks_by_the_audio_space(rec):
+    out = rec.recommend_from_text(unit([1, 0]), top_k=2)
+    assert out[0].index in (0, 1)
+    assert out[0].rank == 1
+
+
+def test_explanations_are_deterministic_and_mention_both_modalities(rec):
+    r = rec.recommend(0, modality="fused")[0]
+    assert r.explain() == r.explain()
+    assert "acoustic" in r.explain() and "lyrical" in r.explain()
+
+
+def test_explanation_says_when_lyrics_are_missing():
+    audio = unit(np.array([[1, 0], [0.9, 0.1]]))
+    lyrics = unit(np.array([[1, 0], [0, 1]]))
+    r = Recommender(audio, lyric_vectors=lyrics, has_lyrics=np.array([True, False]))
+    assert "no lyrics available" in r.recommend(0, modality="fused")[0].explain()
+
+
+def test_score_matrix_shape(rec):
+    assert rec.score_matrix(modality="fused", alpha=0.5).shape == (len(rec), len(rec))

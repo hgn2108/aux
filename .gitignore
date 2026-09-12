@@ -43,3 +43,19 @@ evals/*.private.json
 
 # Transcripts of the personal library are its lyrics — never committed
 .cache/transcripts_*.json
+
+# ---------------------------------------------------------------------------
+# Internal working documents — local only, not part of the public repository.
+# The public-facing entry points are README.md and INTERVIEW.md.
+# ---------------------------------------------------------------------------
+PROJECT.md
+DESIGN.md
+STATUS.md
+DECISIONS.md
+EVALS.md
+CLAUDE.md
+docs/
+evals/
+
+# Editor/tooling config
+.claude/

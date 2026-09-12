@@ -12,23 +12,31 @@ from .cache import EmbeddingCache
 
 
 def build_index(
-    root: Path,
+    root: Path | None,
     encoder,
     *,
+    paths: list[Path] | None = None,
     n_segments: int = 5,
     cache_path: Path | None = None,
     limit: int | None = None,
     want_segments: bool = False,
     progress_every: int = 200,
 ) -> tuple[np.ndarray, list[Path], list[np.ndarray]]:
-    """Return `(track_vectors, paths, segment_vectors)` for everything under `root`.
+    """Return `(track_vectors, paths, segment_vectors)`.
 
-    Decoding still happens on a cache hit only when the hash is unknown — the hash is read
+    Either walk `root`, or index an explicit `paths` list — the latter is what a curated
+    evaluation subset needs, where membership is chosen by metadata rather than by what
+    happens to sit in a directory.
+
+    Decoding still happens on a cache hit only when the hash is unknown: the hash is read
     from the file's bytes, which is far cheaper than decoding and encoding it.
     """
-    root = Path(root)
     cache = EmbeddingCache(cache_path) if cache_path else None
-    paths = [f.path for f in discover(root)]
+    if paths is None:
+        if root is None:
+            raise ValueError("pass either root or paths")
+        paths = [f.path for f in discover(Path(root))]
+    paths = list(paths)
     if limit:
         paths = paths[:limit]
 
