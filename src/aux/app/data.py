@@ -49,6 +49,16 @@ def available_corpora() -> list[str]:
     return out
 
 
+def personal_is_local() -> bool:
+    """Whether the personal corpus loads from its audio rather than from the bundle.
+
+    The same condition `load_corpus` branches on, exported so the interface cannot label
+    the corpus one way while the loader does the other -- which it did: the sidebar said
+    "no audio" on a machine where playback works.
+    """
+    return not is_public() and MUSIC.exists()
+
+
 def _bundle_present() -> bool:
     return (DEMO / "personal_manifest.json").exists() and (DEMO / "personal_vectors.npz").exists()
 
@@ -95,7 +105,7 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     """Load one corpus. `limit` trims the track list before indexing, for a lighter demo."""
     if which == "personal" and which not in available_corpora():
         raise RuntimeError("the personal library is not available on this instance")
-    if which == "personal" and (is_public() or not MUSIC.exists()):
+    if which == "personal" and not personal_is_local():
         return load_personal_bundle()
     if which == "fma":
         from aux.data import balanced_subset, load_tracks

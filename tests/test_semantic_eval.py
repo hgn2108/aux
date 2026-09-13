@@ -236,3 +236,24 @@ def test_bundle_alone_is_enough_to_offer_the_corpus(monkeypatch, tmp_path):
     (tmp_path / "demo" / "personal_manifest.json").write_text("{}")
     (tmp_path / "demo" / "personal_vectors.npz").write_bytes(b"")
     assert data.available_corpora() == ["fma", "personal"]
+
+
+def test_personal_corpus_label_condition_matches_the_loader(monkeypatch, tmp_path):
+    """The sidebar label and the loader must agree on whether audio is available.
+
+    They were written separately and drifted: the label said "no audio" on a machine where
+    playback works, so the corpus looked broken to its own owner.
+    """
+    from aux.app import data
+
+    monkeypatch.delenv("AUX_PUBLIC", raising=False)
+    monkeypatch.setattr(data, "MUSIC", tmp_path / "music")
+    (tmp_path / "music").mkdir()
+    assert data.personal_is_local() is True       # audio present, not deployed
+
+    monkeypatch.setenv("AUX_PUBLIC", "1")
+    assert data.personal_is_local() is False      # deployed: bundle only
+
+    monkeypatch.delenv("AUX_PUBLIC", raising=False)
+    monkeypatch.setattr(data, "MUSIC", tmp_path / "gone")
+    assert data.personal_is_local() is False      # no audio on disk: bundle only

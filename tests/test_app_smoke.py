@@ -42,8 +42,11 @@ def test_switching_to_the_lyric_corpus_keeps_the_app_alive(monkeypatch):
     """The bundled corpus loads from different code than the local one; exercise it."""
     app = _run(monkeypatch, public=True)
     corpus = app.sidebar.radio[0]
-    # `options` carries the formatted labels; `set_value` takes the underlying value.
-    assert any("lyrics, no audio" in label for label in corpus.options)
+    # `options` carries the formatted labels; `set_value` takes the underlying value. The
+    # label wording is derived from whether audio is present, so assert on what it must
+    # convey -- that this corpus is the one with lyrics -- not on its exact text.
+    assert len(corpus.options) == 2
+    assert any("lyrics" in label.lower() for label in corpus.options[1:])
     corpus.set_value("personal").run()
     assert not app.exception, app.exception
     assert any("160" in str(m.value) for m in app.metric)

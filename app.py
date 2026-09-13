@@ -18,7 +18,12 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from aux.app.data import available_corpora, load_corpus, load_results  # noqa: E402
+from aux.app.data import (  # noqa: E402
+    available_corpora,
+    load_corpus,
+    load_results,
+    personal_is_local,
+)
 from aux.recommend import NORMALISERS, Recommender  # noqa: E402
 
 st.set_page_config(page_title="aux — multimodal music search", page_icon="🎧",
@@ -600,10 +605,14 @@ def main() -> None:
     with st.sidebar:
         st.subheader("Library")
         corpora = available_corpora()
-        which = st.radio("Which music to search", corpora,
-                         format_func=lambda w: {"fma": "FMA — plays audio, no lyrics",
-                                                "personal": "Real songs — lyrics, no audio"
-                                                }[w])
+        # The personal corpus plays locally and does not when it loads from the exported
+        # bundle, so the label is derived rather than written twice.
+        labels = {
+            "fma": "Free Music Archive — plays, no lyrics",
+            "personal": ("My library — plays, with lyrics" if personal_is_local()
+                         else "Real songs — lyrics, no playback"),
+        }
+        which = st.radio("Which music to search", corpora, format_func=labels.__getitem__)
         limit = st.select_slider("How many to load", [100, 250, 500, 1000, 2000],
                                  value=250,
                                  help="Fewer loads faster. The evaluation always uses the "
