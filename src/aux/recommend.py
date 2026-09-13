@@ -14,8 +14,16 @@ measurable — which is what an ablation needs.
 
 **Why per-query normalisation.** Audio and lyric cosines come from different models with
 different score distributions, so `0.6 * audio + 0.4 * lyric` on raw values silently weights
-whichever has more spread. Each modality's scores are min-max normalised across candidates
-for that query first, so `alpha` means what it says.
+whichever has more spread. Each modality's scores are normalised across candidates for that
+query first, so `alpha` means what it says.
+
+**Why z-score rather than min-max.** Min-max was measured first and is worse: its range is
+set by the two most extreme candidates, so a single outlier rescales every other score and
+compresses the differences that matter. `scripts/diagnose_fusion.py` found z-score ahead at
+every interior alpha (0.143 vs 0.106 at alpha=0.5 on the artist label, NDCG@10), so it is
+the default. Min-max is kept selectable because that comparison is the evidence for the
+choice, and because the displayed per-result scores still use it: a 0-1 range is meaningful
+to a reader, and a standard deviation is not.
 
 **Missing modality.** A track with no reliable transcript — instrumental, or a failed
 transcription — has no lyric vector. It falls back to its audio score rather than being
@@ -38,6 +46,22 @@ def _minmax(scores: np.ndarray) -> np.ndarray:
     hi = scores.max(axis=-1, keepdims=True)
     span = hi - lo
     return np.where(span > 0, (scores - lo) / np.where(span > 0, span, 1.0), 0.0)
+
+
+def _zscore(scores: np.ndarray) -> np.ndarray:
+    """Standardise per query row, leaving a constant row at zero.
+
+    Unlike min-max, the scale comes from the whole distribution rather than its two extreme
+    candidates, so one outlier cannot rescale everything else.
+    """
+    scores = np.asarray(scores, dtype=float)
+    mu = scores.mean(axis=-1, keepdims=True)
+    sd = scores.std(axis=-1, keepdims=True)
+    return np.where(sd > 0, (scores - mu) / np.where(sd > 0, sd, 1.0), 0.0)
+
+
+NORMALISERS = {"zscore": _zscore, "minmax": _minmax}
+DEFAULT_NORMALISER = "zscore"
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,7 +89,13 @@ class Recommender:
     """Recommends tracks from an indexed collection."""
 
     def __init__(self, audio_vectors: np.ndarray, *, lyric_vectors: np.ndarray | None = None,
-                 has_lyrics: np.ndarray | None = None, paths: list[Path] | None = None) -> None:
+                 has_lyrics: np.ndarray | None = None, paths: list[Path] | None = None,
+                 normaliser: str = DEFAULT_NORMALISER) -> None:
+        if normaliser not in NORMALISERS:
+            raise ValueError(f"unknown normaliser {normaliser!r}; "
+                             f"expected one of {sorted(NORMALISERS)}")
+        self.normaliser = normaliser
+        self._norm = NORMALISERS[normaliser]
         self.audio = np.asarray(audio_vectors, dtype=np.float32)
         self.lyrics = None if lyric_vectors is None else np.asarray(lyric_vectors, np.float32)
         n = self.audio.shape[0]
@@ -105,7 +135,7 @@ class Recommender:
         if modality != "fused":
             raise ValueError(f"unknown modality {modality!r}")
 
-        audio = _minmax(self.audio_scores(track_index))
+        audio = self._norm(self.audio_scores(track_index))
         if self.lyrics is None or not self.has_lyrics[track_index]:
             # The *query* has no lyrics, so there is nothing lyrical to match against.
             return audio
@@ -114,7 +144,7 @@ class Recommender:
         usable = np.isfinite(raw)
         lyric = np.zeros_like(audio)
         if usable.any():
-            lyric[usable] = _minmax(raw[usable])
+            lyric[usable] = self._norm(raw[usable])
 
         fused = alpha * audio + (1 - alpha) * lyric
         # Candidates without a transcript keep their audio score rather than being zeroed,
@@ -130,6 +160,8 @@ class Recommender:
         scores = np.array(self.score(track_index, modality=modality, alpha=alpha), dtype=float)
         scores[track_index] = -np.inf
 
+        # Displayed scores are always min-max, whatever the ranking uses: `explain()`
+        # bands them into low/moderate/high, which needs a bounded 0-1 range.
         audio_n = _minmax(self.audio_scores(track_index))
         lyric_n = None
         if self.lyrics is not None and self.has_lyrics[track_index]:

@@ -131,3 +131,41 @@ def test_explanation_says_when_lyrics_are_missing():
 
 def test_score_matrix_shape(rec):
     assert rec.score_matrix(modality="fused", alpha=0.5).shape == (len(rec), len(rec))
+
+
+def test_normaliser_choice_changes_fused_ranking_but_not_the_endpoints():
+    """z-score and min-max must agree where alpha collapses onto one modality."""
+    audio = unit(np.array([[1.0, 0.0], [0.9, 0.4], [0.0, 1.0], [-1.0, 0.2]]))
+    lyrics = unit(np.array([[0.0, 1.0], [0.1, 1.0], [1.0, 0.1], [1.0, 0.0]]))
+    has = np.ones(4, dtype=bool)
+
+    z = Recommender(audio, lyric_vectors=lyrics, has_lyrics=has, normaliser="zscore")
+    m = Recommender(audio, lyric_vectors=lyrics, has_lyrics=has, normaliser="minmax")
+
+    # alpha=1 is audio-only and alpha=0 is lyrics-only, so normalisation is a monotone
+    # transform of a single channel and cannot reorder either endpoint.
+    for alpha in (0.0, 1.0):
+        zo = np.argsort(-z.score(0, modality="fused", alpha=alpha))
+        mo = np.argsort(-m.score(0, modality="fused", alpha=alpha))
+        assert list(zo) == list(mo)
+
+    # In between, the two normalisers weight the channels differently.
+    assert not np.allclose(z.score(0, modality="fused", alpha=0.5),
+                           m.score(0, modality="fused", alpha=0.5))
+
+
+def test_unknown_normaliser_is_rejected():
+    with pytest.raises(ValueError, match="unknown normaliser"):
+        Recommender(unit(np.eye(3)), normaliser="softmax")
+
+
+def test_displayed_scores_stay_bounded_under_zscore_ranking():
+    """`explain()` bands scores into low/moderate/high, so display must stay in [0, 1]."""
+    audio = unit(np.array([[1.0, 0.0], [0.8, 0.6], [0.0, 1.0]]))
+    lyrics = unit(np.array([[0.0, 1.0], [0.5, 0.9], [1.0, 0.0]]))
+    rec = Recommender(audio, lyric_vectors=lyrics, has_lyrics=np.ones(3, bool),
+                      normaliser="zscore")
+    for r in rec.recommend(0, modality="fused", top_k=2, alpha=0.5):
+        assert 0.0 <= r.audio_score <= 1.0
+        assert r.lyric_score is None or 0.0 <= r.lyric_score <= 1.0
+        assert "similarity" in r.explain()
