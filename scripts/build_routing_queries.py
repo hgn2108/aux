@@ -27,9 +27,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from aux.plan.claude import load_api_key  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-EVALS = ROOT / "evals"
-SOURCE = EVALS / "routing_queries.json"
-EXPANDED = EVALS / "routing_queries_expanded.json"
+QUERIES = ROOT / "queries"
+SOURCE = QUERIES / "routing_queries.json"
+EXPANDED = QUERIES / "routing_queries_expanded.json"
 
 MODEL = "claude-sonnet-5"
 

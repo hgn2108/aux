@@ -46,8 +46,10 @@ evals/*.private.json
 
 # ---------------------------------------------------------------------------
 # Internal working documents — local only, not part of the public repository.
-# The public-facing entry points are README.md and INTERVIEW.md.
+# README.md is the only public document; everything below is for local reference.
+# INTERVIEW.md is preparation notes about this work, not documentation of it.
 # ---------------------------------------------------------------------------
+INTERVIEW.md
 PROJECT.md
 DESIGN.md
 STATUS.md
@@ -59,3 +61,7 @@ evals/
 
 # Editor/tooling config
 .claude/
+
+# The router query set is public -- it is the data behind a published finding, contains no
+# personal content, and the result is not reproducible without it. It lives in queries/,
+# which is tracked, rather than under the ignored evals/.

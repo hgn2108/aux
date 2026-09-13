@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 
 from ..plan.claude import load_api_key
 from .base import Route, Router
@@ -70,6 +71,12 @@ class ClaudeRouter(Router):
             raise RuntimeError("no ANTHROPIC_API_KEY in the environment or .env")
         self.model = model
         self._client = anthropic.Anthropic(api_key=key)
+        self.api_calls = 0
+        self.api_seconds = 0.0
+        """Latency is measured over calls that actually went out. Timing the wrapper
+        instead reports ~0 ms on a warm cache, which would claim a network round trip is
+        free -- true for a repeated query, false for the novel ones a router exists to
+        handle."""
         self.failures = 0
         """Counted, not swallowed. A router that falls back on every query returns a clean
         constant, which is indistinguishable from a deliberate routing decision unless the
@@ -84,6 +91,7 @@ class ClaudeRouter(Router):
         if query in self._cache:
             alpha, reason = self._cache[query]
             return Route(alpha, reason, self.name)
+        started = time.perf_counter()
         try:
             response = self._client.messages.create(
                 model=self.model, max_tokens=1000, system=SYSTEM,
@@ -101,5 +109,7 @@ class ClaudeRouter(Router):
                 print(f"routing call failed, falling back to alpha={FALLBACK}: "
                       f"{type(exc).__name__}: {exc}", file=sys.stderr)
             alpha, reason = FALLBACK, "could not read the query; matching on sound"
+        self.api_calls += 1
+        self.api_seconds += time.perf_counter() - started
         self._cache[query] = (alpha, reason)
         return Route(alpha, reason, self.name)

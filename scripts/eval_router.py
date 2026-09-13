@@ -44,7 +44,7 @@ from aux.route import PrototypeRouter, Route, RuleRouter  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".cache"
-EVALS = ROOT / "evals"
+QUERIES = ROOT / "queries"
 RESULTS = ROOT / "results"
 
 ALPHAS = (0.0, 0.25, 0.5, 0.75, 1.0)
@@ -67,11 +67,11 @@ def main() -> int:
     ap.add_argument("--normaliser", default="zscore", choices=sorted(NORMALISERS))
     ap.add_argument("--no-claude", action="store_true", help="skip the paid arm")
     ap.add_argument("--queries", default="routing_queries_expanded.json",
-                    help="query set under evals/; the expanded set has the statistical "
+                    help="query set under queries/; the expanded set has the statistical "
                          "power the 24-query original lacked")
     args = ap.parse_args()
 
-    specs = json.loads((EVALS / args.queries).read_text())["queries"]
+    specs = json.loads((QUERIES / args.queries).read_text())["queries"]
     theme_labels = json.loads((CACHE / "themes.json").read_text())
 
     tracks = load_personal_tracks()
@@ -128,6 +128,13 @@ def main() -> int:
         cache_path = CACHE / "router_claude.json"
         cache = {k: tuple(v) for k, v in json.loads(cache_path.read_text()).items()} \
             if cache_path.exists() else {}
+        # Carry the last measured latency forward when the cache answers everything, so a
+        # rerun does not overwrite a real measurement with zero.
+        previous = sorted(RESULTS.glob("router_2*.json"))
+        cached_latency = None
+        if previous:
+            prior = json.loads(previous[-1].read_text())["routers"].get("claude")
+            cached_latency = prior["ms_per_query"] if prior else None
         router = ClaudeRouter(cache=cache)
         start = time.perf_counter()
         routes = router.route_all(queries)
@@ -137,6 +144,10 @@ def main() -> int:
             # confident constant. Refuse to report it as a measurement.
             raise SystemExit(f"the claude router failed on {router.failures}/{len(queries)} "
                              f"queries; fix the cause or rerun with --no-claude")
+        if router.api_calls:
+            timings[router.name] = router.api_seconds / router.api_calls * 1000
+        elif cached_latency is not None:
+            timings[router.name] = cached_latency   # every query served from cache
         routers[router.name] = routes
         cache_path.write_text(json.dumps({k: list(v) for k, v in cache.items()}, indent=2))
 

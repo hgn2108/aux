@@ -1,0 +1,773 @@
+{
+  "_comment": "Router query set: the hand-written originals plus model paraphrases generated from the label specification alone. Paraphrases are instructed to avoid the constructions the rule router keys on, so they make the test harder for it rather than easier.",
+  "queries": [
+    {
+      "query": "smooth jazz with brushed drums and upright bass",
+      "family": "acoustic",
+      "genre": "jazz",
+      "theme": null,
+      "source": "smooth jazz with brushed drums and upright bass",
+      "paraphrase": false
+    },
+    {
+      "query": "mellow jazz tracks featuring brushed drums and upright bass",
+      "family": "acoustic",
+      "genre": "jazz",
+      "theme": null,
+      "source": "smooth jazz with brushed drums and upright bass",
+      "paraphrase": true
+    },
+    {
+      "query": "need some laid-back jazz, brushes on the kit and a warm upright bass line",
+      "family": "acoustic",
+      "genre": "jazz",
+      "theme": null,
+      "source": "smooth jazz with brushed drums and upright bass",
+      "paraphrase": true
+    },
+    {
+      "query": "looking for that smooth jazz vibe with soft brush drumming and acoustic bass",
+      "family": "acoustic",
+      "genre": "jazz",
+      "theme": null,
+      "source": "smooth jazz with brushed drums and upright bass",
+      "paraphrase": true
+    },
+    {
+      "query": "solo classical piano, quiet and unhurried",
+      "family": "acoustic",
+      "genre": "classical",
+      "theme": null,
+      "source": "solo classical piano, quiet and unhurried",
+      "paraphrase": false
+    },
+    {
+      "query": "slow tempo solo piano classical pieces, peaceful mood",
+      "family": "acoustic",
+      "genre": "classical",
+      "theme": null,
+      "source": "solo classical piano, quiet and unhurried",
+      "paraphrase": true
+    },
+    {
+      "query": "calm unhurried classical piano solo music",
+      "family": "acoustic",
+      "genre": "classical",
+      "theme": null,
+      "source": "solo classical piano, quiet and unhurried",
+      "paraphrase": true
+    },
+    {
+      "query": "need some gentle, slow-paced piano classical solos",
+      "family": "acoustic",
+      "genre": "classical",
+      "theme": null,
+      "source": "solo classical piano, quiet and unhurried",
+      "paraphrase": true
+    },
+    {
+      "query": "fast breakbeats with heavy sub bass",
+      "family": "acoustic",
+      "genre": "dnb",
+      "theme": null,
+      "source": "fast breakbeats with heavy sub bass",
+      "paraphrase": false
+    },
+    {
+      "query": "quick breakbeat tracks with heavy sub bass",
+      "family": "acoustic",
+      "genre": "dnb",
+      "theme": null,
+      "source": "fast breakbeats with heavy sub bass",
+      "paraphrase": true
+    },
+    {
+      "query": "need some uptempo breaks with deep sub bass hits",
+      "family": "acoustic",
+      "genre": "dnb",
+      "theme": null,
+      "source": "fast breakbeats with heavy sub bass",
+      "paraphrase": true
+    },
+    {
+      "query": "breakbeat tunes, fast tempo, sub bass that rattles the speakers",
+      "family": "acoustic",
+      "genre": "dnb",
+      "theme": null,
+      "source": "fast breakbeats with heavy sub bass",
+      "paraphrase": true
+    },
+    {
+      "query": "four on the floor electronic dance music with a big drop",
+      "family": "acoustic",
+      "genre": "edm",
+      "theme": null,
+      "source": "four on the floor electronic dance music with a big drop",
+      "paraphrase": false
+    },
+    {
+      "query": "edm tracks with a steady four on the floor kick and a huge drop",
+      "family": "acoustic",
+      "genre": "edm",
+      "theme": null,
+      "source": "four on the floor electronic dance music with a big drop",
+      "paraphrase": true
+    },
+    {
+      "query": "looking for dance music, four-on-the-floor rhythm, massive drop section",
+      "family": "acoustic",
+      "genre": "edm",
+      "theme": null,
+      "source": "four on the floor electronic dance music with a big drop",
+      "paraphrase": true
+    },
+    {
+      "query": "need bangers with that four to the floor beat building into a big drop",
+      "family": "acoustic",
+      "genre": "edm",
+      "theme": null,
+      "source": "four on the floor electronic dance music with a big drop",
+      "paraphrase": true
+    },
+    {
+      "query": "modern hip hop and r&b production with 808s",
+      "family": "acoustic",
+      "genre": "hiphop_rnb",
+      "theme": null,
+      "source": "modern hip hop and r&b production with 808s",
+      "paraphrase": false
+    },
+    {
+      "query": "what's that current hip hop/rnb sound with heavy 808 bass called",
+      "family": "acoustic",
+      "genre": "hiphop_rnb",
+      "theme": null,
+      "source": "modern hip hop and r&b production with 808s",
+      "paraphrase": true
+    },
+    {
+      "query": "need beats with deep 808s, modern rap and rnb style",
+      "family": "acoustic",
+      "genre": "hiphop_rnb",
+      "theme": null,
+      "source": "modern hip hop and r&b production with 808s",
+      "paraphrase": true
+    },
+    {
+      "query": "trap-influenced 808 production in today's hip hop and rnb",
+      "family": "acoustic",
+      "genre": "hiphop_rnb",
+      "theme": null,
+      "source": "modern hip hop and r&b production with 808s",
+      "paraphrase": true
+    },
+    {
+      "query": "vietnamese pop vocals over bright modern production",
+      "family": "acoustic",
+      "genre": "vpop",
+      "theme": null,
+      "source": "vietnamese pop vocals over bright modern production",
+      "paraphrase": false
+    },
+    {
+      "query": "v-pop songs with shiny modern beats and clean vocals",
+      "family": "acoustic",
+      "genre": "vpop",
+      "theme": null,
+      "source": "vietnamese pop vocals over bright modern production",
+      "paraphrase": true
+    },
+    {
+      "query": "need vietnamese pop tracks, bright production, catchy vocal lines",
+      "family": "acoustic",
+      "genre": "vpop",
+      "theme": null,
+      "source": "vietnamese pop vocals over bright modern production",
+      "paraphrase": true
+    },
+    {
+      "query": "looking for glossy modern-sounding pop from vietnam",
+      "family": "acoustic",
+      "genre": "vpop",
+      "theme": null,
+      "source": "vietnamese pop vocals over bright modern production",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about heartbreak and being left",
+      "family": "semantic",
+      "genre": null,
+      "theme": "heartbreak",
+      "source": "songs about heartbreak and being left",
+      "paraphrase": false
+    },
+    {
+      "query": "what to listen to after getting dumped",
+      "family": "semantic",
+      "genre": null,
+      "theme": "heartbreak",
+      "source": "songs about heartbreak and being left",
+      "paraphrase": true
+    },
+    {
+      "query": "tracks that capture the feeling of being left behind by someone you loved",
+      "family": "semantic",
+      "genre": null,
+      "theme": "heartbreak",
+      "source": "songs about heartbreak and being left",
+      "paraphrase": true
+    },
+    {
+      "query": "music for when your heart's broken and they walked away",
+      "family": "semantic",
+      "genre": null,
+      "theme": "heartbreak",
+      "source": "songs about heartbreak and being left",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about money, wealth and luxury",
+      "family": "semantic",
+      "genre": null,
+      "theme": "money",
+      "source": "songs about money, wealth and luxury",
+      "paraphrase": false
+    },
+    {
+      "query": "tracks that talk about being rich and living lavish",
+      "family": "semantic",
+      "genre": null,
+      "theme": "money",
+      "source": "songs about money, wealth and luxury",
+      "paraphrase": true
+    },
+    {
+      "query": "music about cash, fortune and the finer things in life",
+      "family": "semantic",
+      "genre": null,
+      "theme": "money",
+      "source": "songs about money, wealth and luxury",
+      "paraphrase": true
+    },
+    {
+      "query": "what songs discuss wealth, money and luxury living",
+      "family": "semantic",
+      "genre": null,
+      "theme": "money",
+      "source": "songs about money, wealth and luxury",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about loyalty and betrayal between friends",
+      "family": "semantic",
+      "genre": null,
+      "theme": "loyalty",
+      "source": "songs about loyalty and betrayal between friends",
+      "paraphrase": false
+    },
+    {
+      "query": "tracks that explore friends betraying each other and staying loyal",
+      "family": "semantic",
+      "genre": null,
+      "theme": "loyalty",
+      "source": "songs about loyalty and betrayal between friends",
+      "paraphrase": true
+    },
+    {
+      "query": "what songs deal with friendship loyalty and getting stabbed in the back",
+      "family": "semantic",
+      "genre": null,
+      "theme": "loyalty",
+      "source": "songs about loyalty and betrayal between friends",
+      "paraphrase": true
+    },
+    {
+      "query": "music for when a close friend turns on you but others stay true",
+      "family": "semantic",
+      "genre": null,
+      "theme": "loyalty",
+      "source": "songs about loyalty and betrayal between friends",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about missing someone far away",
+      "family": "semantic",
+      "genre": null,
+      "theme": "longing",
+      "source": "songs about missing someone far away",
+      "paraphrase": false
+    },
+    {
+      "query": "what songs capture that ache of long distance missing someone",
+      "family": "semantic",
+      "genre": null,
+      "theme": "longing",
+      "source": "songs about missing someone far away",
+      "paraphrase": true
+    },
+    {
+      "query": "tracks that describe longing for a person who's far away",
+      "family": "semantic",
+      "genre": null,
+      "theme": "longing",
+      "source": "songs about missing someone far away",
+      "paraphrase": true
+    },
+    {
+      "query": "music for when you miss someone who isn't near you",
+      "family": "semantic",
+      "genre": null,
+      "theme": "longing",
+      "source": "songs about missing someone far away",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about partying and going out at night",
+      "family": "semantic",
+      "genre": null,
+      "theme": "nightlife",
+      "source": "songs about partying and going out at night",
+      "paraphrase": false
+    },
+    {
+      "query": "night out with friends playlist",
+      "family": "semantic",
+      "genre": null,
+      "theme": "nightlife",
+      "source": "songs about partying and going out at night",
+      "paraphrase": true
+    },
+    {
+      "query": "tracks for hitting the club tonight",
+      "family": "semantic",
+      "genre": null,
+      "theme": "nightlife",
+      "source": "songs about partying and going out at night",
+      "paraphrase": true
+    },
+    {
+      "query": "music to get hyped before a wild night out",
+      "family": "semantic",
+      "genre": null,
+      "theme": "nightlife",
+      "source": "songs about partying and going out at night",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about self-doubt and inner struggle",
+      "family": "semantic",
+      "genre": null,
+      "theme": "doubt",
+      "source": "songs about self-doubt and inner struggle",
+      "paraphrase": false
+    },
+    {
+      "query": "tracks that capture feeling unsure of yourself and fighting your own mind",
+      "family": "semantic",
+      "genre": null,
+      "theme": "doubt",
+      "source": "songs about self-doubt and inner struggle",
+      "paraphrase": true
+    },
+    {
+      "query": "what music describes wrestling with insecurity and inner conflict",
+      "family": "semantic",
+      "genre": null,
+      "theme": "doubt",
+      "source": "songs about self-doubt and inner struggle",
+      "paraphrase": true
+    },
+    {
+      "query": "need songs that reflect that struggle when you don't trust yourself",
+      "family": "semantic",
+      "genre": null,
+      "theme": "doubt",
+      "source": "songs about self-doubt and inner struggle",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about ambition and proving doubters wrong",
+      "family": "semantic",
+      "genre": null,
+      "theme": "ambition",
+      "source": "songs about ambition and proving doubters wrong",
+      "paraphrase": false
+    },
+    {
+      "query": "music for when you're out to prove everyone who doubted you wrong",
+      "family": "semantic",
+      "genre": null,
+      "theme": "ambition",
+      "source": "songs about ambition and proving doubters wrong",
+      "paraphrase": true
+    },
+    {
+      "query": "tracks that capture that drive to succeed and shut down the haters",
+      "family": "semantic",
+      "genre": null,
+      "theme": "ambition",
+      "source": "songs about ambition and proving doubters wrong",
+      "paraphrase": true
+    },
+    {
+      "query": "what songs talk about chasing your goals despite people not believing in you",
+      "family": "semantic",
+      "genre": null,
+      "theme": "ambition",
+      "source": "songs about ambition and proving doubters wrong",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about physical attraction and seduction",
+      "family": "semantic",
+      "genre": null,
+      "theme": "desire",
+      "source": "songs about physical attraction and seduction",
+      "paraphrase": false
+    },
+    {
+      "query": "tracks that ooze seduction and physical desire",
+      "family": "semantic",
+      "genre": null,
+      "theme": "desire",
+      "source": "songs about physical attraction and seduction",
+      "paraphrase": true
+    },
+    {
+      "query": "what songs capture that steamy, magnetic pull between two people",
+      "family": "semantic",
+      "genre": null,
+      "theme": "desire",
+      "source": "songs about physical attraction and seduction",
+      "paraphrase": true
+    },
+    {
+      "query": "looking for music about lust and seducing someone",
+      "family": "semantic",
+      "genre": null,
+      "theme": "desire",
+      "source": "songs about physical attraction and seduction",
+      "paraphrase": true
+    },
+    {
+      "query": "songs about drugs and getting high",
+      "family": "semantic",
+      "genre": null,
+      "theme": "substances",
+      "source": "songs about drugs and getting high",
+      "paraphrase": false
+    },
+    {
+      "query": "tracks that talk about getting high",
+      "family": "semantic",
+      "genre": null,
+      "theme": "substances",
+      "source": "songs about drugs and getting high",
+      "paraphrase": true
+    },
+    {
+      "query": "music with lyrics about drug use",
+      "family": "semantic",
+      "genre": null,
+      "theme": "substances",
+      "source": "songs about drugs and getting high",
+      "paraphrase": true
+    },
+    {
+      "query": "what songs describe being on drugs",
+      "family": "semantic",
+      "genre": null,
+      "theme": "substances",
+      "source": "songs about drugs and getting high",
+      "paraphrase": true
+    },
+    {
+      "query": "vietnamese pop songs about missing someone",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "longing",
+      "source": "vietnamese pop songs about missing someone",
+      "paraphrase": false
+    },
+    {
+      "query": "v-pop tracks about missing someone",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "longing",
+      "source": "vietnamese pop songs about missing someone",
+      "paraphrase": true
+    },
+    {
+      "query": "looking for vietnamese pop music that captures the feeling of longing for someone",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "longing",
+      "source": "vietnamese pop songs about missing someone",
+      "paraphrase": true
+    },
+    {
+      "query": "what vpop songs talk about missing a person",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "longing",
+      "source": "vietnamese pop songs about missing someone",
+      "paraphrase": true
+    },
+    {
+      "query": "vietnamese pop songs about heartbreak",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "heartbreak",
+      "source": "vietnamese pop songs about heartbreak",
+      "paraphrase": false
+    },
+    {
+      "query": "vpop tracks about getting your heart broken",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "heartbreak",
+      "source": "vietnamese pop songs about heartbreak",
+      "paraphrase": true
+    },
+    {
+      "query": "need some heartbreak vpop, any recs?",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "heartbreak",
+      "source": "vietnamese pop songs about heartbreak",
+      "paraphrase": true
+    },
+    {
+      "query": "viet pop music that deals with breakups and heartache",
+      "family": "compound",
+      "genre": "vpop",
+      "theme": "heartbreak",
+      "source": "vietnamese pop songs about heartbreak",
+      "paraphrase": true
+    },
+    {
+      "query": "electronic dance tracks about longing for someone",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "longing",
+      "source": "electronic dance tracks about longing for someone",
+      "paraphrase": false
+    },
+    {
+      "query": "edm songs that capture missing someone so much it hurts",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "longing",
+      "source": "electronic dance tracks about longing for someone",
+      "paraphrase": true
+    },
+    {
+      "query": "dance music about yearning for a person you can't stop thinking about",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "longing",
+      "source": "electronic dance tracks about longing for someone",
+      "paraphrase": true
+    },
+    {
+      "query": "need some electronic tracks that express wanting someone who's not there",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "longing",
+      "source": "electronic dance tracks about longing for someone",
+      "paraphrase": true
+    },
+    {
+      "query": "electronic dance music about going out at night",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "nightlife",
+      "source": "electronic dance music about going out at night",
+      "paraphrase": false
+    },
+    {
+      "query": "edm tracks for a night out on the town",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "nightlife",
+      "source": "electronic dance music about going out at night",
+      "paraphrase": true
+    },
+    {
+      "query": "looking for dance music that captures that late night going out vibe",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "nightlife",
+      "source": "electronic dance music about going out at night",
+      "paraphrase": true
+    },
+    {
+      "query": "what electronic music captures the feeling of heading out at night to party",
+      "family": "compound",
+      "genre": "edm",
+      "theme": "nightlife",
+      "source": "electronic dance music about going out at night",
+      "paraphrase": true
+    },
+    {
+      "query": "jazz songs about money and success",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "money",
+      "source": "jazz songs about money and success",
+      "paraphrase": false
+    },
+    {
+      "query": "jazz tracks about wealth and making it big",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "money",
+      "source": "jazz songs about money and success",
+      "paraphrase": true
+    },
+    {
+      "query": "what jazz songs talk about getting rich and successful",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "money",
+      "source": "jazz songs about money and success",
+      "paraphrase": true
+    },
+    {
+      "query": "need jazz music themed around cash and success",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "money",
+      "source": "jazz songs about money and success",
+      "paraphrase": true
+    },
+    {
+      "query": "jazz songs about ambition and hustle",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "ambition",
+      "source": "jazz songs about ambition and hustle",
+      "paraphrase": false
+    },
+    {
+      "query": "jazz tracks that capture the grind and drive to succeed",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "ambition",
+      "source": "jazz songs about ambition and hustle",
+      "paraphrase": true
+    },
+    {
+      "query": "need some jazz about chasing your goals and hustling hard",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "ambition",
+      "source": "jazz songs about ambition and hustle",
+      "paraphrase": true
+    },
+    {
+      "query": "what jazz music talks about ambition and the hustle",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "ambition",
+      "source": "jazz songs about ambition and hustle",
+      "paraphrase": true
+    },
+    {
+      "query": "jazz songs about drinking and getting high",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "substances",
+      "source": "jazz songs about drinking and getting high",
+      "paraphrase": false
+    },
+    {
+      "query": "jazz tunes about booze and getting stoned",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "substances",
+      "source": "jazz songs about drinking and getting high",
+      "paraphrase": true
+    },
+    {
+      "query": "music for a jazz night full of drinks and smoke",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "substances",
+      "source": "jazz songs about drinking and getting high",
+      "paraphrase": true
+    },
+    {
+      "query": "tracks in the jazz genre that talk about drinking and drugs",
+      "family": "compound",
+      "genre": "jazz",
+      "theme": "substances",
+      "source": "jazz songs about drinking and getting high",
+      "paraphrase": true
+    },
+    {
+      "query": "hip hop with 808s about making money",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "money",
+      "source": "hip hop with 808s about making money",
+      "paraphrase": false
+    },
+    {
+      "query": "trap beats with heavy 808s about getting money",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "money",
+      "source": "hip hop with 808s about making money",
+      "paraphrase": true
+    },
+    {
+      "query": "hip hop tracks about hustling with deep 808 bass",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "money",
+      "source": "hip hop with 808s about making money",
+      "paraphrase": true
+    },
+    {
+      "query": "need some 808-heavy rap songs about stacking cash",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "money",
+      "source": "hip hop with 808s about making money",
+      "paraphrase": true
+    },
+    {
+      "query": "r&b production about wanting someone",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "desire",
+      "source": "r&b production about wanting someone",
+      "paraphrase": false
+    },
+    {
+      "query": "r&b tracks with that lush production, all about longing for someone",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "desire",
+      "source": "r&b production about wanting someone",
+      "paraphrase": true
+    },
+    {
+      "query": "need some r&b where the production feels like desire itself",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "desire",
+      "source": "r&b production about wanting someone",
+      "paraphrase": true
+    },
+    {
+      "query": "smooth r&b beats built around wanting somebody so bad",
+      "family": "compound",
+      "genre": "hiphop_rnb",
+      "theme": "desire",
+      "source": "r&b production about wanting someone",
+      "paraphrase": true
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "_comment": "Query set for the fusion-weight router. Relevance is objective: a track is relevant when it matches the named genre (folder) and/or theme (validated label). No query names a track, and none is written to favour a particular router.",
+  "queries": [
+    {"query": "smooth jazz with brushed drums and upright bass", "family": "acoustic", "genre": "jazz", "theme": null},
+    {"query": "solo classical piano, quiet and unhurried", "family": "acoustic", "genre": "classical", "theme": null},
+    {"query": "fast breakbeats with heavy sub bass", "family": "acoustic", "genre": "dnb", "theme": null},
+    {"query": "four on the floor electronic dance music with a big drop", "family": "acoustic", "genre": "edm", "theme": null},
+    {"query": "modern hip hop and r&b production with 808s", "family": "acoustic", "genre": "hiphop_rnb", "theme": null},
+    {"query": "vietnamese pop vocals over bright modern production", "family": "acoustic", "genre": "vpop", "theme": null},
+
+    {"query": "songs about heartbreak and being left", "family": "semantic", "genre": null, "theme": "heartbreak"},
+    {"query": "songs about money, wealth and luxury", "family": "semantic", "genre": null, "theme": "money"},
+    {"query": "songs about loyalty and betrayal between friends", "family": "semantic", "genre": null, "theme": "loyalty"},
+    {"query": "songs about missing someone far away", "family": "semantic", "genre": null, "theme": "longing"},
+    {"query": "songs about partying and going out at night", "family": "semantic", "genre": null, "theme": "nightlife"},
+    {"query": "songs about self-doubt and inner struggle", "family": "semantic", "genre": null, "theme": "doubt"},
+    {"query": "songs about ambition and proving doubters wrong", "family": "semantic", "genre": null, "theme": "ambition"},
+    {"query": "songs about physical attraction and seduction", "family": "semantic", "genre": null, "theme": "desire"},
+    {"query": "songs about drugs and getting high", "family": "semantic", "genre": null, "theme": "substances"},
+
+    {"query": "vietnamese pop songs about missing someone", "family": "compound", "genre": "vpop", "theme": "longing"},
+    {"query": "vietnamese pop songs about heartbreak", "family": "compound", "genre": "vpop", "theme": "heartbreak"},
+    {"query": "electronic dance tracks about longing for someone", "family": "compound", "genre": "edm", "theme": "longing"},
+    {"query": "electronic dance music about going out at night", "family": "compound", "genre": "edm", "theme": "nightlife"},
+    {"query": "jazz songs about money and success", "family": "compound", "genre": "jazz", "theme": "money"},
+    {"query": "jazz songs about ambition and hustle", "family": "compound", "genre": "jazz", "theme": "ambition"},
+    {"query": "jazz songs about drinking and getting high", "family": "compound", "genre": "jazz", "theme": "substances"},
+    {"query": "hip hop with 808s about making money", "family": "compound", "genre": "hiphop_rnb", "theme": "money"},
+    {"query": "r&b production about wanting someone", "family": "compound", "genre": "hiphop_rnb", "theme": "desire"}
+  ]
+}
