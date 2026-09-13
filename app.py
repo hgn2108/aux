@@ -22,7 +22,6 @@ from aux.app.data import (  # noqa: E402
     available_corpora,
     load_corpus,
     load_results,
-    personal_is_local,
 )
 from aux.recommend import NORMALISERS, Recommender  # noqa: E402
 
@@ -582,12 +581,11 @@ def choose_corpus():
     "Your music" or "Findings" -- neither of which it affects -- and read as though it did.
     """
     corpora = available_corpora()
+    # Names say whose music it is; the note underneath carries the licensing and what that
+    # costs -- whether it plays, and whether there are lyrics to search.
     labels = {
-        "fma": "Free Music Archive — plays, no lyrics",
-        # The personal corpus plays locally and does not when it loads from the exported
-        # bundle, so the label is derived rather than written twice.
-        "personal": ("My library — plays, with lyrics" if personal_is_local()
-                     else "Real songs — lyrics, no playback"),
+        "fma": "Demo library",
+        "personal": "Creator's library (lyrics available)",
     }
     picked = st.segmented_control("Library", corpora, default=corpora[0],
                                   format_func=labels.__getitem__, key="corpus")

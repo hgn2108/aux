@@ -43,14 +43,13 @@ def test_switching_to_the_lyric_corpus_keeps_the_app_alive(monkeypatch):
     """The bundled corpus loads from different code than the local one; exercise it."""
     app = _run(monkeypatch, public=True)
     picker = next(w for w in app.segmented_control if w.key == "corpus")
-    assert len(picker.options) == 2
-    assert any("lyrics" in label.lower() for label in picker.options[1:])
+    assert picker.options == ["Demo library", "Creator's library (lyrics available)"]
 
     picker.set_value("personal").run()
     assert not app.exception, app.exception
     # The corpus note is rendered from whichever corpus actually loaded.
     notes = " ".join(str(c.value) for c in app.caption)
-    assert "Commercially released" in notes
+    assert "author's own music" in notes
 
 
 @pytest.mark.slow

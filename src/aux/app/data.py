@@ -154,8 +154,9 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
         tracks = [t for t in tracks if str(t.path) in kept]
         return Corpus("FMA small", tracks, vectors, None, None, playable=True,
                       anonymous=False,
-                      note=("Creative Commons. 56% instrumental in a sampled 75 clips, "
-                            "median transcript 11 words — no lyric channel to search."))
+                      note=("Creative Commons, so it plays here. 56% instrumental in a "
+                            "sampled 75 clips, median transcript 11 words — no lyric "
+                            "channel to search."))
 
     from aux.data import load_personal_tracks
 
@@ -174,9 +175,9 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     local = not is_public()
     return Corpus("personal library", tracks, vectors, lyrics, has_lyrics,
                   playable=local, anonymous=not local,
-                  note=("Commercially released music, never redistributed. 79% have a "
-                        "reliable transcript, median 376 words — which is why the "
-                        "multimodal evaluation runs here."),
+                  note=("The author's own music. 127 of 160 tracks have a reliable "
+                        "transcript at a median of 376 words, which is why the multimodal "
+                        "evaluation runs here."),
                   artists=[display_artist(t.path) for t in tracks])
 
 
