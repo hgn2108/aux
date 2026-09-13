@@ -18,6 +18,8 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+# The demo only. The library and every evaluation run without it.
+app = ["streamlit>=1.40", "pandas>=2.0"]
 
 [build-system]
 requires = ["setuptools>=68"]
