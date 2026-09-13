@@ -204,46 +204,115 @@ def page_search(corpus, recommender) -> None:
         st.divider()
 
 
-def page_upload(corpus) -> None:
-    st.subheader("Bring your own track")
-    st.caption("Encode a file you upload and find the closest tracks in the library. "
-               "Nothing is stored: the file is decoded in memory and discarded.")
-    st.info("Sound only. The lyric channel needs transcription, which runs near real time "
-            "on CPU — too slow to do live, so transcripts are precomputed for the library.")
+def encode_uploads(files) -> dict:
+    """Encode uploaded audio, keeping results in session state across reruns.
 
-    upload = st.file_uploader("An audio file", type=["mp3", "wav", "flac", "m4a"])
-    if not upload:
-        return
-
+    Keyed by content hash, so re-running the script -- which Streamlit does on every
+    interaction -- never re-encodes a file already seen, and two uploads of the same
+    recording collapse to one entry.
+    """
+    import hashlib
     import tempfile
 
     from aux.ingest import IngestError, decode
 
-    # The upload goes through the project's own ingest path -- the same probe, decode and
-    # segmentation the indexed tracks went through. That is the point of the feature: it
-    # demonstrates that a representation is computable from an arbitrary file at inference
-    # time, which the project treats as non-negotiable.
-    try:
-        with tempfile.NamedTemporaryFile(suffix=Path(upload.name).suffix) as handle:
-            handle.write(upload.getbuffer())
-            handle.flush()
-            with st.spinner("Decoding and encoding…"):
-                vector, _ = get_encoder().embed_track(decode(Path(handle.name)),
-                                                      n_segments=5)
-    except IngestError as exc:
-        st.error(f"Could not read that file: {exc}")
+    store = st.session_state.setdefault("uploads", {})
+    todo = []
+    for handle in files:
+        payload = handle.getvalue()
+        digest = hashlib.blake2b(payload, digest_size=16).hexdigest()
+        if digest not in store:
+            todo.append((digest, handle.name, payload))
+
+    if todo:
+        progress = st.progress(0.0, text="Encoding…")
+        for done, (digest, name, payload) in enumerate(todo, 1):
+            try:
+                with tempfile.NamedTemporaryFile(suffix=Path(name).suffix) as tmp:
+                    tmp.write(payload)
+                    tmp.flush()
+                    # Through the project's own probe, decode and segmentation -- the same
+                    # path every indexed track took. That parity is the point of the
+                    # feature: nothing here is precomputed or dataset-specific.
+                    vector, _ = get_encoder().embed_track(decode(Path(tmp.name)),
+                                                          n_segments=5)
+                store[digest] = {"name": Path(name).stem, "vector": np.asarray(vector),
+                                 "audio": payload, "error": None}
+            except IngestError as exc:
+                store[digest] = {"name": Path(name).stem, "vector": None,
+                                 "audio": None, "error": str(exc)}
+            progress.progress(done / len(todo), text=f"Encoding… {done}/{len(todo)}")
+        progress.empty()
+    return store
+
+
+def page_upload(corpus) -> None:
+    st.subheader("Use your own music")
+    st.markdown(
+        "Drop in audio files and they become a searchable library of their own. Nothing "
+        "is stored on the server: files are decoded in memory, encoded, and held for this "
+        "browser session only."
+    )
+    st.caption(
+        "Sound only. The lyric channel needs transcription, which runs near real time on "
+        "CPU — too slow to do live, so transcripts are precomputed for the libraries in "
+        "the sidebar. Encoding takes well under a second per track."
+    )
+
+    files = st.file_uploader("Audio files", type=["mp3", "wav", "flac", "m4a", "ogg"],
+                             accept_multiple_files=True)
+    if not files:
+        st.info("Ten or twenty tracks is enough to see whether the recommendations hold up "
+                "on music you actually know.", icon=":material/upload_file:")
         return
 
-    scores = corpus.audio @ np.asarray(vector, dtype=np.float32)
-    st.success(f"Encoded {upload.name}. Closest tracks in {corpus.name}:")
-    lo, hi = float(scores.min()), float(scores.max())
+    store = encode_uploads(files)
+    good = {k: v for k, v in store.items() if v["vector"] is not None}
+    failed = [v["name"] for v in store.values() if v["error"]]
+    if failed:
+        st.warning(f"Could not read {len(failed)} file(s): {', '.join(failed[:3])}"
+                   + ("…" if len(failed) > 3 else ""))
+    if not good:
+        return
+
+    keys = list(good)
+    vectors = np.stack([good[k]["vector"] for k in keys]).astype(np.float32)
+    st.success(f"{len(keys)} track(s) encoded.")
+
+    action = st.segmented_control(
+        "What to do with them", ["Search by description", "Find similar"],
+        default="Search by description", key="upload_action")
+
+    if action == "Search by description":
+        with st.form("upload_search"):
+            query = st.text_input("Describe what you want to hear",
+                                  placeholder="e.g. slow, sparse, late at night")
+            go = st.form_submit_button("Search", type="primary")
+        if not (go and query):
+            return
+        scores = vectors @ get_encoder().embed_text([query])[0]
+        ranked = np.argsort(-scores)
+        st.caption(f"Your {len(keys)} tracks, ranked against that description.")
+    else:
+        pick = st.selectbox("Reference track", range(len(keys)),
+                            format_func=lambda i: good[keys[i]]["name"])
+        st.audio(good[keys[pick]]["audio"])
+        scores = vectors @ vectors[pick]
+        scores[pick] = -np.inf          # a track is never its own recommendation
+        ranked = [i for i in np.argsort(-scores) if np.isfinite(scores[i])]
+        if len(ranked) == 0:
+            st.info("Upload a second track to compare against.")
+            return
+        st.divider()
+        st.caption("Closest of your other uploads.")
+
+    finite = scores[np.isfinite(scores)]
+    lo, hi = float(finite.min()), float(finite.max())
     span = hi - lo or 1.0
-    for rank, i in enumerate(np.argsort(-scores)[:10], 1):
-        title, subtitle = corpus.display(int(i))
-        st.markdown(f"**{rank}. {title}**  \n{subtitle}")
+    for rank, i in enumerate(list(ranked)[:10], 1):
+        st.markdown(f"**{rank}. {good[keys[i]]['name']}**")
         st.progress((float(scores[i]) - lo) / span, text="sound match")
-        if corpus.playable:
-            st.audio(str(corpus.tracks[int(i)].path))
+        st.audio(good[keys[i]]["audio"])
         st.divider()
 
 

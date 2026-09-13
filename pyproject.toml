@@ -29,6 +29,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.pytest.ini_options]
+markers = ["slow: loads models; excluded with -m 'not slow'"]
 testpaths = ["tests"]
 # The editable install's .pth is not honoured in this interpreter setup; pin the
 # source root so the suite runs identically from a bare checkout.
