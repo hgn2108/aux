@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[3]
 CACHE = ROOT / ".cache"
 RESULTS = ROOT / "results"
 MUSIC = ROOT / "data" / "music"
+DEMO = ROOT / "demo"
 
 
 def is_public() -> bool:
@@ -43,9 +44,13 @@ def available_corpora() -> list[str]:
     missing option, so availability is checked here instead of assumed.
     """
     out = ["fma"]
-    if not is_public() and MUSIC.exists() and any(MUSIC.rglob("*.mp3")):
+    if (MUSIC.exists() and any(MUSIC.rglob("*.mp3"))) or _bundle_present():
         out.append("personal")
     return out
+
+
+def _bundle_present() -> bool:
+    return (DEMO / "personal_manifest.json").exists() and (DEMO / "personal_vectors.npz").exists()
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,6 +95,8 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     """Load one corpus. `limit` trims the track list before indexing, for a lighter demo."""
     if which == "personal" and which not in available_corpora():
         raise RuntimeError("the personal library is not available on this instance")
+    if which == "personal" and (is_public() or not MUSIC.exists()):
+        return load_personal_bundle()
     if which == "fma":
         from aux.data import balanced_subset, load_tracks
 
@@ -142,3 +149,30 @@ def load_results() -> dict:
         except json.JSONDecodeError:
             continue
     return out
+
+
+@dataclass(frozen=True, slots=True)
+class BundledTrack:
+    """A track known only by its metadata. Stands in for `TrackMeta` where no file exists."""
+
+    track_id: int
+    title: str
+    artist: str
+    genre: str
+    path: Path = Path()
+
+
+def load_personal_bundle() -> Corpus:
+    """Load the exported personal corpus: metadata and vectors, no audio, no transcripts.
+
+    Used wherever the audio is absent — every deployment. The lyric modality stays fully
+    functional, because ranking needs the embeddings and not the text they came from, which
+    is what lets a public instance demonstrate the feature at all.
+    """
+    manifest = json.loads((DEMO / "personal_manifest.json").read_text())
+    blob = np.load(DEMO / "personal_vectors.npz")
+    tracks = [BundledTrack(track_id=r["track_id"], title=r["title"], artist=r["artist"],
+                           genre=r["genre"]) for r in manifest["tracks"]]
+    return Corpus(manifest["name"], tracks, blob["audio"], blob["lyrics"],
+                  blob["has_lyrics"], playable=False, anonymous=False,
+                  note=manifest["note"])

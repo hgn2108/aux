@@ -1,0 +1,1126 @@
+{
+  "name": "personal library",
+  "note": "Commercially released music. Audio and transcripts are not redistributed, so this corpus cannot be played here \u2014 only searched and ranked, from embeddings computed locally.",
+  "tracks": [
+    {
+      "track_id": 0,
+      "title": "XXXtentacion Donda 2 performance opening",
+      "artist": "(Live) True Love",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 1,
+      "title": "ball w_o you",
+      "artist": "21 Savage",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 2,
+      "title": "see the real",
+      "artist": "21 Savage",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 3,
+      "title": "Honeymoon",
+      "artist": "8TURN(\uc5d0\uc787\ud134) Performance Video(JINWOO Choreography)  Don Toliver",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 4,
+      "title": "Demons and Angels (feat. Juice WRLD)",
+      "artist": "A Boogie Wit Da Hoodie",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 5,
+      "title": "Skeezers",
+      "artist": "A Boogie Wit Da Hoodie",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 6,
+      "title": "Startender (feat. Offset & Tyga)",
+      "artist": "A Boogie Wit Da Hoodie",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 7,
+      "title": "Man In the Mirror",
+      "artist": "A Boogie Wit da Hoodie",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 8,
+      "title": "Red Light (feat. Trippie Redd)",
+      "artist": "A Boogie Wit da Hoodie",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 9,
+      "title": "Fkin' Problems ft. Drake, 2 Chainz, Kendrick Lamar",
+      "artist": "AAP ROCKY",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 10,
+      "title": "Baby Keem",
+      "artist": "Baby Keem",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 11,
+      "title": "Orange Soda",
+      "artist": "Baby Keem",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 12,
+      "title": "lost souls ft. Brent Faiyaz",
+      "artist": "Baby Keem",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 13,
+      "title": "Grippy",
+      "artist": "Cash Cobain & J. Cole",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 14,
+      "title": "Oh Mami Remix",
+      "artist": "Chase Atlantic & Maggie Lindemann",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 15,
+      "title": "L.E.S. (Live in Los Angeles 11-12-11)",
+      "artist": "Childish Gambino",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 16,
+      "title": "Something Wrong",
+      "artist": "DJ Snake, Don Toliver",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 17,
+      "title": "2AM",
+      "artist": "Don Toliver",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 18,
+      "title": "Best You Had",
+      "artist": "Don Toliver",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 19,
+      "title": "Cardigan",
+      "artist": "Don Toliver",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 20,
+      "title": "Don Toliver and NAV perform Recap and Lemonade Rolling Loud Miami 2023",
+      "artist": "Don Toliver and NAV perform Recap and Lemonade   Rolling Loud Miami 2023",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 21,
+      "title": "Costa Rica ft. Bas, JID, and more",
+      "artist": "Dreamville",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 22,
+      "title": "Show of Hands",
+      "artist": "Future, Metro Boomin, AAP Rocky",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 23,
+      "title": "one of wun",
+      "artist": "Gunna",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 24,
+      "title": "GTKY",
+      "artist": "ISAIAH RASHAD",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 25,
+      "title": "BOY IN RED",
+      "artist": "ISAIAH RASHAD FT. SZA",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 26,
+      "title": "Internet Money \u2013 Blast Off Feat. Juice Wrld & Trippie Redd",
+      "artist": "Internet Money \u2013 Blast Off Feat. Juice Wrld & Trippie Redd (Official Music Video)",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 27,
+      "title": "A FLORIDA LUV STORY Vevo DSCVR",
+      "artist": "Isaiah Falls",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 28,
+      "title": "No Boo (feat. Jessie Reyez)",
+      "artist": "JID",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 29,
+      "title": "What We On (feat. Don Toliver)",
+      "artist": "JID",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 30,
+      "title": "I WANNA SEE SOME ASS",
+      "artist": "Jack Harlow",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 31,
+      "title": "Way Out feat. Big Sean",
+      "artist": "Jack Harlow",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 32,
+      "title": "After Midnight",
+      "artist": "Jordan Astra, Misha, Jussi Halme",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 33,
+      "title": "Lightyears ft. Young Thug",
+      "artist": "Juice WRLD",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 34,
+      "title": "Collabo",
+      "artist": "June Freedom",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 35,
+      "title": "\ud835\ude20\ud835\ude1a\ud835\ude13 ft. Elji Beatzkilla",
+      "artist": "June Freedom, Elji Beatzkilla",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 36,
+      "title": "YUKON (Live From The 68th Grammy Awards _ 2026)",
+      "artist": "Justin Bieber",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 37,
+      "title": "Rosetta",
+      "artist": "KARRI",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 38,
+      "title": "Call U Up ft. Lou Phelps",
+      "artist": "KAYTRANADA",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 39,
+      "title": "\u201cScoring\u201d (Official Music Video",
+      "artist": "Kalan.FrFr",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 40,
+      "title": "I Love It feat. Adele Givens",
+      "artist": "Kanye West & Lil Pump",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 41,
+      "title": "Location ft. Lil Wayne, Kehlani (Remix) ft. Lil Wayne, Kehlani",
+      "artist": "Khalid",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 42,
+      "title": "LOVE IS A DRUG",
+      "artist": "LOVE IS A DRUG",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 43,
+      "title": "DANCING WITH DEMONS",
+      "artist": "Leon Thomas",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 44,
+      "title": "VIBES DON'T LIE A COLORS SHOW",
+      "artist": "Leon Thomas",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 45,
+      "title": "Blueberry Faygo (BD12 Remix)",
+      "artist": "Lil Mosey",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 46,
+      "title": "ALL THE TIME (Lyric Video)",
+      "artist": "Lil Tecca",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 47,
+      "title": "BAD TIME [Slowed + Reverb]",
+      "artist": "Lil Tecca",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 48,
+      "title": "Need Me",
+      "artist": "Lil Tecca",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 49,
+      "title": "TASTE",
+      "artist": "Lil Tecca",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 50,
+      "title": "Leaked",
+      "artist": "Lil Tjay",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 51,
+      "title": "Love Me ft. Drake, Future (Ricii Lompeurs Remix)",
+      "artist": "Lil Wayne",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 52,
+      "title": "MO BAMBA (Bass Boosted)",
+      "artist": "MO BAMBA (Bass Boosted)",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 53,
+      "title": "Cinderella (feat. Ty Dolla ign)",
+      "artist": "Mac Miller",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 54,
+      "title": "Congratulations (feat. Bilal)",
+      "artist": "Mac Miller",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 55,
+      "title": "Prone",
+      "artist": "Masego",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 56,
+      "title": "10 Freaky Girls ft. 21 Savage",
+      "artist": "Metro Boomin",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 57,
+      "title": "Parking Lot feat. Travis Scott",
+      "artist": "Mustard",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 58,
+      "title": "YOU FT. DON TOLIVER",
+      "artist": "NAV",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 59,
+      "title": "Gang Baby",
+      "artist": "NLE Choppa",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 60,
+      "title": "Slut Me Out",
+      "artist": "NLE Choppa",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 61,
+      "title": "Simple",
+      "artist": "NOT",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 62,
+      "title": "DIRTY",
+      "artist": "Nobu Woods",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 63,
+      "title": "Rich Amiri, DinoA1",
+      "artist": "One Call (Guitar Remix)",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 64,
+      "title": "FOR CERTAIN",
+      "artist": "PARTYNEXTDOOR",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 65,
+      "title": "LOSE MY MIND",
+      "artist": "PARTYNEXTDOOR",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 66,
+      "title": "PROMOTION",
+      "artist": "PROMOTION",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 67,
+      "title": "For The Night ft. Lil Baby, DaBaby",
+      "artist": "Pop Smoke",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 68,
+      "title": "rockstar ft. 21 Savage",
+      "artist": "Post Malone",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 69,
+      "title": "Doin Too Much (feat. Isaiah Jaay)",
+      "artist": "REASON & Eric Bellinger",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 70,
+      "title": "Late At Night (LIVE from BET Awards 2021)",
+      "artist": "Roddy Ricch",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 71,
+      "title": "I'D RATHER NOT",
+      "artist": "Ryan Trey",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 72,
+      "title": "Don't You",
+      "artist": "Sage The Gemini",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 73,
+      "title": "Man Of The Year",
+      "artist": "ScHoolboy Q",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 74,
+      "title": "Faucet Failure",
+      "artist": "Ski Mask The Slump God",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 75,
+      "title": "Audio)",
+      "artist": "Slide (Remix) (feat. Pop Smoke, A Boogie Wit da Hoodie & Chris Brown) (Remix",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 76,
+      "title": "Heartless (Live on The Late Show with Stephen Colbert _ 2019)",
+      "artist": "The Weeknd",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 77,
+      "title": "The Hills (HXV Blurred Remix) (Bass Boosted)",
+      "artist": "The Weeknd",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 78,
+      "title": "Collection",
+      "artist": "Tory Lanez & Yoko Gold",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 79,
+      "title": "Basement (Prison Tapes)",
+      "artist": "Tory Lanez",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 80,
+      "title": "Girls Around The World (Lost Tapes 2016)",
+      "artist": "Tory Lanez",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 81,
+      "title": "S.L.I.D.E",
+      "artist": "Tory Lanez",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 82,
+      "title": "Traphouse (Overlapped Hook TikTok Remix) Best Version",
+      "artist": "Tory Lanez",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 83,
+      "title": "Trance X NEW DROP (Travis Scott, Don Toliver, Metro Boomin) [Jr Stit Mashup]",
+      "artist": "Trance X NEW DROP (Travis Scott, Don Toliver, Metro Boomin) [Jr Stit Mashup]",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 84,
+      "title": "TOPIA TWINS ft. Rob49, 21 Savage",
+      "artist": "Travis Scott",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 85,
+      "title": "CAN'T SAY DRILL REMIX",
+      "artist": "Travis Scott feat. Don Toliver",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 86,
+      "title": "Ice Cream Man",
+      "artist": "Tyga",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 87,
+      "title": "Taste ft. Offset (CHILDSPLAY Remix)",
+      "artist": "Tyga",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 88,
+      "title": "Soweto with Don Toliver, Rema & Tempoe",
+      "artist": "Victony",
+      "genre": "hiphop_rnb",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 89,
+      "title": "Wake It Up",
+      "artist": "Wake It Up",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 90,
+      "title": "ALL THE LOVE (feat. ANDR\u00c9 TROUTMAN)",
+      "artist": "YE",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 91,
+      "title": "DAMN",
+      "artist": "YE",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 92,
+      "title": "Carnival of the Animals The Swan (Arranged for Cello and Harp by Miriam Keogh)",
+      "artist": "Carnival of the Animals The Swan (Arranged for Cello and Harp by Miriam Keogh)",
+      "genre": "classical",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 93,
+      "title": "Gymnop\u00e9die No.1",
+      "artist": "Erik Satie",
+      "genre": "classical",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 94,
+      "title": "I Wanted To Leave",
+      "artist": "SYML",
+      "genre": "classical",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 95,
+      "title": "The Mercy of the Wind",
+      "artist": "The Mercy of the Wind",
+      "genre": "classical",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 96,
+      "title": "Where Roses Bloom (Voice Memo Clip)",
+      "artist": "Where Roses Bloom (Voice Memo Clip)",
+      "genre": "classical",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 97,
+      "title": "Ballerina",
+      "artist": "Yehezkel Raz",
+      "genre": "classical",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 98,
+      "title": "dear edmond",
+      "artist": "dear edmond",
+      "genre": "classical",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 99,
+      "title": "Round Town",
+      "artist": "Ana\u00efs & Olivia Rose",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 100,
+      "title": "Greenlight",
+      "artist": "Audioscribe, HAE & Midnite Amity",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 101,
+      "title": "Set You Free",
+      "artist": "Delta Heavy",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 102,
+      "title": "Haven",
+      "artist": "Etherwood & Grace Barton",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 103,
+      "title": "Lead Dem [Official Visualiser]",
+      "artist": "Friction & Irah",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 104,
+      "title": "how it used to be",
+      "artist": "Hybrid Minds, Nixxy Rain, Dame",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 105,
+      "title": "Surrender",
+      "artist": "Kanine & Jem Cooke",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 106,
+      "title": "Wide Awake",
+      "artist": "Kanine",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 107,
+      "title": "Bugatti (Pythius Remix)",
+      "artist": "Modestep & H808",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 108,
+      "title": "Send Shots",
+      "artist": "Rudimental, Original Koffee, Winny",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 109,
+      "title": "Out Of Order",
+      "artist": "Skepsis & Grace Barton",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 110,
+      "title": "Stamina",
+      "artist": "goddard. & Charlotte Haining",
+      "genre": "dnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 111,
+      "title": "tiramisu (sincerely Lue. remix)",
+      "artist": "don toliver",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 112,
+      "title": "Waiting For Love (Live T in the park 2015)",
+      "artist": "Avicii",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 113,
+      "title": "Outside ft. Ellie Goulding (Savagez Remix)",
+      "artist": "Calvin Harris",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 114,
+      "title": "Summer",
+      "artist": "Calvin Harris",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 115,
+      "title": "BBC",
+      "artist": "Calvin Harris with John Newman & Ellie Goulding  BBC Music Awards",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 116,
+      "title": "Let Me Love You Ft. Justin Bieber & Sean Paul [Official Remix]",
+      "artist": "DJ Snake",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 117,
+      "title": "One More Time",
+      "artist": "Daft Punk",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 118,
+      "title": "'Wild Ones' (Live At The Summertime Ball 2016)",
+      "artist": "Flo Rida",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 119,
+      "title": "On The Floor Wetten Dass (Live in HD)",
+      "artist": "Jennifer Lopez",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 120,
+      "title": "I Took A Pill In Ibiza (Seeb Remix)",
+      "artist": "Mike Posner",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 121,
+      "title": "Cheerleader (Felix Jaehn Remix) [Ultra Records]",
+      "artist": "OMI",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 122,
+      "title": "Timber (featuring Keha",
+      "artist": "Pitbull, Keha",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 123,
+      "title": "Don't Let Me Down ft. Daya",
+      "artist": "The Chainsmokers",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 124,
+      "title": "Clarity ft. Foxes",
+      "artist": "Zedd",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 125,
+      "title": "Scream & Shout ft. Britney Spears",
+      "artist": "will.i.am",
+      "genre": "edm",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 126,
+      "title": "hidden hills",
+      "artist": "hako",
+      "genre": "hiphop_rnb",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 127,
+      "title": "Blue Velvet",
+      "artist": "Blue Velvet",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 128,
+      "title": "Butterflies",
+      "artist": "Butterflies",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 129,
+      "title": "Dusk",
+      "artist": "Dusk",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 130,
+      "title": "Eyes in Disguise",
+      "artist": "Eyes in Disguise",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 131,
+      "title": "Forever",
+      "artist": "Forever",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 132,
+      "title": "SAME SH!T",
+      "artist": "Isaiah Rashad",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 133,
+      "title": "In My Lifetime",
+      "artist": "JA\u0178-Z",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 134,
+      "title": "Last Train Home",
+      "artist": "Last Train Home",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 135,
+      "title": "Orchestral Cover (Drake Diss)",
+      "artist": "Meet The Grahams",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 136,
+      "title": "Moving Circles",
+      "artist": "Moving Circles",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 137,
+      "title": "Night Vigil",
+      "artist": "Night Vigil",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 138,
+      "title": "Port Antonio",
+      "artist": "Port Antonio",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 139,
+      "title": "SAG HARBOR",
+      "artist": "SAG HARBOR (Official Video)",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 140,
+      "title": "93 'Til Infinity",
+      "artist": "Souls Of Mischief",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 141,
+      "title": "Stay A Little",
+      "artist": "Stay A Little",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 142,
+      "title": "Tears of a Stoic",
+      "artist": "Sylvan LaCue",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 143,
+      "title": "Take Your Time",
+      "artist": "Take Your Time",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 144,
+      "title": "The Blue Between Us",
+      "artist": "The Blue Between Us",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 145,
+      "title": "She Knows Too Much (feat. Mac Miller)",
+      "artist": "Thundercat",
+      "genre": "jazz",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 146,
+      "title": "What just happened",
+      "artist": "What just happened",
+      "genre": "jazz",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 147,
+      "title": "Ex\u2019s Hate Me (Part 2) Lyric Video (from album \u201cdreAMEE\u201d)",
+      "artist": "AMEE x B RAY",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 148,
+      "title": "CHO M\u00ccNH EM (Studio Session)",
+      "artist": "BINZ x \u0110EN",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 149,
+      "title": "C\u1ee8 CHILL TH\u00d4I",
+      "artist": "CHILLIES",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 150,
+      "title": "d\u1ef1 b\u00e1o th\u1eddi ti\u1ebft h\u00f4m nay m\u01b0a official visualizer",
+      "artist": "GREY D",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 151,
+      "title": "Gi\u1edd Th\u00ec (Official MV) _ buitruonglinh",
+      "artist": "Gi\u1edd Th\u00ec (Official MV) _ buitruonglinh",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 152,
+      "title": "\u0110\u00e3 L\u1ee1 Y\u00eau Em Nhi\u1ec1u (Official MV)",
+      "artist": "JustaTee",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 153,
+      "title": "\u201850 Cu\u1ed9c G\u1ecdi Nh\u1ee1\u2019 (ft. CoolKid, Cody Nam V\u00f5, Jaysonlei) _ TINH H\u00c0 SAY HI",
+      "artist": "Quang H\u00f9ng MasterD",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 154,
+      "title": "'' v\u1ea1n v\u1eadt nh\u01b0 mu\u1ed1n ta b\u00ean nhau '' Official MV",
+      "artist": "RIO",
+      "genre": "vpop",
+      "has_lyrics": false
+    },
+    {
+      "track_id": 155,
+      "title": "DaLAB live at #HAYFEST",
+      "artist": "Th\u1ee9c Gi\u1ea5c",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 156,
+      "title": "Ai Ngo\u00e0i Anh",
+      "artist": "VSTRA",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 157,
+      "title": "3 1 0 7 ( Official Video ) ft. N\u00e2u, Duongg",
+      "artist": "W_n",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 158,
+      "title": "d\u1ea1o n\u00e0y",
+      "artist": "obito",
+      "genre": "vpop",
+      "has_lyrics": true
+    },
+    {
+      "track_id": 159,
+      "title": "52Hz (prod. RIO) Official Lyric Video",
+      "artist": "\u0110\u1ee2I",
+      "genre": "vpop",
+      "has_lyrics": true
+    }
+  ]
+}

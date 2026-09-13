@@ -5,6 +5,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import json
+
 import numpy as np
 import pytest
 
@@ -171,16 +173,34 @@ def test_permutation_test_reports_no_effect_for_identical_systems():
 
 # --- demo app corpus gating ----------------------------------------------------------
 
-def test_personal_library_is_unavailable_on_a_public_instance(monkeypatch):
-    """The personal corpus must never be offered where it could be served to others."""
+def test_public_instance_serves_the_bundle_and_never_the_audio():
+    """A deployment may rank the personal corpus, but must not be able to play it.
+
+    Serving the embeddings is what lets a public demo show the lyric modality at all --
+    the Creative Commons corpus cannot. Serving the audio would be redistribution.
+    """
     from aux.app import data
 
-    monkeypatch.setenv("AUX_PUBLIC", "1")
-    assert data.is_public() is True
-    assert data.available_corpora() == ["fma"]
+    if not data._bundle_present():
+        pytest.skip("no exported bundle; run scripts/export_demo_corpus.py")
 
-    with pytest.raises(RuntimeError, match="not available on this instance"):
-        data.load_corpus("personal", encoder=None)
+    corpus = data.load_personal_bundle()
+    assert corpus.playable is False
+    assert corpus.supports_lyrics is True
+    assert all(str(t.path) in ("", ".") for t in corpus.tracks)
+
+
+def test_bundle_carries_no_audio_paths_or_transcripts():
+    from aux.app import data
+
+    if not data._bundle_present():
+        pytest.skip("no exported bundle; run scripts/export_demo_corpus.py")
+
+    blob = (data.DEMO / "personal_manifest.json").read_text()
+    assert ".mp3" not in blob
+    assert "/Users/" not in blob
+    record = json.loads(blob)["tracks"][0]
+    assert set(record) == {"track_id", "title", "artist", "genre", "has_lyrics"}
 
 
 def test_public_flag_treats_falsey_strings_as_local(monkeypatch):
@@ -191,15 +211,28 @@ def test_public_flag_treats_falsey_strings_as_local(monkeypatch):
         assert data.is_public() is False
 
 
-def test_personal_library_needs_audio_present_not_just_a_directory(monkeypatch, tmp_path):
+def test_personal_library_needs_audio_or_a_bundle(monkeypatch, tmp_path):
+    """Offering a corpus whose files are absent crashes on selection, so check first."""
     from aux.app import data
 
     monkeypatch.delenv("AUX_PUBLIC", raising=False)
     monkeypatch.setattr(data, "MUSIC", tmp_path / "music")
-    assert data.available_corpora() == ["fma"]      # missing entirely
+    monkeypatch.setattr(data, "DEMO", tmp_path / "demo")
+    assert data.available_corpora() == ["fma"]      # neither audio nor bundle
 
     (tmp_path / "music").mkdir()
-    assert data.available_corpora() == ["fma"]      # present but empty
+    assert data.available_corpora() == ["fma"]      # directory present but empty
 
     (tmp_path / "music" / "a.mp3").write_bytes(b"")
+    assert data.available_corpora() == ["fma", "personal"]
+
+
+def test_bundle_alone_is_enough_to_offer_the_corpus(monkeypatch, tmp_path):
+    from aux.app import data
+
+    monkeypatch.setattr(data, "MUSIC", tmp_path / "nothing")
+    monkeypatch.setattr(data, "DEMO", tmp_path / "demo")
+    (tmp_path / "demo").mkdir()
+    (tmp_path / "demo" / "personal_manifest.json").write_text("{}")
+    (tmp_path / "demo" / "personal_vectors.npz").write_bytes(b"")
     assert data.available_corpora() == ["fma", "personal"]

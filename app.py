@@ -77,10 +77,12 @@ def mode_controls(corpus, key: str) -> tuple[str, float]:
                               "a weighted blend of both"])
     if mode != "Sound" and not corpus.supports_lyrics:
         st.warning(
-            f"**{corpus.name} has no lyrics to search.** 56% of it is instrumental and "
-            "transcripts run a median of 11 words. Switch the corpus in the sidebar to "
-            "the personal library (160 tracks, 79% with real lyrics) to use this mode — "
-            "that audio can't be played here, but search and recommendation work."
+            f"**{corpus.name} has no lyrics to search.** 56% of it is instrumental and its "
+            "transcripts run a median of 11 words — that limitation is itself a finding. "
+            "Switch the corpus in the sidebar to the second library (160 commercially "
+            "released tracks, 127 with real lyrics) to use this mode. That one can't play "
+            "audio, but every ranking mode works.",
+            icon=":material/lyrics:",
         )
         return "Sound", 1.0
     alpha = MODES[mode]
@@ -398,12 +400,9 @@ def main() -> None:
         st.header("Library")
         corpora = available_corpora()
         which = st.radio("Corpus", corpora,
-                         format_func=lambda w: {"fma": "FMA (Creative Commons)",
-                                                "personal": "My own library"}[w])
-        if "personal" not in corpora:
-            st.caption("A second corpus with real lyrics is used for the multimodal "
-                       "results. It is commercially released music, so it runs locally "
-                       "only — see **Findings** for what it measured.")
+                         format_func=lambda w: {"fma": "FMA — plays audio, no lyrics",
+                                                "personal": "Real songs — lyrics, no audio"
+                                                }[w])
         limit = st.select_slider("Tracks", [100, 250, 500, 1000, 2000], value=250) \
             if which == "fma" else None
 

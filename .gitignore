@@ -65,3 +65,8 @@ evals/
 # The router query set is public -- it is the data behind a published finding, contains no
 # personal content, and the result is not reproducible without it. It lives in queries/,
 # which is tracked, rather than under the ignored evals/.
+
+# The deployable corpus bundle is metadata and derived vectors only -- no audio, no
+# transcripts -- and is committed so a public instance can demonstrate the lyric modality,
+# which the Creative Commons corpus cannot.
+!demo/
