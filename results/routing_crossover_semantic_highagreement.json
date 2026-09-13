@@ -1,0 +1,41 @@
+{
+  "metric": "ndcg@10",
+  "similarity_label": "genre",
+  "semantic_source": "semantic_highagreement_20260913.json",
+  "by_alpha": [
+    {
+      "alpha": 0.0,
+      "similarity": 0.5553467783376302,
+      "semantic": 0.7171092445805253,
+      "mean": 0.6362280114590777
+    },
+    {
+      "alpha": 0.25,
+      "similarity": 0.75912899075671,
+      "semantic": 0.7058303335916732,
+      "mean": 0.7324796621741916
+    },
+    {
+      "alpha": 0.5,
+      "similarity": 0.8021766808230595,
+      "semantic": 0.6898732978105658,
+      "mean": 0.7460249893168127
+    },
+    {
+      "alpha": 0.75,
+      "similarity": 0.8290116701685125,
+      "semantic": 0.5866984671207096,
+      "mean": 0.707855068644611
+    },
+    {
+      "alpha": 1.0,
+      "similarity": 0.8322716314059996,
+      "semantic": 0.43046192601240046,
+      "mean": 0.6313667787092
+    }
+  ],
+  "best_fixed_alpha": 0.5,
+  "best_fixed_mean": 0.7460249893168127,
+  "routed_mean": 0.7746904379932624,
+  "routing_gain": 0.028665448676449712
+}

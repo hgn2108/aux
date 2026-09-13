@@ -113,6 +113,9 @@ def main() -> int:
     ap.add_argument("--whisper", default="small")
     ap.add_argument("--normaliser", default="zscore", choices=sorted(NORMALISERS))
     ap.add_argument("--k", type=int, default=10, help="K used for the oracle bound")
+    ap.add_argument("--exclude", default="", help="comma-separated themes to drop, for "
+                    "sensitivity analysis when a theme's labels fail the agreement check")
+    ap.add_argument("--tag", default="", help="suffix for the results filename")
     args = ap.parse_args()
 
     from label_themes import THEMES
@@ -137,7 +140,10 @@ def main() -> int:
     # Build the query set: one query per theme with enough labelled tracks to be measurable.
     hashes = [content_hash(t.path) for t in tracks]
     themes, relevance_rows, queries = [], [], []
+    dropped = {t.strip() for t in args.exclude.split(",") if t.strip()}
     for theme, description in sorted(THEMES.items()):
+        if theme in dropped:
+            continue
         row = np.array([theme in labels.get(h, {}).get("themes", []) for h in hashes])
         if row.sum() >= MIN_TRACKS_PER_THEME:
             themes.append(theme)
@@ -199,13 +205,14 @@ def main() -> int:
 
     RESULTS.mkdir(exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
-    out = RESULTS / f"semantic_{stamp}.json"
+    out = RESULTS / f"semantic{args.tag}_{stamp}.json"
     out.write_text(json.dumps({
         "run_at": datetime.now(timezone.utc).isoformat(),
         "corpus": {"name": "personal library", "tracks": len(tracks),
                    "with_lyrics": int(has_lyrics.sum())},
         "encoder": encoder.version, "normaliser": args.normaliser,
         "themes": themes, "queries": queries, "ks": list(KS),
+        "excluded_themes": sorted(dropped),
         "results": rows, "oracle_ndcg": oracle, "oracle_k": args.k,
         "per_theme": per_theme,
     }, indent=2))

@@ -32,9 +32,15 @@ METRIC = "ndcg@10"
 
 
 def latest(prefix: str) -> Path:
-    matches = sorted(RESULTS.glob(f"{prefix}*.json"))
+    """Most recent run of one evaluation.
+
+    Anchored on the date stamp rather than a bare wildcard: a tagged variant such as
+    `semantic_highagreement_20260913.json` sorts after the run it is a variant of, so a
+    loose glob would silently compare the sensitivity check instead of the headline.
+    """
+    matches = sorted(RESULTS.glob(f"{prefix}_2*.json"))
     if not matches:
-        raise SystemExit(f"no results file matching {prefix}*.json — run the evaluation first")
+        raise SystemExit(f"no results file matching {prefix}_2*.json — run the evaluation")
     return matches[-1]
 
 
@@ -51,10 +57,13 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Compare a fixed fusion weight against routing")
     ap.add_argument("--label", default="genre",
                     help="which track-to-track label to use as the acoustic family")
+    ap.add_argument("--semantic", default="semantic",
+                    help="results prefix for the semantic family, e.g. "
+                         "semantic_highagreement for the label-sensitivity variant")
     args = ap.parse_args()
 
     similarity = json.loads(latest("recommendation_personal").read_text())["results"][args.label]
-    semantic = json.loads(latest("semantic").read_text())["results"]
+    semantic = json.loads(latest(args.semantic).read_text())["results"]
 
     rows = []
     for alpha in ALPHAS:
@@ -87,9 +96,11 @@ def main() -> int:
     print(f"\ncost of the wrong weight: track->track {routed_sim - worst_sim:.3f}, "
           f"semantic {routed_sem - worst_sem:.3f}")
 
-    out = RESULTS / "routing_crossover.json"
+    suffix = "" if args.semantic == "semantic" else f"_{args.semantic}"
+    out = RESULTS / f"routing_crossover{suffix}.json"
     out.write_text(json.dumps({
         "metric": METRIC, "similarity_label": args.label,
+        "semantic_source": latest(args.semantic).name,
         "by_alpha": [{"alpha": a, "similarity": s, "semantic": m, "mean": av}
                      for a, s, m, av in rows],
         "best_fixed_alpha": best_alpha, "best_fixed_mean": best_fixed,

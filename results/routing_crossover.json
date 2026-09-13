@@ -1,6 +1,7 @@
 {
   "metric": "ndcg@10",
   "similarity_label": "genre",
+  "semantic_source": "semantic_20260913.json",
   "by_alpha": [
     {
       "alpha": 0.0,
