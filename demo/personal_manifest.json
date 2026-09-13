@@ -1,6 +1,6 @@
 {
   "name": "personal library",
-  "note": "Commercially released music. Audio and transcripts are not redistributed, so this corpus cannot be played here \u2014 only searched and ranked, from embeddings computed locally.",
+  "note": "Commercially released music. Audio is not redistributed, so these tracks are searched and ranked but not played. 127 of 160 have usable lyrics.",
   "tracks": [
     {
       "track_id": 0,

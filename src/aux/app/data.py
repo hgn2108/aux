@@ -13,6 +13,7 @@ rather than once per interaction.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -63,6 +64,18 @@ def _bundle_present() -> bool:
     return (DEMO / "personal_manifest.json").exists() and (DEMO / "personal_vectors.npz").exists()
 
 
+#: Some FMA titles are the uploader's filename rather than a title: a leading track
+#: number, and a ".mp3" left on the end.
+_FILENAME_TITLE = re.compile(r"^\s*\d{1,3}\s*[-._ ]\s*|\.(mp3|wav|flac|m4a|ogg)\s*$",
+                             re.IGNORECASE)
+
+
+def clean_display_title(title: str) -> str:
+    """Strip filename debris from a title. Display only; nothing is matched on this."""
+    cleaned = _FILENAME_TITLE.sub("", (title or "").strip())
+    return re.sub(r"\s{2,}", " ", cleaned).strip(" -_")
+
+
 @dataclass(frozen=True, slots=True)
 class Corpus:
     name: str
@@ -97,7 +110,7 @@ class Corpus:
         track = self.tracks[index]
         if self.anonymous:
             return f"Track {track.track_id:03d}", track.genre
-        title = track.title or track.path.stem
+        title = clean_display_title(track.title) or track.path.stem
         artist = self.artists[index] if self.artists else track.artist
         # Some filenames carry no "Artist - Title" separator, so both fields fall back to
         # the whole stem. Printing it twice reads as a bug; show the genre alone.
@@ -141,9 +154,8 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
         tracks = [t for t in tracks if str(t.path) in kept]
         return Corpus("FMA small", tracks, vectors, None, None, playable=True,
                       anonymous=False,
-                      note=("Creative Commons. 56% of a sampled 75 clips are instrumental "
-                            "and transcripts run a median of 11 words, so this corpus has "
-                            "no lyric channel to search."))
+                      note=("Creative Commons. 56% instrumental in a sampled 75 clips, "
+                            "median transcript 11 words — no lyric channel to search."))
 
     from aux.data import load_personal_tracks
 
@@ -162,10 +174,9 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     local = not is_public()
     return Corpus("personal library", tracks, vectors, lyrics, has_lyrics,
                   playable=local, anonymous=not local,
-                  note=("Commercially released music, so it is never deployed or "
-                        "redistributed — this corpus loads on a local machine only. 79% "
-                        "have a reliable transcript at a median of 376 words, which is why "
-                        "the multimodal evaluation runs here."),
+                  note=("Commercially released music, never redistributed. 79% have a "
+                        "reliable transcript, median 376 words — which is why the "
+                        "multimodal evaluation runs here."),
                   artists=[display_artist(t.path) for t in tracks])
 
 

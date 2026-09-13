@@ -282,3 +282,25 @@ def test_display_shows_written_artist_names_not_the_matching_key():
     assert corpus.display(0) == ("Skeezers", "A Boogie Wit Da Hoodie · hiphop_rnb")
     # Artist and title are the same string up to whitespace: show the genre alone.
     assert corpus.display(1) == ("Some Live Set 2023", "hiphop_rnb")
+
+
+def test_clean_display_title_strips_filename_debris_only():
+    from aux.app.data import clean_display_title
+
+    assert clean_display_title("05 A-Trak - Me & My Sneakers.mp3") == "A-Trak - Me & My Sneakers"
+    assert clean_display_title("12. Crossover") == "Crossover"
+    # A real title is left alone, including one that opens with a number.
+    assert clean_display_title("broke Pimpin") == "broke Pimpin"
+    assert clean_display_title("Just a Feelin'") == "Just a Feelin'"
+    assert clean_display_title("") == ""
+
+
+def test_explanation_is_hidden_where_only_one_modality_exists():
+    """On a sound-only corpus every line would read "no lyrics available"."""
+    from aux.recommend import Recommendation
+
+    both = Recommendation(index=1, rank=1, score=0.9, audio_score=0.9, lyric_score=0.4)
+    assert "lyrical similarity" in both.explain()
+
+    sound_only = Recommendation(index=1, rank=1, score=0.9, audio_score=0.9, lyric_score=None)
+    assert "no lyrics available" in sound_only.explain()

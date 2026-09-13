@@ -109,9 +109,7 @@ def mode_controls(corpus, key: str) -> tuple[str, float]:
     one that works made the app look unfinished instead of constrained, and left no route
     to the library where the other two do work.
     """
-    mode = st.radio("Match on", list(MODES), horizontal=True, key=f"mode_{key}",
-                    captions=["how the track sounds", "what the words say",
-                              "a weighted blend of both"])
+    mode = st.radio("Match on", list(MODES), horizontal=True, key=f"mode_{key}")
     if mode != "Sound" and not corpus.supports_lyrics:
         st.warning(
             f"**{corpus.name} has no lyrics to search.** 56% of it is instrumental and its "
@@ -132,14 +130,16 @@ def mode_controls(corpus, key: str) -> tuple[str, float]:
 
 
 def render_results(corpus, results, scores) -> None:
-    st.caption("Bars are similarity within this result set: the strongest match scores 1, "
-               "the weakest 0. They are a display scale, not a probability.")
+    # The explanation compares the two modalities, so it is only worth showing where both
+    # exist. On a sound-only corpus every line would read "no lyrics available".
+    explain = corpus.supports_lyrics
     for r in results:
         title, subtitle = corpus.display(r.index)
         left, right = st.columns([3, 2])
         with left:
             st.markdown(f"**{r.rank}. {title}**  \n{subtitle}")
-            st.caption(r.explain())
+            if explain:
+                st.caption(r.explain())
         with right:
             st.progress(min(1.0, max(0.0, r.audio_score)), text="sound")
             if r.lyric_score is not None:
@@ -152,11 +152,7 @@ def render_results(corpus, results, scores) -> None:
 def page_recommend(corpus, recommender) -> None:
     key = corpus.name.replace(" ", "_")
     st.subheader("Find tracks like this one")
-    st.markdown(
-        "Pick a track and the recommender ranks every other track against it. There are no "
-        "genre tags or listening histories behind this — the ranking comes from the audio "
-        "itself, encoded by a model trained to put music and text in one space."
-    )
+    st.markdown("Ranked from the audio itself — no genre tags, no listening history.")
 
     labels = [f"{corpus.display(i)[0]} — {corpus.display(i)[1]}"
               for i in range(len(corpus.tracks))]
@@ -193,10 +189,8 @@ def page_recommend(corpus, recommender) -> None:
 def page_search(corpus, recommender) -> None:
     st.subheader("Search by description")
     st.markdown(
-        "Type what you want to hear. Because text and audio share one embedding space, a "
-        "description is matched against the recording directly — nothing is looked up in a "
-        "tag database. Try *fast aggressive drums with distorted guitars*, or switch to "
-        "the personal library and try *songs about missing someone*."
+        "Text and audio share one embedding space, so a description is matched against the "
+        "recording rather than against tags."
     )
 
     # A form rather than a bare text_input: the query commits on an explicit submit
@@ -298,9 +292,8 @@ def encode_uploads(files, with_lyrics: bool = False) -> dict:
 def page_upload(corpus) -> None:
     st.subheader("Use your own music")
     st.markdown(
-        "Drop in audio files and they become a searchable library of their own. Nothing "
-        "is stored on the server: files are decoded in memory, encoded, and held for this "
-        "browser session only."
+        "Your files become a searchable library of their own. Nothing is stored: they are "
+        "decoded in memory and held for this browser session only."
     )
     files = st.file_uploader("Audio files", type=["mp3", "wav", "flac", "m4a", "ogg"],
                              accept_multiple_files=True)
@@ -316,11 +309,8 @@ def page_upload(corpus) -> None:
             "the second chorus of most songs. Instrumentals are detected and fall back to "
             "sound."
         )
-    else:
-        st.caption("Encoding the sound takes well under a second per track.")
+
     if not files:
-        st.info("Ten or twenty tracks is enough to see whether the recommendations hold up "
-                "on music you actually know.", icon=":material/upload_file:")
         return
 
     store = encode_uploads(files, with_lyrics=with_lyrics)
@@ -358,9 +348,7 @@ def page_upload(corpus) -> None:
 
     alpha = 1.0
     if lyric_vectors is not None:
-        mode = st.radio("Match on", list(MODES), horizontal=True, key="upload_mode",
-                        captions=["how the track sounds", "what the words say",
-                                  "a weighted blend of both"])
+        mode = st.radio("Match on", list(MODES), horizontal=True, key="upload_mode")
         alpha = MODES[mode]
         if mode == "Both":
             alpha = st.slider("Weight on sound", 0.0, 1.0, MODES["Both"], 0.05,
@@ -397,7 +385,7 @@ def page_upload(corpus) -> None:
                         if lyric_vectors is not None else None)
         scores = blend(audio_scores, lyric_scores)
         ranked = [i for i in np.argsort(-scores) if np.isfinite(scores[i])]
-        st.caption(f"Your {len(keys)} tracks, ranked against that description.")
+
     else:
         pick = st.selectbox("Reference track", range(len(keys)),
                             format_func=lambda i: good[keys[i]]["name"])
@@ -417,7 +405,6 @@ def page_upload(corpus) -> None:
             st.info("Upload a second track to compare against.")
             return
         st.divider()
-        st.caption("Closest of your other uploads.")
 
     finite = scores[np.isfinite(scores)]
     lo, hi = float(finite.min()), float(finite.max())
@@ -433,28 +420,22 @@ def page_findings() -> None:
     results = get_results()
     st.subheader("What was measured, and what it showed")
     st.markdown(
-        "Most of the work on this project was evaluation rather than modelling. Three "
-        "systems — sound, lyrics, and a weighted blend — were scored against objective "
-        "relevance labels, with a random baseline computed under the same rules and a "
-        "significance test on every comparison. Every number on this page is read from a "
-        "committed results file, so none of it can drift from the run that produced it."
+        "Three systems — sound, lyrics, and a weighted blend — scored against objective "
+        "relevance labels, each with a random baseline and a significance test. Numbers "
+        "are read from committed results files, not retyped."
     )
     st.success(
-        "**The headline: there is no single right way to combine the two signals.** "
-        "Similarity queries want sound (NDCG@10 0.832 against 0.555). Queries about "
-        "meaning want lyrics (0.734 against 0.367). Using either setting for the other "
-        "kind of query costs 0.28-0.37 NDCG@10, so the app lets you choose instead of "
-        "guessing for you."
+        "**There is no single right way to combine the two signals.** Similarity queries "
+        "want sound (NDCG@10 0.832 against 0.555); queries about meaning want lyrics "
+        "(0.734 against 0.367). Using either setting for the wrong kind of query costs "
+        "0.28–0.37, which is why the mode is yours to pick."
     )
 
     crossover = results.get("routing_crossover")
     if crossover:
         st.markdown("#### 1. The best fusion weight depends on the query")
-        st.write(
-            "The same two systems reach opposite verdicts. Similarity queries want sound; "
-            "\"songs about X\" wants lyrics. The sweep below runs in opposite directions, "
-            "which is why no single weight is correct."
-        )
+        st.write("The same two systems, opposite verdicts. The sweep runs in opposite "
+                 "directions, so no single weight serves both.")
         import altair as alt
         import pandas as pd
 
@@ -516,11 +497,8 @@ def page_findings() -> None:
     router = next((v for k, v in results.items() if k.startswith("router_")), None)
     if router:
         st.markdown("#### 3. Automatic routing: measured, and not shipped")
-        st.write(
-            "If the weight should change per query, something has to choose it. Three "
-            "routers were built and scored end to end against an oracle allowed to see the "
-            "answers — an upper bound on any router."
-        )
+        st.write("Three routers, scored end to end against an oracle allowed to see the "
+                 "answers — an upper bound on any router.")
         rows = [{
             "router": name,
             "NDCG@10": round(row["ndcg"], 3),
@@ -539,14 +517,14 @@ def page_findings() -> None:
         st.warning(
             "**No router beat a fixed weight significantly.** Choosing one weight per query "
             f"*family* does: {family.get('observed', 0):+.3f} NDCG@10, p="
-            f"{family.get('p_value', 1):.4f}. The decision is worth making; guessing it "
-            "automatically is not supported by the evidence — so the mode selector above is "
-            "a control rather than a prediction."
+            f"{family.get('p_value', 1):.4f}. The decision is worth making; guessing it is "
+            "not supported by the evidence, so the mode selector is a control, not a "
+            "prediction."
         )
         st.markdown(
             "The keyword router led at **+0.058** on 24 queries written by the same person "
-            "who wrote its rules. On paraphrases generated to avoid those constructions it "
-            "fell to **−0.053** — best arm to worst, on held-out phrasing alone."
+            "who wrote its rules. On paraphrases avoiding those constructions it fell to "
+            "**−0.053** — best arm to worst, on held-out phrasing alone."
         )
 
     semantic = next((v for k, v in results.items()
@@ -560,10 +538,10 @@ def page_findings() -> None:
                 for theme, row in semantic["per_theme"].items()]
         st.dataframe(rows, hide_index=True, width="stretch")
         st.caption(
-            "Theme labels are model-generated and validated against blind human judgement "
-            "at Cohen's kappa 0.60. Two themes fell below that bar; dropping them narrows "
-            "the lyric lead from 0.734 to 0.717 against sound's 0.430 and does not change "
-            "the conclusion. Sound wins only on *heartbreak* — sad songs sound sad."
+            "Theme labels are model-generated, validated against blind human judgement at "
+            "Cohen's κ 0.60. Dropping the two themes that fell below that bar narrows the "
+            "lyric lead from 0.734 to 0.717 against 0.430, leaving the conclusion intact. "
+            "Sound wins only on *heartbreak* — sad songs sound sad."
         )
 
     st.markdown("#### Limitations")
@@ -603,7 +581,6 @@ def main() -> None:
     header()
 
     with st.sidebar:
-        st.subheader("Library")
         corpora = available_corpora()
         # The personal corpus plays locally and does not when it loads from the exported
         # bundle, so the label is derived rather than written twice.
