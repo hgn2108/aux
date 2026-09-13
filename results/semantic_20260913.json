@@ -1,0 +1,193 @@
+{
+  "run_at": "2026-09-13T20:27:46.565758+00:00",
+  "corpus": {
+    "name": "personal library",
+    "tracks": 160,
+    "with_lyrics": 127
+  },
+  "encoder": "OpenMuQ/MuQ-MuLan-large",
+  "normaliser": "zscore",
+  "themes": [
+    "ambition",
+    "desire",
+    "doubt",
+    "heartbreak",
+    "longing",
+    "loyalty",
+    "money",
+    "nightlife",
+    "substances"
+  ],
+  "queries": [
+    "songs about ambition, hustle, or proving doubters wrong",
+    "songs about physical attraction, lust or seduction",
+    "songs about self-doubt, depression, anxiety or inner struggle",
+    "songs about heartbreak, being left, or the end of a relationship",
+    "songs about missing someone, distance, or waiting for someone",
+    "songs about loyalty, betrayal, or trust between friends",
+    "songs about money, wealth, luxury or material success",
+    "songs about partying, clubs, drinking or going out at night",
+    "songs about drugs, alcohol or getting high"
+  ],
+  "ks": [
+    5,
+    10,
+    20
+  ],
+  "results": {
+    "audio": {
+      "n_queries": 9,
+      "mean_relevant_per_query": 33.77777777777778,
+      "precision@5": 0.4444444444444444,
+      "recall@5": 0.08009529785323437,
+      "hit_rate@5": 0.8888888888888888,
+      "ndcg@5": 0.47248458776211044,
+      "precision@10": 0.3111111111111111,
+      "recall@10": 0.10869717070113896,
+      "hit_rate@10": 1.0,
+      "ndcg@10": 0.3666199413154747,
+      "precision@20": 0.26666666666666666,
+      "recall@20": 0.1715662167051056,
+      "hit_rate@20": 1.0,
+      "ndcg@20": 0.3260637174793097
+    },
+    "lyrics": {
+      "n_queries": 9,
+      "mean_relevant_per_query": 33.77777777777778,
+      "precision@5": 0.8,
+      "recall@5": 0.1407230152269835,
+      "hit_rate@5": 1.0,
+      "ndcg@5": 0.8316920616795914,
+      "precision@10": 0.6777777777777778,
+      "recall@10": 0.216655239968732,
+      "hit_rate@10": 1.0,
+      "ndcg@10": 0.7344566495639875,
+      "precision@20": 0.5722222222222222,
+      "recall@20": 0.36221986420399116,
+      "hit_rate@20": 1.0,
+      "ndcg@20": 0.6533226489683441
+    },
+    "fused a=0.25": {
+      "n_queries": 9,
+      "mean_relevant_per_query": 33.77777777777778,
+      "precision@5": 0.7777777777777778,
+      "recall@5": 0.1330578408951425,
+      "hit_rate@5": 1.0,
+      "ndcg@5": 0.8133643560834238,
+      "precision@10": 0.6666666666666666,
+      "recall@10": 0.22340183699310684,
+      "hit_rate@10": 1.0,
+      "ndcg@10": 0.7240827598173584,
+      "precision@20": 0.55,
+      "recall@20": 0.3659341466881149,
+      "hit_rate@20": 1.0,
+      "ndcg@20": 0.6369306863588454
+    },
+    "fused a=0.5": {
+      "n_queries": 9,
+      "mean_relevant_per_query": 33.77777777777778,
+      "precision@5": 0.6888888888888888,
+      "recall@5": 0.11865454871407251,
+      "hit_rate@5": 1.0,
+      "ndcg@5": 0.7340427519403305,
+      "precision@10": 0.6222222222222222,
+      "recall@10": 0.20861112726192094,
+      "hit_rate@10": 1.0,
+      "ndcg@10": 0.6713234021877995,
+      "precision@20": 0.5166666666666666,
+      "recall@20": 0.34467826779334715,
+      "hit_rate@20": 1.0,
+      "ndcg@20": 0.5961181585081259
+    },
+    "fused a=0.75": {
+      "n_queries": 9,
+      "mean_relevant_per_query": 33.77777777777778,
+      "precision@5": 0.6000000000000001,
+      "recall@5": 0.10021577481894942,
+      "hit_rate@5": 1.0,
+      "ndcg@5": 0.5998255155224111,
+      "precision@10": 0.5,
+      "recall@10": 0.17431044117552055,
+      "hit_rate@10": 1.0,
+      "ndcg@10": 0.5289730338759613,
+      "precision@20": 0.4222222222222222,
+      "recall@20": 0.2770509913367056,
+      "hit_rate@20": 1.0,
+      "ndcg@20": 0.4770329762818246
+    },
+    "random": {
+      "n_queries": 9,
+      "mean_relevant_per_query": 33.77777777777778,
+      "precision@5": 0.15555555555555556,
+      "recall@5": 0.014870454354581338,
+      "hit_rate@5": 0.4444444444444444,
+      "ndcg@5": 0.16076150333242847,
+      "precision@10": 0.17777777777777778,
+      "recall@10": 0.0482715403350324,
+      "hit_rate@10": 0.7777777777777778,
+      "ndcg@10": 0.17526944462549043,
+      "precision@20": 0.19444444444444445,
+      "recall@20": 0.11105236254045778,
+      "hit_rate@20": 1.0,
+      "ndcg@20": 0.1912232518191272
+    }
+  },
+  "oracle_ndcg": 0.7391780267625992,
+  "oracle_k": 10,
+  "per_theme": {
+    "ambition": {
+      "n": 18,
+      "audio": 0.16104258782393985,
+      "lyrics": 0.2837125544970319,
+      "winner": "lyrics"
+    },
+    "desire": {
+      "n": 72,
+      "audio": 0.5077181160122075,
+      "lyrics": 1.0,
+      "winner": "lyrics"
+    },
+    "doubt": {
+      "n": 21,
+      "audio": 0.06625422345438904,
+      "lyrics": 0.793584067764911,
+      "winner": "lyrics"
+    },
+    "heartbreak": {
+      "n": 24,
+      "audio": 0.718362797268624,
+      "lyrics": 0.6758704024811183,
+      "winner": "audio"
+    },
+    "longing": {
+      "n": 27,
+      "audio": 0.49509403248815553,
+      "lyrics": 0.8553475075669357,
+      "winner": "lyrics"
+    },
+    "loyalty": {
+      "n": 13,
+      "audio": 0.35895421017163476,
+      "lyrics": 0.400023248309252,
+      "winner": "lyrics"
+    },
+    "money": {
+      "n": 48,
+      "audio": 0.17630010660342915,
+      "lyrics": 0.8048109992093391,
+      "winner": "lyrics"
+    },
+    "nightlife": {
+      "n": 49,
+      "audio": 0.5957616317188127,
+      "lyrics": 1.0,
+      "winner": "lyrics"
+    },
+    "substances": {
+      "n": 32,
+      "audio": 0.2200917662980802,
+      "lyrics": 0.7967610662472993,
+      "winner": "lyrics"
+    }
+  }
+}
