@@ -112,3 +112,58 @@ def test_oracle_is_an_upper_bound_on_both_modalities():
     assert oracle.mean() >= nd_lyric.mean()
     # Each modality wins one query here, so the oracle must strictly beat both.
     assert oracle.mean() > max(nd_audio.mean(), nd_lyric.mean())
+
+
+# --- routers -------------------------------------------------------------------------
+
+def test_rule_router_separates_the_two_query_families():
+    from aux.route import RuleRouter
+
+    router = RuleRouter()
+    assert router.route("songs about heartbreak").alpha < 0.2
+    assert router.route("smooth jazz with brushed drums").alpha > 0.8
+    # Both kinds of signal present: neither channel should be switched off.
+    assert 0.2 < router.route("jazz songs about money").alpha < 0.8
+
+
+def test_rule_router_defaults_to_audio_when_it_recognises_nothing():
+    from aux.route import RuleRouter
+    from aux.route.rules import ACOUSTIC_ALPHA
+
+    route = RuleRouter().route("qwerty zxcvb")
+    assert route.alpha == ACOUSTIC_ALPHA
+    assert "no clear signal" in route.reason
+
+
+def test_route_rejects_a_weight_outside_the_unit_interval():
+    from aux.route import Route
+
+    with pytest.raises(ValueError, match=r"alpha must be in \[0, 1\]"):
+        Route(1.4, "why", "test")
+
+
+def test_route_label_reads_for_a_listener():
+    from aux.route import Route
+
+    assert Route(1.0, "", "t").label == "sound"
+    assert Route(0.0, "", "t").label == "lyrics"
+    assert Route(0.5, "", "t").label == "sound and lyrics"
+
+
+def test_permutation_test_is_exact_for_small_samples_and_symmetric():
+    from aux.eval import permutation_test
+
+    a = np.array([0.5, 0.6, 0.7, 0.8])
+    b = np.array([0.1, 0.2, 0.3, 0.4])
+    forward = permutation_test(a, b)
+    assert forward["exact"] is True
+    assert forward["observed"] == pytest.approx(0.4)
+    # Two-sided, so swapping the arguments changes only the sign of the difference.
+    assert permutation_test(b, a)["p_value"] == pytest.approx(forward["p_value"])
+
+
+def test_permutation_test_reports_no_effect_for_identical_systems():
+    from aux.eval import permutation_test
+
+    x = np.array([0.2, 0.4, 0.6, 0.8, 0.5])
+    assert permutation_test(x, x)["p_value"] == pytest.approx(1.0)

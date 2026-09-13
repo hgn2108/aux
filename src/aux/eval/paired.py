@@ -75,3 +75,38 @@ def bonferroni_threshold(n_tests: int, alpha: float = 0.05) -> float:
     tests, and a p of 0.018 among nine is not the same claim as a p of 0.018 alone.
     """
     return alpha / max(1, n_tests)
+
+
+def permutation_test(a: np.ndarray, b: np.ndarray, *, n_resamples: int = 20000,
+                     seed: int = 0) -> dict:
+    """Paired two-sided permutation test on the mean difference between two systems.
+
+    Used where the paired values are continuous — per-query NDCG, say — rather than the
+    win/loss counts `mcnemar_exact` takes. Under the null the two systems are
+    interchangeable, so each query's difference is equally likely to carry either sign;
+    the reference distribution flips those signs at random.
+
+    Exact enumeration is used when there are few enough pairs for it, which is common here:
+    a 24-query set has 2**24 sign assignments, so sampling is the practical choice, but a
+    small subset can be enumerated outright and is not left to chance.
+    """
+    a = np.asarray(a, dtype=float)
+    b = np.asarray(b, dtype=float)
+    diff = a - b
+    observed = float(diff.mean())
+    n = diff.size
+    if n == 0:
+        return {"observed": 0.0, "p_value": 1.0, "n": 0, "exact": True}
+
+    if n <= 20:
+        signs = np.array(np.meshgrid(*[[1, -1]] * n)).T.reshape(-1, n)
+        means = (signs * diff).mean(axis=1)
+        exact = True
+    else:
+        rng = np.random.default_rng(seed)
+        signs = rng.choice([1.0, -1.0], size=(n_resamples, n))
+        means = (signs * diff).mean(axis=1)
+        exact = False
+
+    p = float((np.abs(means) >= abs(observed) - 1e-12).mean())
+    return {"observed": observed, "p_value": p, "n": int(n), "exact": exact}

@@ -19,7 +19,7 @@ from .ranking import (
     recall_at_k,
 )
 from .ranking import random_baseline as random_ranking_baseline
-from .paired import bonferroni_threshold, compare_at_k, mcnemar_exact, sign_test_on_ranks
+from .paired import permutation_test, bonferroni_threshold, compare_at_k, mcnemar_exact, sign_test_on_ranks
 from .relevance import (
     bootstrap_ci,
     dcg,
@@ -50,6 +50,7 @@ __all__ = [
     "hit_rate_at_k",
     "ndcg_at_k",
     "precision_at_k",
+    "permutation_test",
     "random_baseline",
     "random_ranking_baseline",
     "recall_at_k",
