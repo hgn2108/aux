@@ -121,13 +121,21 @@ class Transcriber:
         winner = max(votes, key=lambda k: sum(votes[k]))
         return winner, float(np.mean(votes[winner]))
 
-    def transcribe(self, path: Path, *, language: str | None = None) -> Transcript:
+    def transcribe(self, path: Path, *, language: str | None = None,
+                   max_seconds: float | None = None) -> Transcript:
         """Transcribe one file. `language=None` lets Whisper detect it, which is the point.
 
         Audio is decoded through this project's own pipeline and handed to Whisper as an
         array, rather than letting Whisper shell out to an `ffmpeg` binary. Two reasons: no
         such binary is installed (PyAV bundles the libraries, not the CLI), and this way
         transcription sees exactly the same decoded audio the encoder does.
+
+        `max_seconds` transcribes only the opening of a track. Cost is linear in the audio
+        fed in -- measured on CPU, `small` takes about 4s for a 60s window and 8s for 120s
+        -- so bounding it is how an interactive caller trades coverage for latency. The
+        indexed library is transcribed in full and passes no bound; only the demo does,
+        where waiting on a four-minute song would be worse than reading fewer of its words.
+        Language voting still spans the audio it is given.
         """
         from ..encode.resample import resample
         from ..ingest import decode
@@ -135,6 +143,8 @@ class Transcriber:
 
         asset = decode(path)
         audio = resample(asset.samples, asset.sample_rate, self.WHISPER_RATE).astype(np.float32)
+        if max_seconds is not None:
+            audio = audio[: int(max_seconds * self.WHISPER_RATE)]
         started = time.perf_counter()
 
         detected, confidence = (language, 1.0) if language else self.detect_language(audio)

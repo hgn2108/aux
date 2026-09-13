@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 
 from aux.app.data import available_corpora, load_corpus, load_results  # noqa: E402
-from aux.recommend import Recommender  # noqa: E402
+from aux.recommend import NORMALISERS, Recommender  # noqa: E402
 
 st.set_page_config(page_title="aux — multimodal music search", page_icon="🎧",
                    layout="wide")
@@ -58,6 +58,21 @@ def get_lyric_embedder():
     from aux.lyrics import LyricEmbedder
 
     return LyricEmbedder()
+
+
+@st.cache_resource(show_spinner="Loading the transcriber…")
+def get_transcriber():
+    from aux.lyrics.transcribe import Transcriber
+
+    # CPU explicitly: Whisper's decoder uses sparse ops MPS does not implement, and a
+    # deployment has no GPU anyway, so this is what the latency estimate is measured on.
+    return Transcriber("small", device="cpu")
+
+
+#: How much of an uploaded track to transcribe. Cost is linear in audio length: about 8s of
+#: CPU for 120s of music. Two minutes reaches the second chorus of most songs, which is
+#: enough for the lyric embedding to be about the right thing.
+UPLOAD_TRANSCRIBE_SECONDS = 120
 
 
 @st.cache_data(show_spinner=False)
@@ -204,7 +219,7 @@ def page_search(corpus, recommender) -> None:
         st.divider()
 
 
-def encode_uploads(files) -> dict:
+def encode_uploads(files, with_lyrics: bool = False) -> dict:
     """Encode uploaded audio, keeping results in session state across reruns.
 
     Keyed by content hash, so re-running the script -- which Streamlit does on every
@@ -221,7 +236,8 @@ def encode_uploads(files) -> dict:
     for handle in files:
         payload = handle.getvalue()
         digest = hashlib.blake2b(payload, digest_size=16).hexdigest()
-        if digest not in store:
+        entry = store.get(digest)
+        if entry is None or (with_lyrics and "lyrics" not in entry):
             todo.append((digest, handle.name, payload))
 
     if todo:
@@ -230,18 +246,29 @@ def encode_uploads(files) -> dict:
             try:
                 with tempfile.NamedTemporaryFile(suffix=Path(name).suffix) as tmp:
                     tmp.write(payload)
-                    tmp.flush()
+                    tmp.flush()  # transcription reopens this path, so flush before both
                     # Through the project's own probe, decode and segmentation -- the same
                     # path every indexed track took. That parity is the point of the
                     # feature: nothing here is precomputed or dataset-specific.
                     vector, _ = get_encoder().embed_track(decode(Path(tmp.name)),
                                                           n_segments=5)
-                store[digest] = {"name": Path(name).stem, "vector": np.asarray(vector),
-                                 "audio": payload, "error": None}
+                entry = {"name": Path(name).stem, "vector": np.asarray(vector),
+                         "audio": payload, "error": None}
+                if with_lyrics:
+                    transcript = get_transcriber().transcribe(
+                        Path(tmp.name), max_seconds=UPLOAD_TRANSCRIBE_SECONDS)
+                    entry["lyrics"] = (
+                        np.asarray(get_lyric_embedder().embed_documents([transcript.text])[0])
+                        if transcript.reliable else None
+                    )
+                    entry["language"] = transcript.language
+                    entry["words"] = len(transcript.text.split())
+                store[digest] = entry
             except IngestError as exc:
                 store[digest] = {"name": Path(name).stem, "vector": None,
                                  "audio": None, "error": str(exc)}
-            progress.progress(done / len(todo), text=f"Encoding… {done}/{len(todo)}")
+            step = "Encoding and transcribing" if with_lyrics else "Encoding"
+            progress.progress(done / len(todo), text=f"{step}… {done}/{len(todo)}")
         progress.empty()
     return store
 
@@ -253,20 +280,28 @@ def page_upload(corpus) -> None:
         "is stored on the server: files are decoded in memory, encoded, and held for this "
         "browser session only."
     )
-    st.caption(
-        "Sound only. The lyric channel needs transcription, which runs near real time on "
-        "CPU — too slow to do live, so transcripts are precomputed for the libraries in "
-        "the sidebar. Encoding takes well under a second per track."
-    )
-
     files = st.file_uploader("Audio files", type=["mp3", "wav", "flac", "m4a", "ogg"],
                              accept_multiple_files=True)
+    with_lyrics = st.toggle(
+        "Also read the lyrics",
+        help=f"Transcribes the first {UPLOAD_TRANSCRIBE_SECONDS // 60} minutes of each "
+             "track with Whisper, then embeds the words. Without this, only the sound is "
+             "compared.")
+    if with_lyrics:
+        st.caption(
+            "Adds roughly 10 seconds per track on CPU. Cost is linear in audio length, so "
+            f"only the first {UPLOAD_TRANSCRIBE_SECONDS}s is transcribed — enough to reach "
+            "the second chorus of most songs. Instrumentals are detected and fall back to "
+            "sound."
+        )
+    else:
+        st.caption("Encoding the sound takes well under a second per track.")
     if not files:
         st.info("Ten or twenty tracks is enough to see whether the recommendations hold up "
                 "on music you actually know.", icon=":material/upload_file:")
         return
 
-    store = encode_uploads(files)
+    store = encode_uploads(files, with_lyrics=with_lyrics)
     good = {k: v for k, v in store.items() if v["vector"] is not None}
     failed = [v["name"] for v in store.values() if v["error"]]
     if failed:
@@ -277,11 +312,56 @@ def page_upload(corpus) -> None:
 
     keys = list(good)
     vectors = np.stack([good[k]["vector"] for k in keys]).astype(np.float32)
-    st.success(f"{len(keys)} track(s) encoded.")
+
+    # A track only joins the lyric index if its transcript was judged reliable: an
+    # instrumental, or a failed transcription, has nothing to match on.
+    has_lyrics = np.array([good[k].get("lyrics") is not None for k in keys])
+    lyric_vectors = None
+    if has_lyrics.any():
+        width = len(next(good[k]["lyrics"] for k in keys if good[k].get("lyrics") is not None))
+        lyric_vectors = np.zeros((len(keys), width), dtype=np.float32)
+        for i, k in enumerate(keys):
+            if good[k].get("lyrics") is not None:
+                lyric_vectors[i] = good[k]["lyrics"]
+
+    if with_lyrics:
+        langs = sorted({good[k].get("language") for k in keys if good[k].get("language")})
+        st.success(f"{len(keys)} track(s) encoded · {int(has_lyrics.sum())} with usable "
+                   f"lyrics · languages detected: {', '.join(langs) or 'none'}")
+        if not has_lyrics.all():
+            st.caption(f"{int((~has_lyrics).sum())} track(s) read as instrumental or came "
+                       "back too garbled to use. Those are matched on sound alone.")
+    else:
+        st.success(f"{len(keys)} track(s) encoded.")
+
+    alpha = 1.0
+    if lyric_vectors is not None:
+        mode = st.radio("Match on", list(MODES), horizontal=True, key="upload_mode",
+                        captions=["how the track sounds", "what the words say",
+                                  "a weighted blend of both"])
+        alpha = MODES[mode]
+        if mode == "Both":
+            alpha = st.slider("Weight on sound", 0.0, 1.0, MODES["Both"], 0.05,
+                              key="upload_alpha")
 
     action = st.segmented_control(
         "What to do with them", ["Search by description", "Find similar"],
         default="Search by description", key="upload_action")
+
+    def blend(audio_scores, lyric_scores):
+        """Same rule the library uses: z-score per query, fall back where lyrics are absent."""
+        if lyric_vectors is None or alpha == 1.0:
+            return audio_scores
+        norm = NORMALISERS["zscore"]
+        a = norm(audio_scores)
+        if alpha == 0.0:
+            out = np.where(has_lyrics, lyric_scores, -np.inf)
+            return out
+        lz = np.zeros_like(a)
+        lz[has_lyrics] = norm(lyric_scores[has_lyrics])
+        out = alpha * a + (1 - alpha) * lz
+        out[~has_lyrics] = a[~has_lyrics]
+        return out
 
     if action == "Search by description":
         with st.form("upload_search"):
@@ -290,14 +370,25 @@ def page_upload(corpus) -> None:
             go = st.form_submit_button("Search", type="primary")
         if not (go and query):
             return
-        scores = vectors @ get_encoder().embed_text([query])[0]
-        ranked = np.argsort(-scores)
+        audio_scores = vectors @ get_encoder().embed_text([query])[0]
+        lyric_scores = (lyric_vectors @ get_lyric_embedder().embed_query([query])[0]
+                        if lyric_vectors is not None else None)
+        scores = blend(audio_scores, lyric_scores)
+        ranked = [i for i in np.argsort(-scores) if np.isfinite(scores[i])]
         st.caption(f"Your {len(keys)} tracks, ranked against that description.")
     else:
         pick = st.selectbox("Reference track", range(len(keys)),
                             format_func=lambda i: good[keys[i]]["name"])
         st.audio(good[keys[pick]]["audio"])
-        scores = vectors @ vectors[pick]
+        lyric_scores = (lyric_vectors @ lyric_vectors[pick]
+                        if lyric_vectors is not None and has_lyrics[pick] else None)
+        scores = blend(vectors @ vectors[pick],
+                       lyric_scores if lyric_scores is not None else None)
+        if lyric_scores is None and alpha < 1.0:
+            st.info("This track has no usable transcript, so there is nothing to compare "
+                    "lyrically. Matching on sound.")
+            scores = vectors @ vectors[pick]
+        scores = np.array(scores, dtype=float)
         scores[pick] = -np.inf          # a track is never its own recommendation
         ranked = [i for i in np.argsort(-scores) if np.isfinite(scores[i])]
         if len(ranked) == 0:
