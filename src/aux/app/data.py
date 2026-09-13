@@ -18,9 +18,34 @@ from pathlib import Path
 
 import numpy as np
 
+import os
+
 ROOT = Path(__file__).resolve().parents[3]
 CACHE = ROOT / ".cache"
 RESULTS = ROOT / "results"
+MUSIC = ROOT / "data" / "music"
+
+
+def is_public() -> bool:
+    """Whether this instance is deployed rather than running on the owner's machine.
+
+    Set AUX_PUBLIC=1 wherever the app is hosted. It gates the personal library, which must
+    never be served to anyone else -- and which is not present on a deployment anyway,
+    since the audio is not committed.
+    """
+    return os.environ.get("AUX_PUBLIC", "").strip() not in ("", "0", "false", "False")
+
+
+def available_corpora() -> list[str]:
+    """Corpora this instance can actually load, in display order.
+
+    Offering one whose files are absent produces a crash on selection rather than a
+    missing option, so availability is checked here instead of assumed.
+    """
+    out = ["fma"]
+    if not is_public() and MUSIC.exists() and any(MUSIC.rglob("*.mp3")):
+        out.append("personal")
+    return out
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,10 +56,14 @@ class Corpus:
     lyrics: np.ndarray | None
     has_lyrics: np.ndarray | None
     playable: bool
-    """Whether the audio may be served to a browser. False for anything not licensed for
-    redistribution, which is enforced here rather than left to the page."""
+    """Whether the audio may be served. Creative Commons audio is always playable. The
+    personal library is playable only on the owner's own machine: listening to your own
+    files locally is not redistribution, and being unable to hear the results makes the
+    recommender impossible to inspect. A deployment never loads it at all."""
     anonymous: bool
-    """Whether track identity must be hidden. True for the personal library."""
+    """Whether track identity is hidden. Off locally, where the point is to recognise the
+    tracks, and irrelevant on a deployment, which cannot load this corpus. Published
+    artefacts -- results files, the README -- stay pseudonymous regardless."""
     note: str
 
     @property
@@ -59,6 +88,8 @@ def _index(paths, cache_path: Path, encoder):
 
 def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     """Load one corpus. `limit` trims the track list before indexing, for a lighter demo."""
+    if which == "personal" and which not in available_corpora():
+        raise RuntimeError("the personal library is not available on this instance")
     if which == "fma":
         from aux.data import balanced_subset, load_tracks
 
@@ -93,12 +124,13 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     from eval_recommendation import load_lyric_vectors
 
     lyrics, has_lyrics = load_lyric_vectors(tracks, "small", "personal")
+    local = not is_public()
     return Corpus("personal library", tracks, vectors, lyrics, has_lyrics,
-                  playable=False, anonymous=True,
-                  note=("Commercially released music: not redistributable, so audio is not "
-                        "served and tracks are shown under stable pseudonyms. 79% have a "
-                        "reliable transcript at a median of 376 words, which is why the "
-                        "multimodal evaluation runs here."))
+                  playable=local, anonymous=not local,
+                  note=("Commercially released music, so it is never deployed or "
+                        "redistributed — this corpus loads on a local machine only. 79% "
+                        "have a reliable transcript at a median of 376 words, which is why "
+                        "the multimodal evaluation runs here."))
 
 
 def load_results() -> dict:

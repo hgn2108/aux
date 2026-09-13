@@ -167,3 +167,39 @@ def test_permutation_test_reports_no_effect_for_identical_systems():
 
     x = np.array([0.2, 0.4, 0.6, 0.8, 0.5])
     assert permutation_test(x, x)["p_value"] == pytest.approx(1.0)
+
+
+# --- demo app corpus gating ----------------------------------------------------------
+
+def test_personal_library_is_unavailable_on_a_public_instance(monkeypatch):
+    """The personal corpus must never be offered where it could be served to others."""
+    from aux.app import data
+
+    monkeypatch.setenv("AUX_PUBLIC", "1")
+    assert data.is_public() is True
+    assert data.available_corpora() == ["fma"]
+
+    with pytest.raises(RuntimeError, match="not available on this instance"):
+        data.load_corpus("personal", encoder=None)
+
+
+def test_public_flag_treats_falsey_strings_as_local(monkeypatch):
+    from aux.app import data
+
+    for value in ("", "0", "false", "False"):
+        monkeypatch.setenv("AUX_PUBLIC", value)
+        assert data.is_public() is False
+
+
+def test_personal_library_needs_audio_present_not_just_a_directory(monkeypatch, tmp_path):
+    from aux.app import data
+
+    monkeypatch.delenv("AUX_PUBLIC", raising=False)
+    monkeypatch.setattr(data, "MUSIC", tmp_path / "music")
+    assert data.available_corpora() == ["fma"]      # missing entirely
+
+    (tmp_path / "music").mkdir()
+    assert data.available_corpora() == ["fma"]      # present but empty
+
+    (tmp_path / "music" / "a.mp3").write_bytes(b"")
+    assert data.available_corpora() == ["fma", "personal"]

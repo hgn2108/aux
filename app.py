@@ -18,7 +18,7 @@ import streamlit as st
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from aux.app.data import load_corpus, load_results  # noqa: E402
+from aux.app.data import available_corpora, load_corpus, load_results  # noqa: E402
 from aux.recommend import Recommender  # noqa: E402
 
 st.set_page_config(page_title="aux — multimodal music search", page_icon="🎧",
@@ -66,12 +66,23 @@ def get_results():
 
 
 def mode_controls(corpus, key: str) -> tuple[str, float]:
-    """Mode selector plus weight slider, disabling what the corpus cannot support."""
-    options = list(MODES) if corpus.supports_lyrics else ["Sound"]
-    mode = st.radio("Match on", options, horizontal=True, key=f"mode_{key}")
-    if not corpus.supports_lyrics:
-        st.caption("Lyrics and fused modes need transcripts, which this corpus does not "
-                   "have — see the note in the sidebar.")
+    """Mode selector plus weight slider.
+
+    Every mode is always listed, even where the corpus cannot serve it. Showing only the
+    one that works made the app look unfinished instead of constrained, and left no route
+    to the library where the other two do work.
+    """
+    mode = st.radio("Match on", list(MODES), horizontal=True, key=f"mode_{key}",
+                    captions=["how the track sounds", "what the words say",
+                              "a weighted blend of both"])
+    if mode != "Sound" and not corpus.supports_lyrics:
+        st.warning(
+            f"**{corpus.name} has no lyrics to search.** 56% of it is instrumental and "
+            "transcripts run a median of 11 words. Switch the corpus in the sidebar to "
+            "the personal library (160 tracks, 79% with real lyrics) to use this mode — "
+            "that audio can't be played here, but search and recommendation work."
+        )
+        return "Sound", 1.0
     alpha = MODES[mode]
     if mode == "Both":
         alpha = st.slider(
@@ -82,6 +93,8 @@ def mode_controls(corpus, key: str) -> tuple[str, float]:
 
 
 def render_results(corpus, results, scores) -> None:
+    st.caption("Bars are similarity within this result set: the strongest match scores 1, "
+               "the weakest 0. They are a display scale, not a probability.")
     for r in results:
         title, subtitle = corpus.display(r.index)
         left, right = st.columns([3, 2])
@@ -98,15 +111,32 @@ def render_results(corpus, results, scores) -> None:
 
 
 def page_recommend(corpus, recommender) -> None:
+    key = corpus.name.replace(" ", "_")
     st.subheader("Find tracks like this one")
-    st.caption("Pick a track; the recommender ranks everything else against it.")
+    st.markdown(
+        "Pick a track and the recommender ranks every other track against it. There are no "
+        "genre tags or listening histories behind this — the ranking comes from the audio "
+        "itself, encoded by a model trained to put music and text in one space."
+    )
 
     labels = [f"{corpus.display(i)[0]} — {corpus.display(i)[1]}"
               for i in range(len(corpus.tracks))]
     choice = st.selectbox("Reference track", range(len(labels)),
-                          format_func=lambda i: labels[i], key="ref")
-    mode, alpha = mode_controls(corpus, "rec")
+                          format_func=lambda i: labels[i], key=f"ref_{key}")
+    mode, alpha = mode_controls(corpus, f"rec_{key}")
     modality = {"Sound": "audio", "Lyrics": "lyrics", "Both": "fused"}[mode]
+
+    # A reference track with no transcript has nothing to match lyrically. Say so rather
+    # than returning a ranking that looks lyric-based and is not.
+    if modality != "audio" and corpus.has_lyrics is not None \
+            and not corpus.has_lyrics[choice]:
+        st.info(
+            "This track has no usable transcript — it is instrumental, or transcription "
+            f"was unreliable ({int(corpus.has_lyrics.sum())} of {len(corpus.tracks)} "
+            "tracks have one). Falling back to sound. Pick another reference to compare "
+            "lyrics."
+        )
+        modality, alpha = "audio", 1.0
 
     if corpus.playable:
         st.audio(str(corpus.tracks[choice].path))
@@ -118,9 +148,12 @@ def page_recommend(corpus, recommender) -> None:
 
 def page_search(corpus, recommender) -> None:
     st.subheader("Search by description")
-    st.caption("Describe the sound, or what the songs should be about. The encoder puts "
-               "text and audio in one space, so a description can be matched directly "
-               "against a recording.")
+    st.markdown(
+        "Type what you want to hear. Because text and audio share one embedding space, a "
+        "description is matched against the recording directly — nothing is looked up in a "
+        "tag database. Try *fast aggressive drums with distorted guitars*, or switch to "
+        "the personal library and try *songs about missing someone*."
+    )
 
     # A form rather than a bare text_input: the query commits on an explicit submit
     # instead of on Enter alone, and the encoder does not re-run on every keystroke.
@@ -128,7 +161,7 @@ def page_search(corpus, recommender) -> None:
         query = st.text_input("Query", placeholder="e.g. late night drive, heavy bass",
                               key="q")
         submitted = st.form_submit_button("Search", type="primary")
-    mode, alpha = mode_controls(corpus, "search")
+    mode, alpha = mode_controls(corpus, f"search_{corpus.name.replace(' ', '_')}")
     if not query or not (submitted or st.session_state.get("searched")):
         return
     st.session_state["searched"] = True
@@ -210,36 +243,23 @@ def page_upload(corpus) -> None:
 def page_findings() -> None:
     results = get_results()
     st.subheader("What was measured, and what it showed")
-    st.caption("Every number here is read from a committed results file, not retyped.")
-
-    rec = next((v for k, v in results.items() if k.startswith("recommendation_fma")), None)
-    if rec:
-        st.markdown("#### 1. Audio recommendation at scale")
-        st.write(
-            f"Measured over the full {rec['corpus']['tracks']}-track corpus — the library "
-            "browsed above is a trimmed slice of it, for a lighter demo. Balanced across "
-            "8 genres. "
-            "Relevance is a proxy — same genre, same artist, same album — so three "
-            "definitions are reported rather than one, because each is wrong differently. "
-            "The artist-filtered row removes same-artist pairs, without which a model scores "
-            "well on genre by recognising an album's production."
-        )
-        rows = []
-        for label, systems in rec["results"].items():
-            audio, random = systems["audio"], systems["random"]
-            rows.append({
-                "label": label,
-                "queries": random["n_queries"],
-                "P@10": round(audio["precision@10"], 3),
-                "NDCG@10": round(audio["ndcg@10"], 3),
-                "random NDCG@10": round(random["ndcg@10"], 3),
-                "lift": f"{audio['ndcg@10'] / max(random['ndcg@10'], 1e-9):.0f}x",
-            })
-        st.dataframe(rows, hide_index=True, width="stretch")
+    st.markdown(
+        "Most of the work on this project was evaluation rather than modelling. Three "
+        "systems — sound, lyrics, and a weighted blend — were scored against objective "
+        "relevance labels, with a random baseline computed under the same rules and a "
+        "significance test on every comparison."
+    )
+    st.success(
+        "**The headline: there is no single right way to combine the two signals.** "
+        "Similarity queries want sound (NDCG@10 0.832 against 0.555). Queries about "
+        "meaning want lyrics (0.734 against 0.367). Using either setting for the other "
+        "kind of query costs 0.28-0.37 NDCG@10, so the app lets you choose instead of "
+        "guessing for you."
+    )
 
     crossover = results.get("routing_crossover")
     if crossover:
-        st.markdown("#### 2. The best fusion weight depends on the query")
+        st.markdown("#### 1. The best fusion weight depends on the query")
         st.write(
             "The same two systems reach opposite verdicts. Similarity queries want sound; "
             "\"songs about X\" wants lyrics. The sweep below runs in opposite directions, "
@@ -262,6 +282,31 @@ def page_findings() -> None:
             f"{crossover['best_fixed_mean']:.3f}. Choosing per family: "
             f"{crossover['routed_mean']:.3f} ({crossover['routing_gain']:+.3f})."
         )
+
+    rec = next((v for k, v in results.items() if k.startswith("recommendation_fma")), None)
+    if rec:
+        st.markdown("#### 2. Audio recommendation at scale")
+        st.write(
+            f"Measured over the full {rec['corpus']['tracks']}-track corpus — the library "
+            "browsed above is a trimmed slice of it, for a lighter demo. Balanced across "
+            "8 genres. "
+            "Relevance is a proxy — same genre, same artist, same album — so three "
+            "definitions are reported rather than one, because each is wrong differently. "
+            "The artist-filtered row removes same-artist pairs, without which a model scores "
+            "well on genre by recognising an album's production."
+        )
+        rows = []
+        for label, systems in rec["results"].items():
+            audio, random = systems["audio"], systems["random"]
+            rows.append({
+                "label": label,
+                "queries": random["n_queries"],
+                "P@10": round(audio["precision@10"], 3),
+                "NDCG@10": round(audio["ndcg@10"], 3),
+                "random NDCG@10": round(random["ndcg@10"], 3),
+                "lift": f"{audio['ndcg@10'] / max(random['ndcg@10'], 1e-9):.0f}x",
+            })
+        st.dataframe(rows, hide_index=True, width="stretch")
 
     router = next((v for k, v in results.items() if k.startswith("router_")), None)
     if router:
@@ -326,25 +371,52 @@ def page_findings() -> None:
     )
 
 
-def main() -> None:
+def header() -> None:
     st.title("🎧 aux")
-    st.caption("Multimodal music recommendation: match on how it sounds, what it is "
-               "about, or both — and the evidence for which to use when.")
+    st.markdown(
+        "Recommend music by how it **sounds**, by what the lyrics are **about**, or by "
+        "both. Built over raw audio files: no genre tags, no play counts, no labels."
+    )
+    a, b, c, d = st.columns(4)
+    a.metric("Tracks evaluated", "1,998", help="Free Music Archive, balanced across 8 genres")
+    b.metric("Beats random by", "4.9x",
+             help="NDCG@10 on genre labels. 52x on artist, 95x on album.")
+    c.metric("Lyrics beat sound by", "2.0x",
+             help="On 'songs about X' queries. Sound wins by 1.5x on similarity queries.")
+    d.metric("Tests", "241")
+    st.caption(
+        "Every number in this app is read from a committed results file, so nothing here "
+        "can drift from the run that produced it. The **Findings** tab has the full "
+        "tables, the baselines and the limitations."
+    )
+
+
+def main() -> None:
+    header()
 
     with st.sidebar:
         st.header("Library")
-        which = st.radio("Corpus", ["fma", "personal"],
+        corpora = available_corpora()
+        which = st.radio("Corpus", corpora,
                          format_func=lambda w: {"fma": "FMA (Creative Commons)",
-                                                "personal": "Personal library"}[w])
+                                                "personal": "My own library"}[w])
+        if "personal" not in corpora:
+            st.caption("A second corpus with real lyrics is used for the multimodal "
+                       "results. It is commercially released music, so it runs locally "
+                       "only — see **Findings** for what it measured.")
         limit = st.select_slider("Tracks", [100, 250, 500, 1000, 2000], value=250) \
             if which == "fma" else None
 
     corpus, recommender = get_corpus(which, limit)
     with st.sidebar:
-        st.metric("Tracks", len(corpus.tracks))
+        st.metric("Tracks loaded here", len(corpus.tracks),
+                  help="A slice, for a responsive demo. The evaluation uses the full corpus.")
         if corpus.supports_lyrics:
-            st.metric("With lyrics", int(corpus.has_lyrics.sum()))
+            st.metric("With usable lyrics", int(corpus.has_lyrics.sum()))
         st.caption(corpus.note)
+        st.divider()
+        st.caption("Built by Irene Nguyen · [source and write-up on GitHub]"
+                   "(https://github.com/hgn2108/aux)")
 
     tabs = st.tabs(["Recommend", "Search", "Upload", "Findings"])
     with tabs[0]:
