@@ -123,7 +123,12 @@ def page_recommend(corpus, recommender) -> None:
 
     labels = [f"{corpus.display(i)[0]} — {corpus.display(i)[1]}"
               for i in range(len(corpus.tracks))]
-    choice = st.selectbox("Reference track", range(len(labels)),
+    # Default to a track that has a transcript, so the lyric modes demonstrate themselves
+    # instead of opening on the fallback notice.
+    default = 0
+    if corpus.has_lyrics is not None and corpus.has_lyrics.any():
+        default = int(np.flatnonzero(corpus.has_lyrics)[0])
+    choice = st.selectbox("Reference track", range(len(labels)), index=default,
                           format_func=lambda i: labels[i], key=f"ref_{key}")
     mode, alpha = mode_controls(corpus, f"rec_{key}")
     modality = {"Sound": "audio", "Lyrics": "lyrics", "Both": "fused"}[mode]
