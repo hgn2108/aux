@@ -151,7 +151,6 @@ def render_results(corpus, results, scores) -> None:
 
 def page_recommend(corpus, recommender) -> None:
     key = corpus.name.replace(" ", "_")
-    st.subheader("Find tracks like this one")
     st.markdown("Ranked from the audio itself — no genre tags, no listening history.")
 
     labels = [f"{corpus.display(i)[0]} — {corpus.display(i)[1]}"
@@ -187,7 +186,6 @@ def page_recommend(corpus, recommender) -> None:
 
 
 def page_search(corpus, recommender) -> None:
-    st.subheader("Search by description")
     st.markdown(
         "Text and audio share one embedding space, so a description is matched against the "
         "recording rather than against tags."
@@ -289,7 +287,7 @@ def encode_uploads(files, with_lyrics: bool = False) -> dict:
     return store
 
 
-def page_upload(corpus) -> None:
+def page_upload() -> None:
     st.subheader("Use your own music")
     st.markdown(
         "Your files become a searchable library of their own. Nothing is stored: they are "
@@ -577,47 +575,62 @@ def header() -> None:
                   "pytest collects more once parametrised cases expand.")
 
 
+def choose_corpus():
+    """Corpus picker, shown inside the tab it governs.
+
+    It used to live in the sidebar, where it stayed on screen while the user was on
+    "Your music" or "Findings" -- neither of which it affects -- and read as though it did.
+    """
+    corpora = available_corpora()
+    labels = {
+        "fma": "Free Music Archive — plays, no lyrics",
+        # The personal corpus plays locally and does not when it loads from the exported
+        # bundle, so the label is derived rather than written twice.
+        "personal": ("My library — plays, with lyrics" if personal_is_local()
+                     else "Real songs — lyrics, no playback"),
+    }
+    picked = st.segmented_control("Library", corpora, default=corpora[0],
+                                  format_func=labels.__getitem__, key="corpus")
+    which = picked or corpora[0]
+    limit = None
+    if which == "fma":
+        limit = st.select_slider(
+            "Tracks loaded", [100, 250, 500, 1000, 2000], value=250,
+            help="Fewer loads faster. The evaluation always uses the full corpus.")
+
+    corpus, recommender = get_corpus(which, limit)
+    st.caption(corpus.note)
+    return corpus, recommender
+
+
+def page_browse() -> None:
+    corpus, recommender = choose_corpus()
+    st.divider()
+    how = st.segmented_control("Find tracks", ["By a track you like", "By description"],
+                               default="By a track you like", key="browse_mode")
+    st.write("")
+    if how == "By description":
+        page_search(corpus, recommender)
+    else:
+        page_recommend(corpus, recommender)
+
+
 def main() -> None:
     header()
 
-    with st.sidebar:
-        corpora = available_corpora()
-        # The personal corpus plays locally and does not when it loads from the exported
-        # bundle, so the label is derived rather than written twice.
-        labels = {
-            "fma": "Free Music Archive — plays, no lyrics",
-            "personal": ("My library — plays, with lyrics" if personal_is_local()
-                         else "Real songs — lyrics, no playback"),
-        }
-        which = st.radio("Which music to search", corpora, format_func=labels.__getitem__)
-        limit = st.select_slider("How many to load", [100, 250, 500, 1000, 2000],
-                                 value=250,
-                                 help="Fewer loads faster. The evaluation always uses the "
-                                      "full corpus regardless of this.") \
-            if which == "fma" else None
-
-    corpus, recommender = get_corpus(which, limit)
-    with st.sidebar:
-        st.metric("Loaded", len(corpus.tracks))
-        if corpus.supports_lyrics:
-            st.metric("With usable lyrics", int(corpus.has_lyrics.sum()))
-        st.caption(corpus.note)
-        st.divider()
-        st.caption("Built by Irene Nguyen · [source and write-up on GitHub]"
-                   "(https://github.com/hgn2108/aux)")
-
-    tabs = st.tabs([":material/queue_music: Similar tracks",
-                    ":material/search: Text search",
+    tabs = st.tabs([":material/library_music: Browse a library",
                     ":material/upload: Your music",
                     ":material/insights: Findings"])
     with tabs[0]:
-        page_recommend(corpus, recommender)
+        page_browse()
     with tabs[1]:
-        page_search(corpus, recommender)
+        page_upload()
     with tabs[2]:
-        page_upload(corpus)
-    with tabs[3]:
         page_findings()
+
+    st.divider()
+    st.caption("Built by Irene Nguyen · [source and write-up on GitHub]"
+               "(https://github.com/hgn2108/aux)")
 
 
 if __name__ == "__main__":

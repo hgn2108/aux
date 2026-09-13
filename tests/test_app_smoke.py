@@ -32,32 +32,43 @@ def _run(monkeypatch, *, public: bool, timeout: int = 180):
 def test_app_starts_and_renders_every_tab(monkeypatch):
     app = _run(monkeypatch, public=True)
     headings = [h.value for h in app.subheader]
-    assert any("Find tracks like this one" in h for h in headings)
     assert any("Use your own music" in h for h in headings)
     assert any("What was measured" in h for h in headings)
+    # The corpus picker governs only the browse tab, so it lives inside it.
+    assert {w.key for w in app.segmented_control} >= {"corpus", "browse_mode"}
 
 
 @pytest.mark.slow
 def test_switching_to_the_lyric_corpus_keeps_the_app_alive(monkeypatch):
     """The bundled corpus loads from different code than the local one; exercise it."""
     app = _run(monkeypatch, public=True)
-    corpus = app.sidebar.radio[0]
-    # `options` carries the formatted labels; `set_value` takes the underlying value. The
-    # label wording is derived from whether audio is present, so assert on what it must
-    # convey -- that this corpus is the one with lyrics -- not on its exact text.
-    assert len(corpus.options) == 2
-    assert any("lyrics" in label.lower() for label in corpus.options[1:])
-    corpus.set_value("personal").run()
+    picker = next(w for w in app.segmented_control if w.key == "corpus")
+    assert len(picker.options) == 2
+    assert any("lyrics" in label.lower() for label in picker.options[1:])
+
+    picker.set_value("personal").run()
     assert not app.exception, app.exception
-    assert any("160" in str(m.value) for m in app.metric)
+    # The corpus note is rendered from whichever corpus actually loaded.
+    notes = " ".join(str(c.value) for c in app.caption)
+    assert "Commercially released" in notes
 
 
 @pytest.mark.slow
 def test_every_match_mode_renders_on_the_lyric_corpus(monkeypatch):
     app = _run(monkeypatch, public=True)
-    app.sidebar.radio[0].set_value("personal").run()
+    next(w for w in app.segmented_control if w.key == "corpus").set_value("personal").run()
     mode = app.radio[0]
     assert mode.options == ["Sound", "Lyrics", "Both"]
     for choice in mode.options:
         app.radio[0].set_value(choice).run()
         assert not app.exception, f"{choice}: {app.exception}"
+
+
+@pytest.mark.slow
+def test_browse_offers_both_ways_of_finding_tracks(monkeypatch):
+    app = _run(monkeypatch, public=True)
+    how = next(w for w in app.segmented_control if w.key == "browse_mode")
+    assert how.options == ["By a track you like", "By description"]
+    how.set_value("By description").run()
+    assert not app.exception, app.exception
+    assert any("embedding space" in str(m.value) for m in app.markdown)
