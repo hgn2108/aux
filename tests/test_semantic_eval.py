@@ -257,3 +257,28 @@ def test_personal_corpus_label_condition_matches_the_loader(monkeypatch, tmp_pat
     monkeypatch.delenv("AUX_PUBLIC", raising=False)
     monkeypatch.setattr(data, "MUSIC", tmp_path / "gone")
     assert data.personal_is_local() is False      # no audio on disk: bundle only
+
+
+def test_display_shows_written_artist_names_not_the_matching_key():
+    """`TrackMeta.artist` is case-folded because it decides same-artist relevance.
+
+    Showing it directly put "a boogie wit da hoodie" on screen, so display names are
+    resolved separately -- and a filename with no separable artist must not print the same
+    text twice.
+    """
+    from aux.app.data import Corpus
+
+    class T:
+        def __init__(self, title, artist, genre):
+            self.title, self.artist, self.genre = title, artist, genre
+            self.track_id, self.path = 0, Path()
+
+    tracks = [T("Skeezers", "a boogie wit da hoodie", "hiphop_rnb"),
+              T("Some Live Set 2023", "Some   Live Set 2023", "hiphop_rnb")]
+    corpus = Corpus("test", tracks, np.zeros((2, 4)), None, None, playable=False,
+                    anonymous=False, note="", artists=["A Boogie Wit Da Hoodie",
+                                                       "Some   Live Set 2023"])
+
+    assert corpus.display(0) == ("Skeezers", "A Boogie Wit Da Hoodie · hiphop_rnb")
+    # Artist and title are the same string up to whitespace: show the genre alone.
+    assert corpus.display(1) == ("Some Live Set 2023", "hiphop_rnb")

@@ -80,6 +80,13 @@ class Corpus:
     tracks, and irrelevant on a deployment, which cannot load this corpus. Published
     artefacts -- results files, the README -- stay pseudonymous regardless."""
     note: str
+    artists: list[str] | None = None
+    """Artist names as written, for display.
+
+    `TrackMeta.artist` is a case-folded matching key -- it decides which pairs count as
+    same-artist in the evaluation -- so showing it directly put "a boogie wit da hoodie" on
+    screen. Display names are resolved once at load time instead.
+    """
 
     @property
     def supports_lyrics(self) -> bool:
@@ -90,7 +97,16 @@ class Corpus:
         track = self.tracks[index]
         if self.anonymous:
             return f"Track {track.track_id:03d}", track.genre
-        return track.title or track.path.stem, f"{track.artist} · {track.genre}"
+        title = track.title or track.path.stem
+        artist = self.artists[index] if self.artists else track.artist
+        # Some filenames carry no "Artist - Title" separator, so both fields fall back to
+        # the whole stem. Printing it twice reads as a bug; show the genre alone.
+        def flat(text: str) -> str:
+            return " ".join(text.split()).casefold()
+
+        if not artist or flat(artist) == flat(title):
+            return title, track.genre
+        return title, f"{artist} · {track.genre}"
 
 
 def _index(paths, cache_path: Path, encoder):
@@ -141,13 +157,16 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     from eval_recommendation import load_lyric_vectors
 
     lyrics, has_lyrics = load_lyric_vectors(tracks, "small", "personal")
+    from aux.data.personal import display_artist
+
     local = not is_public()
     return Corpus("personal library", tracks, vectors, lyrics, has_lyrics,
                   playable=local, anonymous=not local,
                   note=("Commercially released music, so it is never deployed or "
                         "redistributed — this corpus loads on a local machine only. 79% "
                         "have a reliable transcript at a median of 376 words, which is why "
-                        "the multimodal evaluation runs here."))
+                        "the multimodal evaluation runs here."),
+                  artists=[display_artist(t.path) for t in tracks])
 
 
 def load_results() -> dict:
@@ -185,4 +204,4 @@ def load_personal_bundle() -> Corpus:
                            genre=r["genre"]) for r in manifest["tracks"]]
     return Corpus(manifest["name"], tracks, blob["audio"], blob["lyrics"],
                   blob["has_lyrics"], playable=False, anonymous=False,
-                  note=manifest["note"])
+                  note=manifest["note"], artists=[t.artist for t in tracks])
