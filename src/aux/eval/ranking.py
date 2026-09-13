@@ -54,7 +54,8 @@ def ndcg_at_k(ranked_relevant: np.ndarray, k: int, total_relevant: int) -> float
 
 
 def evaluate_ranking(scores: np.ndarray, relevant: np.ndarray, ks: tuple[int, ...] = (5, 10, 20),
-                     exclude: np.ndarray | None = None) -> dict:
+                     exclude: np.ndarray | None = None,
+                     queries: np.ndarray | None = None) -> dict:
     """Score one system over every query.
 
     `scores[i, j]` is how strongly track j is recommended for query i; `relevant[i, j]` is
@@ -64,6 +65,11 @@ def evaluate_ranking(scores: np.ndarray, relevant: np.ndarray, ks: tuple[int, ..
 
     Queries with no relevant item are skipped: they cannot distinguish a good system from a
     bad one, and including them just dilutes every metric by a constant.
+
+    `queries` restricts scoring to a subset of query rows while every track stays a
+    candidate — used for per-genre breakdowns. Pass it rather than slicing `scores`
+    yourself: a sliced matrix is no longer square, so the diagonal that stops a track
+    recommending itself would land on the wrong tracks.
     """
     scores = np.array(scores, dtype=float, copy=True)
     relevant = np.asarray(relevant, dtype=bool)
@@ -75,10 +81,23 @@ def evaluate_ranking(scores: np.ndarray, relevant: np.ndarray, ks: tuple[int, ..
         scores[np.asarray(exclude, dtype=bool)] = -np.inf
         relevant = relevant & ~np.asarray(exclude, dtype=bool)
 
+    pool = np.ones(n, dtype=bool)
+    if queries is not None:
+        pool = np.zeros(n, dtype=bool)
+        pool[np.asarray(queries)] = True
+
     totals = relevant.sum(axis=1)
-    usable = totals > 0
-    out: dict = {"n_queries": int(usable.sum()), "n_skipped": int((~usable).sum()),
+    usable = pool & (totals > 0)
+    out: dict = {"n_queries": int(usable.sum()), "n_skipped": int((pool & ~usable).sum()),
                  "mean_relevant_per_query": float(totals[usable].mean()) if usable.any() else 0.0}
+
+    if not usable.any():
+        # No query can be scored. Report zeros rather than NaN so a caller can skip the
+        # slice without every downstream mean being poisoned.
+        for k in ks:
+            for metric in ("precision", "recall", "hit_rate", "ndcg"):
+                out[f"{metric}@{k}"] = 0.0
+        return out
 
     order = np.argsort(-scores, axis=1)
     for k in ks:

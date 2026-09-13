@@ -101,3 +101,33 @@ def test_random_scores_land_near_the_base_rate():
     np.fill_diagonal(relevant, False)
     out = evaluate_ranking(rng.random((n, n)), relevant, ks=(10,))
     assert 0.20 < out["precision@10"] < 0.30
+
+
+def test_queries_restricts_rows_without_shrinking_candidates():
+    """Scoring a subset of queries must not change what those queries can retrieve."""
+    scores = np.array([[0.0, 0.9, 0.8, 0.1],
+                       [0.9, 0.0, 0.2, 0.7],
+                       [0.1, 0.2, 0.0, 0.9],
+                       [0.3, 0.4, 0.9, 0.0]])
+    relevant = np.array([[0, 1, 0, 0],
+                         [1, 0, 0, 0],
+                         [0, 0, 0, 1],
+                         [0, 0, 1, 0]], dtype=bool)
+
+    subset = evaluate_ranking(scores, relevant, (1,), queries=np.array([0, 1]))
+    assert subset["n_queries"] == 2
+    assert subset["precision@1"] == 1.0
+
+    # Same two rows scored one at a time must agree with scoring them together.
+    first = evaluate_ranking(scores, relevant, (1,), queries=np.array([0]))
+    assert first["n_queries"] == 1
+    assert first["precision@1"] == 1.0
+
+
+def test_queries_skips_selected_rows_with_no_label():
+    relevant = np.zeros((3, 3), dtype=bool)
+    relevant[2, 0] = True
+    out = evaluate_ranking(np.eye(3), relevant, (1,), queries=np.array([0, 1]))
+    assert out["n_queries"] == 0
+    assert out["n_skipped"] == 2          # counted within the selection, not the whole corpus
+    assert out["ndcg@1"] == 0.0           # zeros, never NaN
