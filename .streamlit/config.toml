@@ -1,0 +1,19 @@
+# A restrained theme, so the app does not read as an untouched default. Colours only --
+# no injected CSS anywhere in this project.
+
+[theme]
+base = "light"
+primaryColor = "#3d5a80"
+backgroundColor = "#fbfbfa"
+secondaryBackgroundColor = "#f1f2f4"
+textColor = "#1d2025"
+linkColor = "#3d5a80"
+borderColor = "#dfe2e6"
+codeBackgroundColor = "#f1f2f4"
+font = "sans-serif"
+headingFont = "sans-serif"
+
+[theme.sidebar]
+backgroundColor = "#f4f5f6"
+secondaryBackgroundColor = "#e9ebed"
+borderColor = "#dfe2e6"

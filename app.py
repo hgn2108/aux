@@ -80,6 +80,23 @@ def get_results():
     return load_results()
 
 
+@st.cache_data(show_spinner=False)
+def count_tests() -> int:
+    """Count test functions on disk rather than hard-coding the number, which goes stale
+    on the next commit and is then quietly wrong in front of a reader.
+
+    This counts definitions. pytest collects more, because a parametrised function expands
+    into one case per parameter -- so the label says "test functions" and not "tests".
+    """
+    import re
+
+    tests = ROOT / "tests"
+    if not tests.exists():
+        return 0
+    return sum(len(re.findall(r"^def test_", f.read_text(), re.M))
+               for f in tests.glob("test_*.py"))
+
+
 def mode_controls(corpus, key: str) -> tuple[str, float]:
     """Mode selector plus weight slider.
 
@@ -432,18 +449,33 @@ def page_findings() -> None:
             "\"songs about X\" wants lyrics. The sweep below runs in opposite directions, "
             "which is why no single weight is correct."
         )
+        import altair as alt
         import pandas as pd
 
-        # Long form with explicit x/y/color columns. Passing a wide frame and letting
-        # Streamlit infer x from the index rendered only one series over a partial domain.
-        chart = pd.DataFrame([
+        # Altair rather than st.line_chart: the automatic domain padded x out to [-0.3,
+        # 1.4] and y to [0, 1.4], which wastes most of the panel and flattens the crossing
+        # this chart exists to show. Both axes are pinned to the range the data occupies.
+        chart_data = pd.DataFrame([
             {"alpha": row["alpha"], "NDCG@10": row[key], "query type": name}
             for row in crossover["by_alpha"]
             for key, name in (("similarity", "track → track (genre)"),
                               ("semantic", "semantic (songs about X)"))
         ])
-        st.line_chart(chart, x="alpha", y="NDCG@10", color="query type",
-                      x_label="weight on sound (alpha)", y_label="NDCG@10")
+        values = chart_data["NDCG@10"]
+        pad = (values.max() - values.min()) * 0.12
+        line = alt.Chart(chart_data).mark_line(point=True, strokeWidth=2.5).encode(
+            x=alt.X("alpha:Q", title="weight on sound (alpha)",
+                    scale=alt.Scale(domain=[0, 1], nice=False),
+                    axis=alt.Axis(values=[0, 0.25, 0.5, 0.75, 1.0], format=".2f")),
+            y=alt.Y("NDCG@10:Q", title="NDCG@10",
+                    scale=alt.Scale(domain=[max(0, values.min() - pad), values.max() + pad],
+                                    nice=False)),
+            color=alt.Color("query type:N", title=None,
+                            legend=alt.Legend(orient="bottom")),
+            tooltip=["query type", alt.Tooltip("alpha:Q", format=".2f"),
+                     alt.Tooltip("NDCG@10:Q", format=".3f")],
+        ).properties(height=300)
+        st.altair_chart(line)
         st.caption(
             f"Best single weight: alpha={crossover['best_fixed_alpha']}, mean "
             f"{crossover['best_fixed_mean']:.3f}. Choosing per family: "
@@ -545,16 +577,19 @@ def header() -> None:
         "both. Built over raw audio files: no genre tags, no play counts, no labels."
     )
     a, b, c, d = st.columns(4)
-    a.metric("Tracks evaluated", "1,998", help="Free Music Archive, balanced across 8 genres")
-    b.metric("Beats random by", "4.9x",
-             help="NDCG@10 on genre labels. 52x on artist, 95x on album.")
-    c.metric("Lyrics beat sound by", "2.0x",
-             help="On 'songs about X' queries. Sound wins by 1.5x on similarity queries.")
-    d.metric("Tests", "241")
+    a.metric("Tracks indexed", "1,998",
+             help="Free Music Archive, balanced at 250 per genre across 8 genres.")
+    b.metric("vs random", "4.9x",
+             help="NDCG@10 against genre labels. 52x against artist, 95x against album.")
+    c.metric("Lyrics vs sound", "2.0x",
+             help="On 'songs about X' queries. Sound wins by 1.5x on similarity queries — "
+                  "which is the finding: neither signal wins everywhere.")
+    d.metric("Test functions", f"{count_tests()}",
+             help="Counted from the suite rather than hard-coded, so it cannot go stale. "
+                  "pytest collects more once parametrised cases expand.")
     st.caption(
-        "Every number in this app is read from a committed results file, so nothing here "
-        "can drift from the run that produced it. The **Findings** tab has the full "
-        "tables, the baselines and the limitations."
+        "Every number here is read from a committed results file, so nothing can drift "
+        "from the run that produced it. **Findings** has the full tables and the limits."
     )
 
 
@@ -562,19 +597,21 @@ def main() -> None:
     header()
 
     with st.sidebar:
-        st.header("Library")
+        st.subheader("Library")
         corpora = available_corpora()
-        which = st.radio("Corpus", corpora,
+        which = st.radio("Which music to search", corpora,
                          format_func=lambda w: {"fma": "FMA — plays audio, no lyrics",
                                                 "personal": "Real songs — lyrics, no audio"
                                                 }[w])
-        limit = st.select_slider("Tracks", [100, 250, 500, 1000, 2000], value=250) \
+        limit = st.select_slider("How many to load", [100, 250, 500, 1000, 2000],
+                                 value=250,
+                                 help="Fewer loads faster. The evaluation always uses the "
+                                      "full corpus regardless of this.") \
             if which == "fma" else None
 
     corpus, recommender = get_corpus(which, limit)
     with st.sidebar:
-        st.metric("Tracks loaded here", len(corpus.tracks),
-                  help="A slice, for a responsive demo. The evaluation uses the full corpus.")
+        st.metric("Loaded", len(corpus.tracks))
         if corpus.supports_lyrics:
             st.metric("With usable lyrics", int(corpus.has_lyrics.sum()))
         st.caption(corpus.note)
@@ -582,7 +619,10 @@ def main() -> None:
         st.caption("Built by Irene Nguyen · [source and write-up on GitHub]"
                    "(https://github.com/hgn2108/aux)")
 
-    tabs = st.tabs(["Recommend", "Search", "Upload", "Findings"])
+    tabs = st.tabs([":material/queue_music: Similar tracks",
+                    ":material/search: Text search",
+                    ":material/upload: Your music",
+                    ":material/insights: Findings"])
     with tabs[0]:
         page_recommend(corpus, recommender)
     with tabs[1]:
