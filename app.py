@@ -431,7 +431,8 @@ def page_findings() -> None:
         "Most of the work on this project was evaluation rather than modelling. Three "
         "systems — sound, lyrics, and a weighted blend — were scored against objective "
         "relevance labels, with a random baseline computed under the same rules and a "
-        "significance test on every comparison."
+        "significance test on every comparison. Every number on this page is read from a "
+        "committed results file, so none of it can drift from the run that produced it."
     )
     st.success(
         "**The headline: there is no single right way to combine the two signals.** "
@@ -571,10 +572,14 @@ def page_findings() -> None:
 
 
 def header() -> None:
-    st.title("🎧 aux")
-    st.markdown(
+    # Title and tagline share a row. The header renders above the tabs, so every line here
+    # costs space on every view -- and the tab a visitor lands on is a working one, not the
+    # evidence page.
+    left, right = st.columns([1, 3], vertical_alignment="center")
+    left.title("🎧 aux")
+    right.markdown(
         "Recommend music by how it **sounds**, by what the lyrics are **about**, or by "
-        "both. Built over raw audio files: no genre tags, no play counts, no labels."
+        "both — over raw audio files, with no genre tags, play counts or labels."
     )
     a, b, c, d = st.columns(4)
     a.metric("Tracks indexed", "1,998",
@@ -587,10 +592,6 @@ def header() -> None:
     d.metric("Test functions", f"{count_tests()}",
              help="Counted from the suite rather than hard-coded, so it cannot go stale. "
                   "pytest collects more once parametrised cases expand.")
-    st.caption(
-        "Every number here is read from a committed results file, so nothing can drift "
-        "from the run that produced it. **Findings** has the full tables and the limits."
-    )
 
 
 def main() -> None:
