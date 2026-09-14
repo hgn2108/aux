@@ -195,9 +195,8 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
     local = not is_public()
     return Corpus("personal library", tracks, vectors, lyrics, has_lyrics,
                   playable=local, anonymous=not local,
-                  note=("The author's own music. 127 of 160 tracks have a reliable "
-                        "transcript at a median of 376 words, which is why the multimodal "
-                        "evaluation runs here."),
+                  note=("127 of 160 tracks have a reliable transcript at a median of 376 "
+                        "words, which is why the lyric results were measured here."),
                   artists=[display_artist(t.path) for t in tracks])
 
 

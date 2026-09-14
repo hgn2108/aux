@@ -1,6 +1,6 @@
 {
-  "name": "personal library",
-  "note": "The author's own music, commercially released: not redistributed, so these tracks are searched and ranked but not played. 127 of 160 have usable lyrics.",
+  "name": "example library",
+  "note": "Commercially released music, so it is not redistributed: these tracks can be searched and ranked here but not played. 127 of 160 have usable lyrics, which is why the lyric results were measured on this collection.",
   "tracks": [
     {
       "track_id": 0,

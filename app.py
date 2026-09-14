@@ -111,7 +111,7 @@ def mode_controls(corpus, key: str) -> tuple[str, float]:
         st.warning(
             f"**{corpus.name} has no lyrics to search.** Over half of it is instrumental, "
             "and the tracks that do have singing produce only a handful of words. Switch "
-            "the library above to the creator's library, where 127 of 160 tracks have "
+            "the library above to the example library, where 127 of 160 tracks have "
             "readable lyrics. Those cannot be played here, but every way of matching works.",
             icon=":material/lyrics:",
         )
@@ -623,7 +623,7 @@ def choose_corpus():
     # costs -- whether it plays, and whether there are lyrics to search.
     labels = {
         "fma": "Demo library",
-        "personal": "Creator's library (lyrics available)",
+        "personal": "Example library (lyrics available)",
     }
     picked = st.segmented_control("Library", corpora, default=corpora[0],
                                   format_func=labels.__getitem__, key="corpus")
