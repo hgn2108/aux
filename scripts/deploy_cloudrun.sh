@@ -3,7 +3,8 @@
 #
 # Cloud Run bills only while a request is being served and scales to zero in between, so a
 # portfolio demo sits inside the always-free allowance: 180,000 vCPU-seconds and 360,000
-# GiB-seconds a month. At the settings below that is roughly 12 hours of actual serving.
+# GiB-seconds a month. At 16GiB and 4 CPU memory is the binding constraint, leaving roughly
+# six hours of actual serving a month -- ample for a demo, where a visit lasts minutes.
 #
 #   ./scripts/deploy_cloudrun.sh YOUR_PROJECT_ID
 #
@@ -32,8 +33,11 @@ gcloud run deploy "$SERVICE" \
     --region "$REGION" \
     --platform managed \
     --allow-unauthenticated \
-    --memory 8Gi \
-    --cpu 2 \
+    `# 8Gi was not enough: loading MuQ-MuLan holds the checkpoint and the constructed` \
+    `# model at once and peaked at 8.3GB, so the container was killed mid-load and` \
+    `# restarted forever. Cloud Run requires at least 4 CPU to allow 16Gi.` \
+    --memory 16Gi \
+    --cpu 4 \
     --timeout 900 \
     --concurrency 8 \
     `# Scale to zero when idle: this is what keeps it inside the free tier.` \
