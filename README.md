@@ -32,20 +32,19 @@ A song's "vibe" is not one thing. It is partly how the music *sounds* and partly
 words are *about*, and the project's founding assumption was that **which of those matters
 depends on what you asked for**.
 
-That turned out to be measurable, and it is the main result here. The two signals were built
-separately and compared on two kinds of request:
+The two signals were built separately and compared on two kinds of request. The result is
+measurable, and it is the main finding here:
 
-| you ask for | sound wins | lyrics win |
-|---|:--:|:--:|
-| *"tracks like this one"* | ✅ **1.5× better** | |
-| *"songs about heartbreak"* | | ✅ **2.0× better** |
+| you ask for | better signal | margin |
+|---|---|---:|
+| *"tracks like this one"* | sound | **1.5×** |
+| *"songs about heartbreak"* | lyrics | **2.0×** |
 
-Neither signal wins everywhere. Blending them at a fixed ratio is wrong for both, and
-measurably so: using the wrong setting costs a third of the system's accuracy on one kind of
-request and half on the other. So the app lets you choose — and the [evidence behind that
-decision](#3-routing-the-decision-is-worth-making-the-routers-are-not), including three
-attempts to make the choice automatically and why none shipped, is the most useful thing in
-this repository.
+Neither signal wins everywhere, and blending them at a fixed ratio is wrong for both: using
+the wrong setting costs a third of the system's accuracy on one kind of request and half on
+the other. The app therefore lets you choose. [Three attempts to make that choice
+automatically](#3-routing-the-decision-is-worth-making-the-routers-are-not) were built and
+measured; none shipped.
 
 ---
 
@@ -66,7 +65,7 @@ itself one of the findings below.
 
 ---
 
-## How "does it work?" was answered
+## How this was evaluated
 
 Musical similarity is subjective, so there is no correct answer to compare against. Inventing
 a similarity score would have meant grading the system against a target it was built to
@@ -94,9 +93,8 @@ routing. Those are listed too.
 
 ### 1. Recommending from sound alone
 
-**In short: given a track, about 6 of the 10 it returns share that track's genre, against
-about 1 of 10 by chance. Asked for the same *artist* — a far harder target — it does 56×
-better than chance.**
+Given a track, about 6 of the 10 returned share its genre, against about 1 of 10 by chance.
+Asked for the same *artist* — a much harder target — it does 56× better than chance.
 
 1,998 tracks, 8 genres.
 
@@ -107,18 +105,16 @@ better than chance.**
 | artist | 1,324 | 0.134 | 0.311 | 0.006 | **56×** |
 | album | 1,193 | 0.074 | 0.287 | 0.003 | **88×** |
 
-The second row is the one that matters. Tracks from one album share production, mastering and
-instrumentation, so a system can look good at *genre* by simply recognising an *album*.
-Removing same-artist pairs costs only 0.04 — the genre result is not the album effect in
-disguise. And artist and album at 56–88× random mean the system is picking up something much
-finer than "this is hip-hop".
+The second row is a control. Tracks from one album share production, mastering and
+instrumentation, so a system can score well on *genre* by recognising an *album* instead.
+Removing same-artist pairs costs 0.04, which means the genre result is not the album effect
+in disguise. Artist and album at 56–88× random indicate the representation separates tracks
+at a finer level than genre.
 
 ### 2. The best way to combine the signals depends on the query
 
-**In short: the same two systems, the same music, opposite answers — depending only on what
-was asked. This is the founding assumption of the project, measured.**
-
-α is how much weight goes on sound rather than lyrics.
+The same two systems and the same music give opposite answers, depending only on what was
+asked. α is how much weight goes on sound rather than lyrics.
 
 | α | track → track (genre) | "songs about X" |
 |---:|---:|---:|
@@ -141,9 +137,9 @@ correct fixed weight.
 
 ### 3. Routing: the decision is worth making, the routers are not
 
-**In short: if the right setting depends on the question, the obvious move is to detect the
-question automatically. Three ways of doing that were built and measured. None was good
-enough to ship, including the one using an LLM — so the app asks you instead.**
+If the right setting depends on the question, the next step is to detect the question
+automatically. Three ways of doing that were built and measured, including one using an LLM.
+None was good enough to ship, so the app asks instead.
 
 Each router is scored end to end against an *oracle* allowed to see the answers, which puts a
 ceiling on how much any router could ever be worth.
@@ -163,17 +159,15 @@ So the decision is real and no router built here can make it. The app ships a **
 selector** instead — the person searching already knows whether they are asking about sound or
 meaning. The LLM was built, measured, and left out.
 
-### 4. The result I nearly published
+### 4. Why the first router comparison was wrong
 
-**In short: the cheapest router looked like the winner until it was tested on phrasings its
-author had not written. Then it became the worst.**
+On the original 24 hand-written queries the keyword router **led**, at +0.058. Those queries
+and the router's rules had the same author, so the query set was regenerated with paraphrases
+instructed to avoid the constructions the rules match on — biasing the test *against* the
+router expected to win.
 
-On 24 hand-written queries the keyword router **led**, at +0.058. The query set was then
-regenerated with paraphrases instructed to avoid the constructions the rules key on —
-deliberately biasing *against* the router expected to win.
-
-It went from **+0.058 to −0.053**. Best arm to worst, on held-out phrasing alone. It had been
-fitted to queries written by the same person who wrote the rules.
+It went from **+0.058 to −0.053**: best arm to worst, on held-out phrasing alone. The first
+result was overfitting to the phrasing of the test set, not a property of the router.
 
 ![The findings tab](docs/img/findings.png)
 

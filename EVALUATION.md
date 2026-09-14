@@ -110,9 +110,8 @@ of understanding the query. Nine cleared the five-track floor.
 | ambition | 18 | 0.161 | 0.284 | lyrics |
 | **heartbreak** | 24 | **0.718** | 0.676 | **sound** |
 
-`money` (0.176 → 0.805) and `doubt` (0.066 → 0.794) are where sound is nearly blind, which is
-exactly what you would predict: you cannot hear what a song is about. `heartbreak` is the
-exception because sad songs sound sad.
+`money` (0.176 → 0.805) and `doubt` (0.066 → 0.794) are where sound is nearly blind: neither
+subject has an acoustic signature. `heartbreak` is the exception because sad songs sound sad.
 
 An oracle allowed to pick the better modality per query scores 0.739 against the lyric
 channel's 0.734 — within this family, routing has almost nothing to add, because lyrics win
@@ -280,8 +279,8 @@ Per-genre NDCG@10 against the artist label, FMA:
 | Hip-Hop | 194 | 0.101 | 0.203 |
 | **Pop** | 164 | 0.051 | **0.165** |
 
-The model does best where the acoustic signature is most distinctive and worst on Pop — the
-broadest and most heterogeneous category. Expected, and worth stating.
+The model does best where the acoustic signature is most distinctive and worst on Pop, the
+broadest and most heterogeneous of the eight categories.
 
 ---
 
