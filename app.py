@@ -24,6 +24,11 @@ from aux.app.data import (  # noqa: E402
     load_results,
     needs_encoder,
 )
+from aux.app.examples import (  # noqa: E402
+    LYRIC_EXAMPLES,
+    SOUND_EXAMPLES,
+    load_example_vectors,
+)
 from aux.recommend import NORMALISERS, Recommender  # noqa: E402
 
 st.set_page_config(page_title="aux — multimodal music search", page_icon="🎧",
@@ -87,6 +92,11 @@ UPLOAD_TRANSCRIBE_SECONDS = 120
 @st.cache_data(show_spinner=False)
 def get_results():
     return load_results()
+
+
+@st.cache_resource(show_spinner=False)
+def get_examples():
+    return load_example_vectors()
 
 
 def mode_controls(corpus, key: str) -> tuple[str, float]:
@@ -172,15 +182,6 @@ def page_recommend(corpus, recommender) -> None:
     render_results(corpus, results, None)
 
 
-#: One-click queries, so the first thing a visitor meets is a result rather than an empty
-#: box. Split by what the corpus can answer: asking a corpus with no lyrics about meaning
-#: would demonstrate the limitation rather than the system.
-SOUND_EXAMPLES = ("fast aggressive drums with distorted guitars",
-                  "sparse piano, quiet and unhurried",
-                  "warm analogue soul with live instruments")
-LYRIC_EXAMPLES = ("songs about missing someone", "songs about money and ambition")
-
-
 def page_search(corpus, recommender) -> None:
     st.markdown(
         "Describe what you want to hear. The description is compared against the recordings "
@@ -208,11 +209,26 @@ def page_search(corpus, recommender) -> None:
     if not query:
         return
 
-    audio_scores = corpus.audio @ get_encoder().embed_text([query])[0]
+    # The example queries are fixed, so their embeddings ship with the corpus and a click
+    # costs a dot product instead of a 2.5GB model load. Anything typed still needs the
+    # encoder, because an arbitrary string cannot be answered from a lookup.
+    ready = get_examples()
+    stored = ready.get(query) if ready else None
+    needs_lyrics = mode != "Sound" and corpus.supports_lyrics
+    if stored is None or (needs_lyrics and "lyric" not in stored):
+        st.caption("Loading the model to read a new query — this takes a minute the first "
+                   "time. The suggested queries above answer instantly.")
+
+    audio_query = (stored["audio"] if stored is not None
+                   else get_encoder().embed_text([query])[0])
+    audio_scores = corpus.audio @ np.asarray(audio_query, dtype=np.float32)
+
     if mode == "Sound" or not corpus.supports_lyrics:
         scores = audio_scores
     else:
-        lyric_scores = corpus.lyrics @ get_lyric_embedder().embed_query([query])[0]
+        lyric_query = (stored["lyric"] if stored is not None and "lyric" in stored
+                       else get_lyric_embedder().embed_query([query])[0])
+        lyric_scores = corpus.lyrics @ np.asarray(lyric_query, dtype=np.float32)
         lyric_scores[~corpus.has_lyrics] = -np.inf
         if mode == "Lyrics":
             scores = lyric_scores

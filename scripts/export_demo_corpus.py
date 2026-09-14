@@ -85,13 +85,44 @@ def export_fma(n_tracks: int, n_segments: int) -> int:
     return 0
 
 
+def export_examples() -> int:
+    """Embed the demo's fixed example queries, so clicking one needs no model.
+
+    A hosted container spends minutes loading 2.5GB of weights on its first search. The
+    example queries never change, so answering them can be a dot product against vectors
+    that shipped with the bundle. Typing something new still loads the encoder; there is no
+    way around that for an arbitrary string.
+    """
+    from aux.app.examples import ALL_EXAMPLES, EXAMPLES_PATH, LYRIC_EXAMPLES
+    from aux.encode.muq import MuQMuLanAdapter
+    from aux.lyrics import LyricEmbedder
+
+    queries = list(ALL_EXAMPLES)
+    audio = np.asarray(MuQMuLanAdapter().embed_text(queries), dtype=np.float32)
+
+    # Only the lyric examples are ever searched against transcripts, but a vector is stored
+    # for every query: the mode is the visitor's to change after picking one, and a missing
+    # vector would silently fall back to loading the model.
+    lyric = np.asarray(LyricEmbedder().embed_query(queries), dtype=np.float32)
+
+    DEMO.mkdir(exist_ok=True)
+    np.savez_compressed(EXAMPLES_PATH, queries=json.dumps(queries),
+                        audio=audio, lyric=lyric)
+    size = EXAMPLES_PATH.stat().st_size / 1e3
+    print(f"{len(queries)} example queries ({len(LYRIC_EXAMPLES)} about lyrics) — "
+          f"{size:.0f} KB")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Export a deployable corpus bundle")
-    ap.add_argument("--corpus", choices=("personal", "fma"), default="personal")
+    ap.add_argument("--corpus", choices=("personal", "fma", "examples"), default="personal")
     ap.add_argument("--tracks", type=int, default=80, help="fma only, genre-balanced")
     ap.add_argument("--n-segments", type=int, default=5)
     args = ap.parse_args()
 
+    if args.corpus == "examples":
+        return export_examples()
     if args.corpus == "fma":
         return export_fma(args.tracks, args.n_segments)
 
