@@ -43,7 +43,7 @@ def test_switching_to_the_lyric_corpus_keeps_the_app_alive(monkeypatch):
     """The bundled corpus loads from different code than the local one; exercise it."""
     app = _run(monkeypatch, public=True)
     picker = next(w for w in app.segmented_control if w.key == "corpus")
-    assert picker.options == ["Demo library", "Creator's library (lyrics available)"]
+    assert picker.options == ["Demo library", "Example library (lyrics available)"]
 
     picker.set_value("personal").run()
     assert not app.exception, app.exception
