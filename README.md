@@ -1,19 +1,42 @@
 # aux
 
-**Music recommendation from audio alone — and an evaluation that says when to trust it.**
+**Search your own music by how it feels.**
 
-Search and recommend music by how it **sounds**, by what the lyrics are **about**, or by
-both. No genre tags, no play counts, no collaborative filtering: everything is computed from
-the audio files themselves.
+You own a folder of music. You cannot search it for *"something quiet and bittersweet"* or
+*"like this, but dreamier"* — local players search filenames and genre tags, and streaming
+services only do this over their own catalogue, using features you cannot reproduce for your
+own files.
 
-The interesting result is not the recommender. It is that **combining the two signals loses
-on the task everyone benchmarks and wins by 2× on the task nobody does** — and most of this
-repository is the work of establishing which is which.
+`aux` does it from the audio itself. Point it at a folder; no tags, no play counts, no
+listening history, nothing but the files.
 
 ```bash
 pip install -e ".[app]"
 streamlit run app.py
 ```
+
+---
+
+## The question this was built to answer
+
+A song's "vibe" is not one thing. It is partly how the music *sounds* and partly what the
+words are *about*, and the project's founding assumption was that **which of those matters
+depends on what you asked for**.
+
+That turned out to be measurable, and it is the main result here. The two signals were built
+separately and compared on two kinds of request:
+
+| you ask for | sound wins | lyrics win |
+|---|:--:|:--:|
+| *"tracks like this one"* | ✅ **1.5× better** | |
+| *"songs about heartbreak"* | | ✅ **2.0× better** |
+
+Neither signal wins everywhere. Blending them at a fixed ratio is wrong for both, and
+measurably so: using the wrong setting costs a third of the system's accuracy on one kind of
+request and half on the other. So the app lets you choose — and the [evidence behind that
+decision](#3-routing-the-decision-is-worth-making-the-routers-are-not), including three
+attempts to make the choice automatically and why none shipped, is the most useful thing in
+this repository.
 
 ---
 
@@ -23,7 +46,7 @@ streamlit run app.py
 |---|---|
 | **Search by description** | Type *"fast aggressive drums with distorted guitars"* and get back a black-metal band. Text and audio share one embedding space, so the query is matched against the recording, not against tags. |
 | **Find similar tracks** | Pick any track; everything else is ranked against it. |
-| **Choose the signal** | Sound, lyrics, or a weighted blend with the weight exposed as a slider. The blend is a control rather than a prediction, for a measured reason — see [the router result](#3-routing-the-decision-is-worth-making-the-routers-are-not). |
+| **Choose the signal** | Sound, lyrics, or a weighted blend with the weight exposed as a slider. |
 | **Bring your own music** | Upload files and they become a searchable library of their own, encoded live through the same pipeline the indexed corpora went through. Optionally transcribed too, at about 9s a track. |
 | **Read the evidence** | A Findings tab with every table, baseline, significance test and limitation, read from committed results files so nothing can drift from the run that produced it. |
 
@@ -34,30 +57,59 @@ itself one of the findings below.
 
 ---
 
+## How "does it work?" was answered
+
+Musical similarity is subjective, so there is no correct answer to compare against. Inventing
+a similarity score would have meant grading the system against a target it was built to
+produce. Instead:
+
+**Relevance is borrowed from facts.** Two tracks count as a match if they share a genre, an
+artist, or an album. None of those *is* musical similarity — but they are objective, they
+cover the whole corpus, and they are wrong in different directions, so agreement between them
+means much more than a good score on any one.
+
+**Every number is compared against random.** A metric alone says nothing; "4.9× better than
+picking at random, on the same labels, under the same rules" does.
+
+**The scores below are NDCG@10** — roughly, *"of the ten tracks shown, how many were right,
+and were the right ones near the top?"* 1.0 is perfect, and the random baseline is printed
+next to every result so the number has a floor.
+
+**Anything that did not beat the simpler version was removed.** Seven components were built,
+measured and thrown away, including an LLM query planner and all three attempts at automatic
+routing. Those are listed too.
+
+---
+
 ## Results
 
-### 1. Audio recommendation at scale
+### 1. Recommending from sound alone
 
-1,998 tracks, 8 genres. Relevance is a proxy — two tracks count as relevant when they share a
-genre, artist or album — so three definitions are reported, because each is wrong in a
-different direction and agreement between them says more than any one.
+**In short: given a track, about 6 of the 10 it returns share that track's genre, against
+about 1 of 10 by chance. Asked for the same *artist* — a far harder target — it does 56×
+better than chance.**
+
+1,998 tracks, 8 genres.
 
 | relevance label | queries | P@10 | NDCG@10 | random | lift |
 |---|---:|---:|---:|---:|---:|
 | genre | 1,998 | 0.596 | 0.608 | 0.125 | **4.9×** |
 | genre, same-artist pairs excluded | 1,998 | 0.560 | 0.566 | 0.123 | **4.6×** |
-| artist | 1,324 | 0.134 | 0.311 | 0.006 | **52×** |
-| album | 1,193 | 0.074 | 0.287 | 0.003 | **95×** |
+| artist | 1,324 | 0.134 | 0.311 | 0.006 | **56×** |
+| album | 1,193 | 0.074 | 0.287 | 0.003 | **88×** |
 
 The second row is the one that matters. Tracks from one album share production, mastering and
-instrumentation, so a model can score well on *genre* by recognising an *album*. Excluding
-same-artist pairs costs only 0.04 P@10 — the genre result is not the album effect in
-disguise. Artist and album at 52–95× random show the embedding captures something far finer
-than genre.
+instrumentation, so a system can look good at *genre* by simply recognising an *album*.
+Removing same-artist pairs costs only 0.04 — the genre result is not the album effect in
+disguise. And artist and album at 56–88× random mean the system is picking up something much
+finer than "this is hip-hop".
 
 ### 2. The best way to combine the signals depends on the query
 
-The same two systems, the same corpus, opposite verdicts. α is the weight on sound.
+**In short: the same two systems, the same music, opposite answers — depending only on what
+was asked. This is the founding assumption of the project, measured.**
+
+α is how much weight goes on sound rather than lyrics.
 
 | α | track → track (genre) | "songs about X" |
 |---:|---:|---:|
@@ -67,7 +119,8 @@ The same two systems, the same corpus, opposite verdicts. α is the weight on so
 | 0.75 | 0.829 | 0.529 |
 | 1.00 — sound only | **0.832** | 0.367 |
 
-NDCG@10. The sweep runs in **opposite directions**.
+Read down each column: the best score is at the **bottom** of one and the **top** of the
+other. The same dial, turned in opposite directions.
 
 Fusion "failing" was never a fact about the modalities — it was a fact about the task. Genre,
 artist and album are all things you can *hear*, so lyrics have nothing independent to add. Ask
@@ -79,8 +132,12 @@ correct fixed weight.
 
 ### 3. Routing: the decision is worth making, the routers are not
 
-If the weight should change per query, something must choose it. Three routers, scored end to
-end against an oracle allowed to see the answers — an upper bound on any router.
+**In short: if the right setting depends on the question, the obvious move is to detect the
+question automatically. Three ways of doing that were built and measured. None was good
+enough to ship, including the one using an LLM — so the app asks you instead.**
+
+Each router is scored end to end against an *oracle* allowed to see the answers, which puts a
+ceiling on how much any router could ever be worth.
 
 | router | NDCG@10 | vs best fixed | % of oracle gap | ms/query |
 |---|---:|---:|---:|---:|
@@ -98,6 +155,9 @@ selector** instead — the person searching already knows whether they are askin
 meaning. The LLM was built, measured, and left out.
 
 ### 4. The result I nearly published
+
+**In short: the cheapest router looked like the winner until it was tested on phrasings its
+author had not written. Then it became the worst.**
 
 On 24 hand-written queries the keyword router **led**, at +0.058. The query set was then
 regenerated with paraphrases instructed to avoid the constructions the rules key on —
