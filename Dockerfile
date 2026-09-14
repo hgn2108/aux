@@ -62,6 +62,19 @@ RUN python -c "import torch, torchvision, x_clip; \
 COPY --chown=user scripts/prefetch_models.py scripts/
 RUN python scripts/prefetch_models.py
 
+# Offline from here on, and only from here on -- the prefetch above needs the network.
+#
+# Having the weights in the image is not enough on its own. The Hugging Face libraries
+# still call the hub on every load to check whether a cached model is current, and a Cloud
+# Run container goes out through a shared egress address: those calls came back
+# "429 Too Many Requests -- we had to rate limit your IP", and the retries were what made
+# the first search appear to hang rather than fail.
+#
+# Offline mode makes the cache authoritative, so nothing leaves the container and the
+# check costs nothing.
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+
 COPY --chown=user . .
 RUN pip install --no-cache-dir --user --no-deps -e .
 
