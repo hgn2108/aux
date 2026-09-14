@@ -1,9 +1,9 @@
 # Runtime dependencies for the hosted demo.
 # Local development uses pyproject.toml: pip install -e ".[dev,app]"
 #
-# torch and torchaudio are NOT listed here. The Dockerfile installs them first from the
-# CPU-only index, because the PyPI wheels bundle CUDA libraries a CPU instance cannot use
-# and that no image-size budget survives.
+# torch, torchvision and torchaudio are NOT listed here. The Dockerfile installs all three
+# together from the CPU-only index: the PyPI wheels bundle CUDA libraries a CPU instance
+# cannot use, and the three must come from one resolve or their C++ extensions do not match.
 av>=13
 numpy>=1.26
 pandas>=2.0

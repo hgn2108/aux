@@ -23,16 +23,34 @@ ENV HOME=/home/user \
 
 WORKDIR /home/user/app
 
-# torch and torchaudio come from the CPU index explicitly, before anything that depends on
-# them. The default PyPI wheels carry ~2.5GB of CUDA libraries a CPU instance cannot use,
-# and --extra-index-url alone does not prevent them: pip would still be free to resolve the
-# newer CUDA build. Installing them first means muq finds its requirement satisfied.
+# All three torch packages come from the CPU index, in one resolve, before anything that
+# depends on them.
+#
+# One index, because the three ship matched C++ extensions: torchvision built against a
+# different torch registers no operators, and the first symbol MuQ reaches through x_clip
+# fails with "operator torchvision::nms does not exist".
+#
+# torchvision is listed even though nothing here does vision. MuQ imports x_clip, which
+# imports its visual-SSL module at package level, which imports torchvision -- so it is a
+# hard requirement of an import chain rather than of any code path that runs.
+#
+# CPU index, because the default PyPI wheels carry ~2.5GB of CUDA libraries a CPU instance
+# cannot use. --extra-index-url is not enough on its own: pip stays free to resolve the
+# newer CUDA build from PyPI.
 RUN pip install --no-cache-dir --user \
         --index-url https://download.pytorch.org/whl/cpu \
-        "torch>=2.2" torchaudio
+        "torch>=2.2" torchvision torchaudio
 
 COPY --chown=user requirements.txt .
-RUN pip install --no-cache-dir --user -r requirements.txt
+RUN pip install --no-cache-dir --user \
+        --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt
+
+# Fail here, not eight minutes later in the model prefetch. This is the exact import chain
+# that breaks when the torch packages come from different builds: muq -> x_clip ->
+# torchvision, and a mismatched torchvision registers no operators.
+RUN python -c "import torch, torchvision, x_clip; \
+    print('torch', torch.__version__, '| torchvision', torchvision.__version__); \
+    torchvision.ops.nms(torch.zeros(0, 4), torch.zeros(0), 0.5)"
 
 COPY --chown=user . .
 RUN pip install --no-cache-dir --user --no-deps -e .
