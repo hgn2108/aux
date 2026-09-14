@@ -10,6 +10,10 @@ dependencies = [
     # Pinned below 5.0: the 5.x processor/feature API differs and the adapter is written
     # to tolerate both, but 4.x is what the CLAP checkpoints are validated against here.
     "transformers>=4.40,<5",
+    # aux.data reads the FMA metadata CSV, so this is a runtime dependency of the library
+    # and not of the demo. It was declared under the optional [app] extra, which meant the
+    # package could not be imported from a plain install -- caught by CI on the first run.
+    "pandas>=2.0",
 ]
 
 # NOTE: torch publishes no macOS x86_64 wheels past 2.2.2 (which caps at Python 3.12).
@@ -19,7 +23,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 # The demo only. The library and every evaluation run without it.
-app = ["streamlit>=1.40", "pandas>=2.0"]
+app = ["streamlit>=1.40", "altair>=5"]
 
 [build-system]
 requires = ["setuptools>=68"]
