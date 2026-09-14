@@ -1,0 +1,11 @@
+# The corpora and caches are local-only; the deployable bundle lives in demo/.
+data/
+.cache/
+.venv/
+.git/
+evals/
+docs/
+results/*.tmp
+__pycache__/
+*.pyc
+.pytest_cache/
