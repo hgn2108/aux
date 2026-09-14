@@ -99,11 +99,10 @@ def mode_controls(corpus, key: str) -> tuple[str, float]:
     mode = st.radio("Match on", list(MODES), horizontal=True, key=f"mode_{key}")
     if mode != "Sound" and not corpus.supports_lyrics:
         st.warning(
-            f"**{corpus.name} has no lyrics to search.** 56% of it is instrumental and its "
-            "transcripts run a median of 11 words — that limitation is itself a finding. "
-            "Switch the corpus in the sidebar to the second library (160 commercially "
-            "released tracks, 127 with real lyrics) to use this mode. That one can't play "
-            "audio, but every ranking mode works.",
+            f"**{corpus.name} has no lyrics to search.** Over half of it is instrumental, "
+            "and the tracks that do have singing produce only a handful of words. Switch "
+            "the library above to the creator's library, where 127 of 160 tracks have "
+            "readable lyrics. Those cannot be played here, but every way of matching works.",
             icon=":material/lyrics:",
         )
         return "Sound", 1.0
@@ -111,8 +110,9 @@ def mode_controls(corpus, key: str) -> tuple[str, float]:
     if mode == "Both":
         alpha = st.slider(
             "Weight on sound", 0.0, 1.0, MODES["Both"], 0.05, key=f"alpha_{key}",
-            help="1.0 is sound only, 0.0 is lyrics only. Measured best per query family: "
-                 "0.95 for sound-led queries, 0.00 for meaning-led, 0.40 for both.")
+            help="All the way right uses sound only, all the way left uses lyrics only. "
+                 "Measured best: near the right for questions about how music sounds, at "
+                 "the far left for questions about what songs are about.")
     return mode, alpha
 
 
@@ -157,10 +157,10 @@ def page_recommend(corpus, recommender) -> None:
     if modality != "audio" and corpus.has_lyrics is not None \
             and not corpus.has_lyrics[choice]:
         st.info(
-            "This track has no usable transcript — it is instrumental, or transcription "
-            f"was unreliable ({int(corpus.has_lyrics.sum())} of {len(corpus.tracks)} "
-            "tracks have one). Falling back to sound. Pick another reference to compare "
-            "lyrics."
+            "This track has no readable lyrics — it has no singing, or the words came out "
+            f"too unclear to use. {int(corpus.has_lyrics.sum())} of "
+            f"{len(corpus.tracks)} tracks here do. Matching on sound instead; pick one of "
+            "those to compare lyrics."
         )
         modality, alpha = "audio", 1.0
 
@@ -183,8 +183,8 @@ LYRIC_EXAMPLES = ("songs about missing someone", "songs about money and ambition
 
 def page_search(corpus, recommender) -> None:
     st.markdown(
-        "Text and audio share one embedding space, so a description is matched against the "
-        "recording rather than against tags."
+        "Describe what you want to hear. The description is compared against the recordings "
+        "themselves, not against tags or titles."
     )
 
     examples = list(SOUND_EXAMPLES)
@@ -303,15 +303,15 @@ def page_upload() -> None:
                              accept_multiple_files=True)
     with_lyrics = st.toggle(
         "Also read the lyrics",
-        help=f"Transcribes the first {UPLOAD_TRANSCRIBE_SECONDS // 60} minutes of each "
-             "track with Whisper, then embeds the words. Without this, only the sound is "
-             "compared.")
+        help=f"Writes down the words from the first {UPLOAD_TRANSCRIBE_SECONDS // 60} "
+             "minutes of each track, so you can search them too. Without this, only the "
+             "sound is compared.")
     if with_lyrics:
         st.caption(
-            "Adds roughly 10 seconds per track on CPU. Cost is linear in audio length, so "
-            f"only the first {UPLOAD_TRANSCRIBE_SECONDS}s is transcribed — enough to reach "
-            "the second chorus of most songs. Instrumentals are detected and fall back to "
-            "sound."
+            f"Adds roughly 10 seconds per track. Only the first "
+            f"{UPLOAD_TRANSCRIBE_SECONDS // 60} minutes are transcribed, which reaches the "
+            "second chorus of most songs and keeps the wait short. Tracks with no singing "
+            "are detected and matched on sound instead."
         )
 
     if not files:
@@ -342,13 +342,13 @@ def page_upload() -> None:
 
     if with_lyrics:
         langs = sorted({good[k].get("language") for k in keys if good[k].get("language")})
-        st.success(f"{len(keys)} track(s) encoded · {int(has_lyrics.sum())} with usable "
-                   f"lyrics · languages detected: {', '.join(langs) or 'none'}")
+        st.success(f"{len(keys)} track(s) ready · {int(has_lyrics.sum())} with readable "
+                   f"lyrics · languages found: {', '.join(langs) or 'none'}")
         if not has_lyrics.all():
-            st.caption(f"{int((~has_lyrics).sum())} track(s) read as instrumental or came "
-                       "back too garbled to use. Those are matched on sound alone.")
+            st.caption(f"{int((~has_lyrics).sum())} track(s) had no singing, or words too "
+                       "unclear to use. Those are matched on sound alone.")
     else:
-        st.success(f"{len(keys)} track(s) encoded.")
+        st.success(f"{len(keys)} track(s) ready.")
 
     alpha = 1.0
     if lyric_vectors is not None:
@@ -424,22 +424,29 @@ def page_findings() -> None:
     results = get_results()
     st.subheader("What was measured, and what it showed")
     st.markdown(
-        "Three systems — sound, lyrics, and a weighted blend — scored against objective "
-        "relevance labels, each with a random baseline and a significance test. Numbers "
-        "are read from committed results files, not retyped."
+        "Whether two tracks \"sound similar\" is a matter of opinion, so the system is not "
+        "graded on that. It is graded on facts: two tracks count as a match if they share a "
+        "genre, an artist or an album. Three systems — sound, lyrics, and a blend of both — "
+        "were scored that way, each against the score a random shuffle gets."
+    )
+    st.caption(
+        "Scores below are NDCG@10: of the ten tracks returned, how many were matches, and "
+        "were the matches near the top. 1.0 is perfect. Every number is read from a saved "
+        "results file rather than typed in, so nothing here can drift from the run that "
+        "produced it."
     )
     st.success(
-        "**There is no single right way to combine the two signals.** Similarity queries "
-        "want sound (NDCG@10 0.832 against 0.555); queries about meaning want lyrics "
-        "(0.734 against 0.367). Using either setting for the wrong kind of query costs "
-        "0.28–0.37, which is why the mode is yours to pick."
+        "**Neither signal is right for every question.** Asking for tracks like another "
+        "track, sound scores 0.832 and lyrics 0.555. Asking what songs are about, lyrics "
+        "score 0.734 and sound 0.367. Using the wrong one costs a third to a half of the "
+        "system's accuracy, which is why the choice is yours to make."
     )
 
     crossover = results.get("routing_crossover")
     if crossover:
-        st.markdown("#### 1. The best fusion weight depends on the query")
-        st.write("The same two systems, opposite verdicts. The sweep runs in opposite "
-                 "directions, so no single weight serves both.")
+        st.markdown("#### 1. The right balance depends on what you ask")
+        st.write("The same two systems and the same music, giving opposite answers. The two "
+                 "lines run in opposite directions, so no single setting serves both.")
         import altair as alt
         import pandas as pd
 
@@ -449,13 +456,13 @@ def page_findings() -> None:
         chart_data = pd.DataFrame([
             {"alpha": row["alpha"], "NDCG@10": row[key], "query type": name}
             for row in crossover["by_alpha"]
-            for key, name in (("similarity", "track → track (genre)"),
-                              ("semantic", "semantic (songs about X)"))
+            for key, name in (("similarity", "asking for tracks like another track"),
+                              ("semantic", "asking what songs are about"))
         ])
         values = chart_data["NDCG@10"]
         pad = (values.max() - values.min()) * 0.12
         line = alt.Chart(chart_data).mark_line(point=True, strokeWidth=2.5).encode(
-            x=alt.X("alpha:Q", title="weight on sound (alpha)",
+            x=alt.X("alpha:Q", title="weight on sound",
                     scale=alt.Scale(domain=[0, 1], nice=False),
                     axis=alt.Axis(values=[0, 0.25, 0.5, 0.75, 1.0], format=".2f")),
             y=alt.Y("NDCG@10:Q", title="NDCG@10",
@@ -467,23 +474,24 @@ def page_findings() -> None:
                      alt.Tooltip("NDCG@10:Q", format=".3f")],
         ).properties(height=300)
         st.altair_chart(line)
+        st.caption("Left of the scale is lyrics only; right is sound only.")
         st.caption(
-            f"Best single weight: alpha={crossover['best_fixed_alpha']}, mean "
-            f"{crossover['best_fixed_mean']:.3f}. Choosing per family: "
-            f"{crossover['routed_mean']:.3f} ({crossover['routing_gain']:+.3f})."
+            f"The best compromise setting scores {crossover['best_fixed_mean']:.3f} across "
+            f"both kinds of question. Choosing the right setting for each kind scores "
+            f"{crossover['routed_mean']:.3f}."
         )
 
     rec = next((v for k, v in results.items() if k.startswith("recommendation_fma")), None)
     if rec:
-        st.markdown("#### 2. Audio recommendation at scale")
+        st.markdown("#### 2. Recommending from sound alone")
         st.write(
-            f"Measured over the full {rec['corpus']['tracks']}-track corpus — the library "
-            "browsed above is a trimmed slice of it, for a lighter demo. Balanced across "
-            "8 genres. "
-            "Relevance is a proxy — same genre, same artist, same album — so three "
-            "definitions are reported rather than one, because each is wrong differently. "
-            "The artist-filtered row removes same-artist pairs, without which a model scores "
-            "well on genre by recognising an album's production."
+            f"Measured over {rec['corpus']['tracks']} tracks across 8 genres — the library "
+            "browsed above is a smaller slice of it, so the demo loads quickly. None of "
+            "these three definitions of a match *is* musical similarity, so all three are "
+            "reported: each is wrong in a different way. The second row is a control. "
+            "Tracks from one album share production and mastering, so a system can score "
+            "on genre by recognising an album instead; removing same-artist pairs shows "
+            "how much of the result that accounts for."
         )
         rows = []
         for label, systems in rec["results"].items():
@@ -501,61 +509,77 @@ def page_findings() -> None:
 
     router = next((v for k, v in results.items() if k.startswith("router_")), None)
     if router:
-        st.markdown("#### 3. Automatic routing: measured, and not shipped")
-        st.write("Three routers, scored end to end against an oracle allowed to see the "
-                 "answers — an upper bound on any router.")
-        rows = [{
-            "router": name,
-            "NDCG@10": round(row["ndcg"], 3),
-            "vs best fixed": f"{row['gain']:+.3f}",
-            "% of oracle gap": f"{row['oracle_fraction']:.0%}",
-            "ms / query": f"{row['ms_per_query']:.1f}",
-        } for name, row in router["routers"].items()]
-        rows.append({"router": "best fixed weight",
-                     "NDCG@10": round(router["fixed"][str(router["best_fixed_alpha"])], 3),
-                     "vs best fixed": "—", "% of oracle gap": "0%", "ms / query": "0.0"})
-        rows.append({"router": "oracle (upper bound)", "NDCG@10": round(router["oracle"], 3),
-                     "vs best fixed": "—", "% of oracle gap": "100%", "ms / query": "—"})
+        st.markdown("#### 3. Setting the balance automatically did not work")
+        st.write(
+            "If the right setting depends on the question, the next step is to detect the "
+            "question and set it for you. Three ways of doing that were tried."
+        )
+        # Plain names for the three, and the no-detection baseline first, so every other
+        # number has something to be read against.
+        plain = {"rules": "matching keywords",
+                 "prototype": "comparing to example queries",
+                 "claude": "asking an LLM"}
+        rows = [{"approach": "no detection, one fixed setting",
+                 "NDCG@10": round(router["fixed"][str(router["best_fixed_alpha"])], 3),
+                 "speed": "instant"}]
+        rows += [{"approach": plain.get(name, name),
+                  "NDCG@10": round(row["ndcg"], 3),
+                  "speed": ("instant" if row["ms_per_query"] < 1
+                            else f"{row['ms_per_query']:.0f} ms" if row["ms_per_query"] < 1000
+                            else f"{row['ms_per_query'] / 1000:.1f} s")}
+                 for name, row in router["routers"].items()]
+        rows.append({"approach": "if every question were detected correctly",
+                     "NDCG@10": round(router["oracle"], 3), "speed": "—"})
         st.dataframe(rows, hide_index=True, width="stretch")
 
-        family = router.get("family_routing", {})
         st.warning(
-            "**No router beat a fixed weight significantly.** Choosing one weight per query "
-            f"*family* does: {family.get('observed', 0):+.3f} NDCG@10, p="
-            f"{family.get('p_value', 1):.4f}. The decision is worth making; guessing it is "
-            "not supported by the evidence, so the mode selector is a control, not a "
-            "prediction."
+            "**None of the three beat simply fixing the setting**, by enough to be "
+            "confident it was not chance. The last row is the score if every question were "
+            "detected correctly, so it is the most any method of this kind could be worth — "
+            "and none came close. **The app therefore gives you the control instead of "
+            "guessing.**"
         )
         st.markdown(
-            "The keyword router led at **+0.058** on 24 queries written by the same person "
-            "who wrote its rules. On paraphrases avoiding those constructions it fell to "
-            "**−0.053** — best arm to worst, on held-out phrasing alone."
+            "Matching keywords looked like the winner until the test set changed. Its rules "
+            "and the test queries had the same author, so it was being rewarded for "
+            "recognising familiar phrasing. Retested on differently worded queries meaning "
+            "the same things, it went from the best of the three to the worst."
         )
 
     semantic = next((v for k, v in results.items()
                      if k.startswith("semantic_") and "highagreement" not in k), None)
     if semantic:
-        st.markdown("#### 4. Where each modality wins")
-        rows = [{"theme": theme, "tracks": row["n"],
-                 "sound NDCG@10": round(row["audio"], 3),
-                 "lyrics NDCG@10": round(row["lyrics"], 3),
-                 "winner": row["winner"]}
+        st.markdown("#### 4. What each signal is good at")
+        st.write(
+            'Asking what songs are about, subject by subject. Lyrics win almost everywhere; '
+            'the exception is *heartbreak*, where sound wins, because sad songs sound sad.'
+        )
+        rows = [{"subject": theme, "tracks": row["n"],
+                 "sound": round(row["audio"], 3),
+                 "lyrics": round(row["lyrics"], 3),
+                 "better signal": row["winner"]}
                 for theme, row in semantic["per_theme"].items()]
         st.dataframe(rows, hide_index=True, width="stretch")
         st.caption(
-            "Theme labels are model-generated, validated against blind human judgement at "
-            "Cohen's κ 0.60. Dropping the two themes that fell below that bar narrows the "
-            "lyric lead from 0.734 to 0.717 against 0.430, leaving the conclusion intact. "
-            "Sound wins only on *heartbreak* — sad songs sound sad."
+            "Which songs count as being about each subject was decided by a model, then "
+            "checked against blind human judgement on a sample. Agreement was substantial "
+            "but not perfect. Dropping the two subjects where it was weakest narrows the "
+            "lyrics lead from 0.734 to 0.717 against 0.430, so the conclusion holds "
+            "without them."
         )
 
-    st.markdown("#### Limitations")
+    st.markdown("#### What these numbers do not show")
     st.markdown(
-        "- Relevance labels are proxies. Genre, artist and album are not musical similarity.\n"
-        "- The multimodal results use a 160-track personal library, because no public "
-        "corpus available here has a usable lyric channel.\n"
-        "- Theme labels agree with a human at kappa 0.60 — substantial, not perfect.\n"
-        "- The router comparison uses 96 queries. It rules out large effects, not small ones."
+        "- Sharing a genre, an artist or an album is not the same as sounding similar. "
+        "These labels are used because they are factual and cover every track, not because "
+        "they are the thing anyone actually wants.\n"
+        "- The lyrics results come from a 160-track personal library. No public collection "
+        "available here has enough songs with words: 56% of the Creative Commons corpus is "
+        "instrumental.\n"
+        "- The subjects each song is about were labelled by a model and spot-checked by a "
+        "human, who agreed with it most but not all of the time.\n"
+        "- The comparison of ways to set the balance used 96 queries. That is enough to "
+        "rule out a large difference between them, not a small one."
     )
 
 

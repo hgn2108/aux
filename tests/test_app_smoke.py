@@ -69,7 +69,7 @@ def test_browse_offers_both_ways_of_finding_tracks(monkeypatch):
     how = next(w for w in app.segmented_control if w.key == "browse_mode")
     assert how.options == ["By description", "By a track you like"]
     # Description search is the default: it needs nothing from the visitor.
-    assert any("embedding space" in str(m.value) for m in app.markdown)
+    assert any("Describe what you want to hear" in str(m.value) for m in app.markdown)
 
     how.set_value("By a track you like").run()
     assert not app.exception, app.exception
