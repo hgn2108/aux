@@ -84,23 +84,6 @@ def get_results():
     return load_results()
 
 
-@st.cache_data(show_spinner=False)
-def count_tests() -> int:
-    """Count test functions on disk rather than hard-coding the number, which goes stale
-    on the next commit and is then quietly wrong in front of a reader.
-
-    This counts definitions. pytest collects more, because a parametrised function expands
-    into one case per parameter -- so the label says "test functions" and not "tests".
-    """
-    import re
-
-    tests = ROOT / "tests"
-    if not tests.exists():
-        return 0
-    return sum(len(re.findall(r"^def test_", f.read_text(), re.M))
-               for f in tests.glob("test_*.py"))
-
-
 def mode_controls(corpus, key: str) -> tuple[str, float]:
     """Mode selector plus weight slider.
 
@@ -184,22 +167,41 @@ def page_recommend(corpus, recommender) -> None:
     render_results(corpus, results, None)
 
 
+#: One-click queries, so the first thing a visitor meets is a result rather than an empty
+#: box. Split by what the corpus can answer: asking a corpus with no lyrics about meaning
+#: would demonstrate the limitation rather than the system.
+SOUND_EXAMPLES = ("fast aggressive drums with distorted guitars",
+                  "sparse piano, quiet and unhurried",
+                  "warm analogue soul with live instruments")
+LYRIC_EXAMPLES = ("songs about missing someone", "songs about money and ambition")
+
+
 def page_search(corpus, recommender) -> None:
     st.markdown(
         "Text and audio share one embedding space, so a description is matched against the "
         "recording rather than against tags."
     )
 
+    examples = list(SOUND_EXAMPLES)
+    if corpus.supports_lyrics:
+        examples += list(LYRIC_EXAMPLES)
+    picked = st.pills("Try one", examples, key=f"ex_{corpus.name.replace(' ', '_')}")
+
+    # Written into the text box's own state before it renders, so a visitor sees what was
+    # searched and can edit it rather than being handed a result from nowhere.
+    if picked and picked != st.session_state.get("_last_example"):
+        st.session_state["_last_example"] = picked
+        st.session_state["q"] = picked
+
     # A form rather than a bare text_input: the query commits on an explicit submit
     # instead of on Enter alone, and the encoder does not re-run on every keystroke.
     with st.form("search_form"):
         query = st.text_input("Query", placeholder="e.g. late night drive, heavy bass",
                               key="q")
-        submitted = st.form_submit_button("Search", type="primary")
+        st.form_submit_button("Search", type="primary")
     mode, alpha = mode_controls(corpus, f"search_{corpus.name.replace(' ', '_')}")
-    if not query or not (submitted or st.session_state.get("searched")):
+    if not query:
         return
-    st.session_state["searched"] = True
 
     audio_scores = corpus.audio @ get_encoder().embed_text([query])[0]
     if mode == "Sound" or not corpus.supports_lyrics:
@@ -552,26 +554,16 @@ def page_findings() -> None:
 
 
 def header() -> None:
-    # Title and tagline share a row. The header renders above the tabs, so every line here
-    # costs space on every view -- and the tab a visitor lands on is a working one, not the
-    # evidence page.
+    # Name and purpose only. The headline metrics that used to sit here were static on
+    # every tab and each needed a sentence of context to mean anything -- and a test count
+    # is not a result. They belong on Findings, in the tables that explain them.
     left, right = st.columns([1, 3], vertical_alignment="center")
     left.title("🎧 aux")
     right.markdown(
-        "Recommend music by how it **sounds**, by what the lyrics are **about**, or by "
-        "both — over raw audio files, with no genre tags, play counts or labels."
+        "Search and recommend music by how it **sounds**, by what the lyrics are "
+        "**about**, or by both — straight from audio files, with no genre tags, play "
+        "counts or labels."
     )
-    a, b, c, d = st.columns(4)
-    a.metric("Tracks indexed", "1,998",
-             help="Free Music Archive, balanced at 250 per genre across 8 genres.")
-    b.metric("vs random", "4.9x",
-             help="NDCG@10 against genre labels. 52x against artist, 95x against album.")
-    c.metric("Lyrics vs sound", "2.0x",
-             help="On 'songs about X' queries. Sound wins by 1.5x on similarity queries — "
-                  "which is the finding: neither signal wins everywhere.")
-    d.metric("Test functions", f"{count_tests()}",
-             help="Counted from the suite rather than hard-coded, so it cannot go stale. "
-                  "pytest collects more once parametrised cases expand.")
 
 
 def choose_corpus():
@@ -597,20 +589,24 @@ def choose_corpus():
             help="Fewer loads faster. The evaluation always uses the full corpus.")
 
     corpus, recommender = get_corpus(which, limit)
-    st.caption(corpus.note)
+    # Said only where it changes what a visitor can do. The licensing and instrumental
+    # rates behind it are evidence, and live on Findings.
+    if not corpus.playable:
+        st.caption("Not redistributable, so these tracks can be searched and ranked here "
+                   "but not played.")
     return corpus, recommender
 
 
 def page_browse() -> None:
     corpus, recommender = choose_corpus()
     st.divider()
-    how = st.segmented_control("Find tracks", ["By a track you like", "By description"],
-                               default="By a track you like", key="browse_mode")
+    how = st.segmented_control("Find tracks", ["By description", "By a track you like"],
+                               default="By description", key="browse_mode")
     st.write("")
-    if how == "By description":
-        page_search(corpus, recommender)
-    else:
+    if how == "By a track you like":
         page_recommend(corpus, recommender)
+    else:
+        page_search(corpus, recommender)
 
 
 def main() -> None:

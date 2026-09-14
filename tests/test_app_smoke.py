@@ -47,9 +47,9 @@ def test_switching_to_the_lyric_corpus_keeps_the_app_alive(monkeypatch):
 
     picker.set_value("personal").run()
     assert not app.exception, app.exception
-    # The corpus note is rendered from whichever corpus actually loaded.
-    notes = " ".join(str(c.value) for c in app.caption)
-    assert "author's own music" in notes
+    # Widget keys carry the corpus name, so they show which corpus actually loaded.
+    keys = {w.key for w in app.pills} | {w.key for w in app.radio}
+    assert any("personal_library" in k for k in keys if k)
 
 
 @pytest.mark.slow
@@ -67,7 +67,10 @@ def test_every_match_mode_renders_on_the_lyric_corpus(monkeypatch):
 def test_browse_offers_both_ways_of_finding_tracks(monkeypatch):
     app = _run(monkeypatch, public=True)
     how = next(w for w in app.segmented_control if w.key == "browse_mode")
-    assert how.options == ["By a track you like", "By description"]
-    how.set_value("By description").run()
-    assert not app.exception, app.exception
+    assert how.options == ["By description", "By a track you like"]
+    # Description search is the default: it needs nothing from the visitor.
     assert any("embedding space" in str(m.value) for m in app.markdown)
+
+    how.set_value("By a track you like").run()
+    assert not app.exception, app.exception
+    assert any("no listening history" in str(m.value) for m in app.markdown)
