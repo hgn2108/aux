@@ -1,11 +1,14 @@
-# Runtime dependencies for the hosted demo (Hugging Face Spaces reads this file).
+# Runtime dependencies for the hosted demo.
 # Local development uses pyproject.toml: pip install -e ".[dev,app]"
+#
+# torch and torchaudio are NOT listed here. The Dockerfile installs them first from the
+# CPU-only index, because the PyPI wheels bundle CUDA libraries a CPU instance cannot use
+# and that no image-size budget survives.
 av>=13
 numpy>=1.26
-torch>=2.2
+pandas>=2.0
 transformers>=4.40,<5
 streamlit>=1.40
-pandas>=2.0
 altair>=5
-openai-whisper
 muq
+openai-whisper
