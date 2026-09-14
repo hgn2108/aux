@@ -72,6 +72,16 @@ def fma_is_local() -> bool:
     return DEFAULT_AUDIO.exists() and DEFAULT_METADATA.exists()
 
 
+def needs_encoder(which: str) -> bool:
+    """Whether loading this corpus has to index audio, rather than read stored vectors.
+
+    A bundle carries its vectors, so it needs no model. Asking for one anyway costs a
+    2.5GB load before anything renders -- which is what a deployment does on every cold
+    start, since a deployment is exactly where both corpora are bundles.
+    """
+    return fma_is_local() if which == "fma" else personal_is_local()
+
+
 #: Some FMA titles are the uploader's filename rather than a title: a leading track
 #: number, and a ".mp3" left on the end.
 _FILENAME_TITLE = re.compile(r"^\s*\d{1,3}\s*[-._ ]\s*|\.(mp3|wav|flac|m4a|ogg)\s*$",

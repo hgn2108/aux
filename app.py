@@ -22,6 +22,7 @@ from aux.app.data import (  # noqa: E402
     available_corpora,
     load_corpus,
     load_results,
+    needs_encoder,
 )
 from aux.recommend import NORMALISERS, Recommender  # noqa: E402
 
@@ -50,7 +51,11 @@ def get_encoder():
 
 @st.cache_resource(show_spinner="Loading the library…")
 def get_corpus(which: str, limit: int | None):
-    corpus = load_corpus(which, get_encoder(), limit=limit)
+    # Only fetch the encoder where the corpus actually has to be indexed. It was being
+    # passed unconditionally, and Python evaluates arguments before the call, so a bundled
+    # corpus still paid for a 2.5GB model load before the first track appeared.
+    encoder = get_encoder() if needs_encoder(which) else None
+    corpus = load_corpus(which, encoder, limit=limit)
     recommender = Recommender(corpus.audio, lyric_vectors=corpus.lyrics,
                               has_lyrics=corpus.has_lyrics,
                               paths=[t.path for t in corpus.tracks])
@@ -584,7 +589,7 @@ def choose_corpus():
                                   format_func=labels.__getitem__, key="corpus")
     which = picked or corpora[0]
     limit = None
-    if which == "fma":
+    if which == "fma" and needs_encoder("fma"):
         limit = st.select_slider(
             "Tracks loaded", [100, 250, 500, 1000, 2000], value=250,
             help="Fewer loads faster. The evaluation always uses the full corpus.")

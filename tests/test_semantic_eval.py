@@ -325,3 +325,25 @@ def test_fma_falls_back_to_the_bundle_when_the_corpus_is_absent(monkeypatch, tmp
     assert corpus.playable is True          # Creative Commons: the audio ships with it
     assert corpus.supports_lyrics is False  # and it has no lyric channel
     assert all(t.path.exists() for t in corpus.tracks)
+
+
+def test_a_bundled_corpus_needs_no_encoder(monkeypatch, tmp_path):
+    """Loading stored vectors must not pull in a 2.5GB model.
+
+    It did: the encoder was passed to `load_corpus` unconditionally, and Python evaluates
+    arguments before the call, so a deployment -- where both corpora are bundles -- loaded
+    MuQ-MuLan before rendering a single track.
+    """
+    from aux.app import data
+
+    monkeypatch.setattr(data, "DEFAULT_AUDIO", tmp_path / "absent")
+    monkeypatch.setattr(data, "DEFAULT_METADATA", tmp_path / "absent.csv")
+    monkeypatch.setattr(data, "MUSIC", tmp_path / "absent")
+
+    assert data.needs_encoder("fma") is False
+    assert data.needs_encoder("personal") is False
+
+    # And with the corpora present, it does.
+    monkeypatch.setattr(data, "DEFAULT_AUDIO", tmp_path)
+    monkeypatch.setattr(data, "DEFAULT_METADATA", tmp_path)
+    assert data.needs_encoder("fma") is True
