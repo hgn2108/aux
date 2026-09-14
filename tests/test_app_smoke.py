@@ -47,9 +47,11 @@ def test_switching_to_the_lyric_corpus_keeps_the_app_alive(monkeypatch):
 
     picker.set_value("personal").run()
     assert not app.exception, app.exception
-    # Widget keys carry the corpus name, so they show which corpus actually loaded.
-    keys = {w.key for w in app.pills} | {w.key for w in app.radio}
-    assert any("personal_library" in k for k in keys if k)
+    # This notice is shown only for a corpus that cannot be played, which is what
+    # distinguishes the second library. Asserting on it rather than on a display name means
+    # renaming the library in the interface does not break the test.
+    notes = " ".join(str(c.value) for c in app.caption)
+    assert "Not redistributable" in notes
 
 
 @pytest.mark.slow
