@@ -38,10 +38,62 @@ CACHE = ROOT / ".cache"
 DEMO = ROOT / "demo"
 
 
+def export_fma(n_tracks: int, n_segments: int) -> int:
+    """Export a browsable slice of FMA: metadata, vectors, and the audio itself.
+
+    The full corpus cannot be deployed -- 7.4 GB of audio and a 248 MB metadata CSV, none
+    of it in the repository. This copies a genre-balanced slice small enough to ship, which
+    is what lets a deployed demo play anything at all. It is Creative Commons, so unlike
+    the personal library the audio travels with it.
+
+    The evaluation always uses the full corpus; this is only what the demo browses.
+    """
+    from aux.data import balanced_subset, load_tracks
+
+    per_genre = max(1, n_tracks // 8)
+    tracks = balanced_subset(load_tracks(), per_genre=per_genre)
+    from aux.encode.muq import MuQMuLanAdapter
+
+    encoder = MuQMuLanAdapter()
+    vectors, kept, _ = build_index(None, encoder, paths=[t.path for t in tracks],
+                                   n_segments=n_segments,
+                                   cache_path=CACHE / "fma_audio_250.npz",
+                                   progress_every=0)
+    kept_set = {str(p) for p in kept}
+    tracks = [t for t in tracks if str(t.path) in kept_set]
+
+    audio_dir = DEMO / "audio"
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    manifest = []
+    for t in tracks:
+        target = audio_dir / f"{t.track_id:06d}.mp3"
+        if not target.exists():
+            target.write_bytes(t.path.read_bytes())
+        manifest.append({"track_id": t.track_id, "title": t.title, "artist": t.artist,
+                         "genre": t.genre, "file": target.name})
+
+    (DEMO / "fma_manifest.json").write_text(json.dumps({
+        "name": "FMA small",
+        "note": ("Creative Commons, so it plays here. 56% instrumental in a sampled 75 "
+                 "clips, median transcript 11 words — no lyric channel to search."),
+        "tracks": manifest,
+    }, indent=2))
+    np.savez_compressed(DEMO / "fma_vectors.npz", audio=vectors.astype(np.float32))
+
+    size = sum(f.stat().st_size for f in audio_dir.iterdir()) / 1e6
+    print(f"{len(tracks)} FMA tracks, {size:.0f} MB of audio in {audio_dir}")
+    return 0
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Export a deployable, audio-free corpus")
+    ap = argparse.ArgumentParser(description="Export a deployable corpus bundle")
+    ap.add_argument("--corpus", choices=("personal", "fma"), default="personal")
+    ap.add_argument("--tracks", type=int, default=80, help="fma only, genre-balanced")
     ap.add_argument("--n-segments", type=int, default=5)
     args = ap.parse_args()
+
+    if args.corpus == "fma":
+        return export_fma(args.tracks, args.n_segments)
 
     tracks = load_personal_tracks()
     from aux.encode.muq import MuQMuLanAdapter

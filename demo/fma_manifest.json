@@ -1,0 +1,566 @@
+{
+  "name": "FMA small",
+  "note": "Creative Commons, so it plays here. 56% instrumental in a sampled 75 clips, median transcript 11 words \u2014 no lyric channel to search.",
+  "tracks": [
+    {
+      "track_id": 1703,
+      "title": "Equus Haar",
+      "artist": "Spires That in the Sunset Rise",
+      "genre": "Folk",
+      "file": "001703.mp3"
+    },
+    {
+      "track_id": 3271,
+      "title": "Beirut",
+      "artist": "Arborea",
+      "genre": "Folk",
+      "file": "003271.mp3"
+    },
+    {
+      "track_id": 3775,
+      "title": "Cumbia Infierno",
+      "artist": "La Troba Kung-Fu",
+      "genre": "International",
+      "file": "003775.mp3"
+    },
+    {
+      "track_id": 5879,
+      "title": "Rock and Tree",
+      "artist": "Bob Wiseman",
+      "genre": "Folk",
+      "file": "005879.mp3"
+    },
+    {
+      "track_id": 6342,
+      "title": "Doulab Nahawand Murassaa",
+      "artist": "Zikrayat",
+      "genre": "International",
+      "file": "006342.mp3"
+    },
+    {
+      "track_id": 11299,
+      "title": "No Meaning No (feat. Fine Arts Militia)",
+      "artist": "Chuck D",
+      "genre": "Hip-Hop",
+      "file": "011299.mp3"
+    },
+    {
+      "track_id": 14736,
+      "title": "Hazing",
+      "artist": "Throwing Muses",
+      "genre": "Rock",
+      "file": "014736.mp3"
+    },
+    {
+      "track_id": 16162,
+      "title": "Rock da Dam (Featuring Portformat)",
+      "artist": "Comfort Fit",
+      "genre": "Hip-Hop",
+      "file": "016162.mp3"
+    },
+    {
+      "track_id": 19420,
+      "title": "Take Me Out Tonight, I Want To See The Stars",
+      "artist": "Orquestra Popular De Paio Pires",
+      "genre": "Pop",
+      "file": "019420.mp3"
+    },
+    {
+      "track_id": 23016,
+      "title": "While She Sleeps (Morning Edit)",
+      "artist": "The Lights Galaxia",
+      "genre": "Electronic",
+      "file": "023016.mp3"
+    },
+    {
+      "track_id": 27802,
+      "title": "Like A Flock Of Birds In Flight",
+      "artist": "onlymeith",
+      "genre": "Pop",
+      "file": "027802.mp3"
+    },
+    {
+      "track_id": 28072,
+      "title": "Nice to Know You",
+      "artist": "Bare Wires",
+      "genre": "Rock",
+      "file": "028072.mp3"
+    },
+    {
+      "track_id": 28478,
+      "title": "Drowning In The Dark",
+      "artist": "The Pop Winds",
+      "genre": "Pop",
+      "file": "028478.mp3"
+    },
+    {
+      "track_id": 30740,
+      "title": "Part IV",
+      "artist": "Paul Metzger",
+      "genre": "Experimental",
+      "file": "030740.mp3"
+    },
+    {
+      "track_id": 38820,
+      "title": "Fear a Bhata",
+      "artist": "Sl\u00e1inte",
+      "genre": "International",
+      "file": "038820.mp3"
+    },
+    {
+      "track_id": 38899,
+      "title": "fly me to the moon",
+      "artist": "File Under Toner",
+      "genre": "Experimental",
+      "file": "038899.mp3"
+    },
+    {
+      "track_id": 44823,
+      "title": "Black Bear Kolo",
+      "artist": "Black Bear Combo",
+      "genre": "International",
+      "file": "044823.mp3"
+    },
+    {
+      "track_id": 45128,
+      "title": "HHHHOTEL",
+      "artist": "Phemale",
+      "genre": "Pop",
+      "file": "045128.mp3"
+    },
+    {
+      "track_id": 47916,
+      "title": "Plumy Tale",
+      "artist": "Dumbo Gets Mad",
+      "genre": "Rock",
+      "file": "047916.mp3"
+    },
+    {
+      "track_id": 50449,
+      "title": "Interview",
+      "artist": "Milk Music",
+      "genre": "Rock",
+      "file": "050449.mp3"
+    },
+    {
+      "track_id": 52648,
+      "title": "Tech Talk",
+      "artist": "Jason Shaw",
+      "genre": "Electronic",
+      "file": "052648.mp3"
+    },
+    {
+      "track_id": 53381,
+      "title": "15 - Old Bonus Track - Welcome to My Country",
+      "artist": "The Hate Noise",
+      "genre": "Hip-Hop",
+      "file": "053381.mp3"
+    },
+    {
+      "track_id": 54064,
+      "title": "Russian Dance",
+      "artist": "Yair Yona",
+      "genre": "Folk",
+      "file": "054064.mp3"
+    },
+    {
+      "track_id": 57629,
+      "title": "Blue",
+      "artist": "Noveller",
+      "genre": "Experimental",
+      "file": "057629.mp3"
+    },
+    {
+      "track_id": 58140,
+      "title": "Travel On",
+      "artist": "John Bellows",
+      "genre": "Folk",
+      "file": "058140.mp3"
+    },
+    {
+      "track_id": 58225,
+      "title": "Deaf Americans",
+      "artist": "The Woolen Men",
+      "genre": "Rock",
+      "file": "058225.mp3"
+    },
+    {
+      "track_id": 59673,
+      "title": "Peruniko",
+      "artist": "Slaveya Women's Vocal Ensemble",
+      "genre": "International",
+      "file": "059673.mp3"
+    },
+    {
+      "track_id": 63191,
+      "title": "Taylor Swift",
+      "artist": "speedy ortiz",
+      "genre": "Rock",
+      "file": "063191.mp3"
+    },
+    {
+      "track_id": 64995,
+      "title": "Illumination (feat. Emmalyne Braswell)",
+      "artist": "Action Davis",
+      "genre": "Hip-Hop",
+      "file": "064995.mp3"
+    },
+    {
+      "track_id": 66535,
+      "title": "Baladora",
+      "artist": "Waylon Thornton",
+      "genre": "Rock",
+      "file": "066535.mp3"
+    },
+    {
+      "track_id": 69204,
+      "title": "Pioneers",
+      "artist": "Marc Burt",
+      "genre": "Electronic",
+      "file": "069204.mp3"
+    },
+    {
+      "track_id": 70208,
+      "title": "Bittersweet Insomnia",
+      "artist": "Spray Lodge",
+      "genre": "Hip-Hop",
+      "file": "070208.mp3"
+    },
+    {
+      "track_id": 70879,
+      "title": "patience",
+      "artist": "owlface",
+      "genre": "Pop",
+      "file": "070879.mp3"
+    },
+    {
+      "track_id": 72233,
+      "title": "Poisons & Potions",
+      "artist": "Edward Shallow",
+      "genre": "Electronic",
+      "file": "072233.mp3"
+    },
+    {
+      "track_id": 75395,
+      "title": "Struggle (Remix)",
+      "artist": "Kellee Maize",
+      "genre": "Hip-Hop",
+      "file": "075395.mp3"
+    },
+    {
+      "track_id": 75433,
+      "title": "Starting my work with the daily rebuilding of the telescope",
+      "artist": "Cherly KaCherly",
+      "genre": "Instrumental",
+      "file": "075433.mp3"
+    },
+    {
+      "track_id": 85484,
+      "title": "If Only We Had More Time",
+      "artist": "Derek Clegg",
+      "genre": "Folk",
+      "file": "085484.mp3"
+    },
+    {
+      "track_id": 85953,
+      "title": "All I Am",
+      "artist": "Pete Galub",
+      "genre": "Pop",
+      "file": "085953.mp3"
+    },
+    {
+      "track_id": 88428,
+      "title": "Hey, Predator Drone",
+      "artist": "Human Resources",
+      "genre": "Pop",
+      "file": "088428.mp3"
+    },
+    {
+      "track_id": 92886,
+      "title": "Bleach Bypass Landscape",
+      "artist": "The Fucked Up Beat",
+      "genre": "Experimental",
+      "file": "092886.mp3"
+    },
+    {
+      "track_id": 98550,
+      "title": "Today",
+      "artist": "Kellee Maize",
+      "genre": "Hip-Hop",
+      "file": "098550.mp3"
+    },
+    {
+      "track_id": 99371,
+      "title": "Poleguala e Tudora",
+      "artist": "Yasna New York Bulgarian Women's Voices Choir",
+      "genre": "International",
+      "file": "099371.mp3"
+    },
+    {
+      "track_id": 105670,
+      "title": "Back to a Simpler Time",
+      "artist": "Gilo",
+      "genre": "Electronic",
+      "file": "105670.mp3"
+    },
+    {
+      "track_id": 107850,
+      "title": "Summers, Past, Pt. II",
+      "artist": "The Honorable Sleaze",
+      "genre": "Hip-Hop",
+      "file": "107850.mp3"
+    },
+    {
+      "track_id": 108303,
+      "title": "In Limbo",
+      "artist": "Carter Behnke",
+      "genre": "Folk",
+      "file": "108303.mp3"
+    },
+    {
+      "track_id": 108489,
+      "title": "Schooner",
+      "artist": "Sun Sunych",
+      "genre": "Hip-Hop",
+      "file": "108489.mp3"
+    },
+    {
+      "track_id": 108906,
+      "title": "Did you know? (Curiouser and curiouser)",
+      "artist": "Fabian Measures",
+      "genre": "Instrumental",
+      "file": "108906.mp3"
+    },
+    {
+      "track_id": 113271,
+      "title": "Takeru Ishikawa & Anji Bee - Favor Tweet",
+      "artist": "CC Asia Band",
+      "genre": "International",
+      "file": "113271.mp3"
+    },
+    {
+      "track_id": 114282,
+      "title": "Boss Ass Bits",
+      "artist": "Azureflux",
+      "genre": "Electronic",
+      "file": "114282.mp3"
+    },
+    {
+      "track_id": 114936,
+      "title": "Ikn hob ongehoybn shplin a libe",
+      "artist": "Zingeray!",
+      "genre": "International",
+      "file": "114936.mp3"
+    },
+    {
+      "track_id": 116449,
+      "title": "Lift (with six string electric cello)",
+      "artist": "Montana Skies",
+      "genre": "Folk",
+      "file": "116449.mp3"
+    },
+    {
+      "track_id": 118196,
+      "title": "The Blues With No Horizon",
+      "artist": "PC-ONE",
+      "genre": "Experimental",
+      "file": "118196.mp3"
+    },
+    {
+      "track_id": 118502,
+      "title": "7",
+      "artist": "Michael Mellender",
+      "genre": "Experimental",
+      "file": "118502.mp3"
+    },
+    {
+      "track_id": 118671,
+      "title": "Butterfly Shield",
+      "artist": "Red Trees",
+      "genre": "Folk",
+      "file": "118671.mp3"
+    },
+    {
+      "track_id": 119830,
+      "title": "Future Past",
+      "artist": "Squire Tuck",
+      "genre": "Instrumental",
+      "file": "119830.mp3"
+    },
+    {
+      "track_id": 120196,
+      "title": "Alien Pops Trilogy (featuring Midas)",
+      "artist": "FortyOne",
+      "genre": "Pop",
+      "file": "120196.mp3"
+    },
+    {
+      "track_id": 120299,
+      "title": "Build A View",
+      "artist": "Cory Gray",
+      "genre": "Instrumental",
+      "file": "120299.mp3"
+    },
+    {
+      "track_id": 121655,
+      "title": "The Dream Room",
+      "artist": "happiness in aeroplanes",
+      "genre": "Instrumental",
+      "file": "121655.mp3"
+    },
+    {
+      "track_id": 121656,
+      "title": "Of Sargasso Sea",
+      "artist": "happiness in aeroplanes",
+      "genre": "Instrumental",
+      "file": "121656.mp3"
+    },
+    {
+      "track_id": 122634,
+      "title": "Morsa (One Week)",
+      "artist": "A Ninja Slob Drew Me",
+      "genre": "Instrumental",
+      "file": "122634.mp3"
+    },
+    {
+      "track_id": 127541,
+      "title": "The Trap Door",
+      "artist": "Space Monkey Death Sequence",
+      "genre": "Experimental",
+      "file": "127541.mp3"
+    },
+    {
+      "track_id": 127878,
+      "title": "Reaper",
+      "artist": "Razen",
+      "genre": "Experimental",
+      "file": "127878.mp3"
+    },
+    {
+      "track_id": 128710,
+      "title": "Ghost Baby",
+      "artist": "The Crypts!",
+      "genre": "Rock",
+      "file": "128710.mp3"
+    },
+    {
+      "track_id": 129185,
+      "title": "Headlights/Mountain Road",
+      "artist": "Blue Dot Sessions",
+      "genre": "Instrumental",
+      "file": "129185.mp3"
+    },
+    {
+      "track_id": 129973,
+      "title": "Savior",
+      "artist": "Pipe Choir",
+      "genre": "Rock",
+      "file": "129973.mp3"
+    },
+    {
+      "track_id": 130948,
+      "title": "A Penny For Your Dreams",
+      "artist": "Albin Andersson",
+      "genre": "Folk",
+      "file": "130948.mp3"
+    },
+    {
+      "track_id": 131914,
+      "title": "Farewell",
+      "artist": "David Szesztay",
+      "genre": "Instrumental",
+      "file": "131914.mp3"
+    },
+    {
+      "track_id": 132434,
+      "title": "Oh, My Cat!",
+      "artist": "Tea Man With Tea Gum",
+      "genre": "Experimental",
+      "file": "132434.mp3"
+    },
+    {
+      "track_id": 133572,
+      "title": "Strange Meeting",
+      "artist": "David Szesztay",
+      "genre": "Instrumental",
+      "file": "133572.mp3"
+    },
+    {
+      "track_id": 135228,
+      "title": "H\u00fczzam Sazsemai ''Nargile''",
+      "artist": "Ehl-i Keyif",
+      "genre": "International",
+      "file": "135228.mp3"
+    },
+    {
+      "track_id": 138064,
+      "title": "Down",
+      "artist": "Black Flamingo",
+      "genre": "Pop",
+      "file": "138064.mp3"
+    },
+    {
+      "track_id": 139954,
+      "title": "Fin",
+      "artist": "E T I L E",
+      "genre": "Electronic",
+      "file": "139954.mp3"
+    },
+    {
+      "track_id": 140134,
+      "title": "Acid",
+      "artist": "Remain",
+      "genre": "Electronic",
+      "file": "140134.mp3"
+    },
+    {
+      "track_id": 142087,
+      "title": "Runnin out of time",
+      "artist": "SK",
+      "genre": "Hip-Hop",
+      "file": "142087.mp3"
+    },
+    {
+      "track_id": 142569,
+      "title": "Back to reality",
+      "artist": "GOYMAMBA",
+      "genre": "International",
+      "file": "142569.mp3"
+    },
+    {
+      "track_id": 145758,
+      "title": "Spicy",
+      "artist": "SPCZ",
+      "genre": "Electronic",
+      "file": "145758.mp3"
+    },
+    {
+      "track_id": 145759,
+      "title": "Scorpio Moon",
+      "artist": "SPCZ",
+      "genre": "Electronic",
+      "file": "145759.mp3"
+    },
+    {
+      "track_id": 148290,
+      "title": "Main Course",
+      "artist": "LoveyDove",
+      "genre": "Pop",
+      "file": "148290.mp3"
+    },
+    {
+      "track_id": 148305,
+      "title": "Paysage au repos (extrait)",
+      "artist": "Philippe Lamy",
+      "genre": "Experimental",
+      "file": "148305.mp3"
+    },
+    {
+      "track_id": 149417,
+      "title": "Nerve Damage",
+      "artist": "Punk Rock Opera",
+      "genre": "Rock",
+      "file": "149417.mp3"
+    }
+  ]
+}

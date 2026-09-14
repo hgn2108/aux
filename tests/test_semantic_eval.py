@@ -304,3 +304,24 @@ def test_explanation_is_hidden_where_only_one_modality_exists():
 
     sound_only = Recommendation(index=1, rank=1, score=0.9, audio_score=0.9, lyric_score=None)
     assert "no lyrics available" in sound_only.explain()
+
+
+def test_fma_falls_back_to_the_bundle_when_the_corpus_is_absent(monkeypatch, tmp_path):
+    """A deployment has neither the 7.4 GB of audio nor the 248 MB metadata CSV.
+
+    Without this fallback the app crashed on the default corpus the moment it was hosted.
+    """
+    from aux.app import data
+
+    monkeypatch.setattr(data, "DEFAULT_AUDIO", tmp_path / "absent")
+    monkeypatch.setattr(data, "DEFAULT_METADATA", tmp_path / "absent.csv")
+    assert data.fma_is_local() is False
+
+    if not data._bundle_present("fma"):
+        pytest.skip("no exported bundle; run scripts/export_demo_corpus.py --corpus fma")
+
+    corpus = data.load_corpus("fma", encoder=None)
+    assert len(corpus.tracks) > 0
+    assert corpus.playable is True          # Creative Commons: the audio ships with it
+    assert corpus.supports_lyrics is False  # and it has no lyric channel
+    assert all(t.path.exists() for t in corpus.tracks)

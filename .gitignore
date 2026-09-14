@@ -72,3 +72,7 @@ evals/
 # which the Creative Commons corpus cannot.
 !demo/
 .agents/
+
+# The exported demo bundles are committed: they are what a deployment loads, and none of
+# them contains audio that is not Creative Commons.
+!demo/audio/

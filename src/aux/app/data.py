@@ -27,6 +27,8 @@ RESULTS = ROOT / "results"
 MUSIC = ROOT / "data" / "music"
 DEMO = ROOT / "demo"
 
+from aux.data.fma import DEFAULT_AUDIO, DEFAULT_METADATA  # noqa: E402
+
 
 def is_public() -> bool:
     """Whether this instance is deployed rather than running on the owner's machine.
@@ -60,8 +62,14 @@ def personal_is_local() -> bool:
     return not is_public() and MUSIC.exists()
 
 
-def _bundle_present() -> bool:
-    return (DEMO / "personal_manifest.json").exists() and (DEMO / "personal_vectors.npz").exists()
+def _bundle_present(prefix: str = "personal") -> bool:
+    return ((DEMO / f"{prefix}_manifest.json").exists()
+            and (DEMO / f"{prefix}_vectors.npz").exists())
+
+
+def fma_is_local() -> bool:
+    """Whether FMA loads from the downloaded corpus rather than the exported bundle."""
+    return DEFAULT_AUDIO.exists() and DEFAULT_METADATA.exists()
 
 
 #: Some FMA titles are the uploader's filename rather than a title: a leading track
@@ -136,6 +144,8 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
         raise RuntimeError("the personal library is not available on this instance")
     if which == "personal" and not personal_is_local():
         return load_personal_bundle()
+    if which == "fma" and not fma_is_local():
+        return load_fma_bundle()
     if which == "fma":
         from aux.data import balanced_subset, load_tracks
 
@@ -201,6 +211,22 @@ class BundledTrack:
     artist: str
     genre: str
     path: Path = Path()
+
+
+def load_fma_bundle() -> Corpus:
+    """Load the exported FMA slice: metadata, vectors, and audio that ships with it.
+
+    Creative Commons, so unlike the personal library the recordings travel with the bundle
+    and a deployed demo can play them.
+    """
+    manifest = json.loads((DEMO / "fma_manifest.json").read_text())
+    blob = np.load(DEMO / "fma_vectors.npz")
+    tracks = [BundledTrack(track_id=r["track_id"], title=r["title"], artist=r["artist"],
+                           genre=r["genre"], path=DEMO / "audio" / r["file"])
+              for r in manifest["tracks"]]
+    return Corpus(manifest["name"], tracks, blob["audio"], None, None,
+                  playable=True, anonymous=False, note=manifest["note"],
+                  artists=[t.artist for t in tracks])
 
 
 def load_personal_bundle() -> Corpus:
