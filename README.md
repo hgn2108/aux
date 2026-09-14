@@ -49,7 +49,8 @@ Two independent signals, searched the same way:
 
 - **Sound** — [MuQ-MuLan](https://huggingface.co/OpenMuQ/MuQ-MuLan-large) puts music and text
   in one embedding space, so a written description can be matched against a recording
-  directly. Chosen over CLAP by a paired test on this corpus (p = 4.5e-08).
+  directly. Chosen over the main alternative, CLAP, after both were measured on this corpus
+  and the difference was tested for significance.
 - **Lyrics** — Whisper transcribes the track, Qwen3 embeds the words.
 
 A slider blends the two. Which setting is right turns out to depend on the question, which is
@@ -70,10 +71,14 @@ tab to upload them straight into the browser.
 
 ## Results
 
-Relevance comes from facts rather than opinion: two tracks count as a match if they share a
-genre, artist or album. None of those *is* musical similarity, so all three are reported —
-they fail in different directions. Every score is **NDCG@10** (*of the ten tracks shown, how
-many were right, and were the right ones near the top?*) against a computed random baseline.
+Whether two tracks "sound similar" is a matter of opinion, so the system is not graded on
+that. It is graded on facts: two tracks count as a match if they share a genre, an artist or
+an album. None of those *is* musical similarity, so all three are reported, because each is
+wrong in a different way.
+
+Every score below is **NDCG@10** — of the ten tracks returned, how many were matches, and
+were the matches near the top. 1.0 is perfect. Each is shown next to the score a random
+shuffle gets on the same labels, so the number has a floor to be read against.
 
 ### Recommending from sound alone
 
@@ -101,34 +106,38 @@ The same two systems, the same music, opposite answers — decided only by what 
 | 0.50 | 0.802 | 0.671 |
 | 1.00 — sound only | **0.832** | 0.367 |
 
-Genre and artist are things you can *hear*, so lyrics add nothing there. Ask what a song is
-*about* and the lyric channel doubles the sound channel, winning 8 of 9 themes — the
-exception being *heartbreak*, where sad songs sound sad.
+Genre and artist are audible, so lyrics add nothing when matching on those. Ask what a song
+is *about* and the lyrics score twice what sound does, winning 8 of the 9 subjects tested.
+The one exception is *heartbreak*, where sound wins: sad songs sound sad.
 
-Using the wrong setting costs **a third to a half** of the system's accuracy. There is no
-correct fixed weight.
+Set the weight wrong for the question being asked and the system loses **a third to a half**
+of its accuracy. No single setting is right for both.
 
-### Choosing the weight automatically does not work yet
+### Setting that weight automatically did not work
 
-Three routers were built to detect the question type and set the weight: keyword rules,
-embedding similarity, and an LLM. Each was scored end to end against an *oracle* allowed to
-see the answers, which caps what any router could be worth.
+If the right weight depends on the question, the obvious next step is to detect the question
+and set the weight for the user. Three ways of doing that were tried: matching keywords,
+comparing the query to example queries, and asking an LLM.
 
-| router | NDCG@10 | vs fixed weight | ms/query |
-|---|---:|---:|---:|
-| *best fixed weight (no routing)* | *0.552* | — | *0.0* |
-| keyword rules | 0.500 | −0.053 | 0.0 |
-| embedding prototypes | 0.570 | +0.017 | 2.3 |
-| LLM (Haiku) | 0.571 | +0.019 | 1686 |
-| *oracle (ceiling)* | *0.670* | *+0.118* | — |
+| approach | NDCG@10 | speed |
+|---|---:|---:|
+| fixed weight, no detection | 0.552 | instant |
+| keyword matching | 0.500 | instant |
+| compare to example queries | 0.570 | 2 ms |
+| ask an LLM | 0.571 | 1.7 s |
+| *perfect detection (upper bound)* | *0.670* | — |
 
-None beat a fixed weight significantly (n=96, paired permutation). **So the app exposes the
-control instead of guessing** — the person searching already knows whether they are asking
-about sound or meaning.
+The last row is the score if every question were classified correctly, so it is the most any
+method of this kind could be worth. None of the three got close, and none beat simply fixing
+the weight by enough to be statistically significant over 96 queries.
 
-The keyword router first appeared to win at +0.058, on 24 queries written by the same person
-who wrote its rules. Rerun on paraphrases that avoid those phrasings, it fell to −0.053:
-best arm to worst. The original result was overfitting to the test set.
+**The app therefore exposes the weight as a control rather than guessing it.** Someone
+searching already knows whether they are asking about sound or about meaning.
+
+Keyword matching looked like the winner until the test set changed. Its rules and the test
+queries had been written by the same person, so it was rewarded for recognising familiar
+phrasing. Retested on differently worded queries meaning the same things, it went from the
+best of the three to the worst.
 
 ![The findings tab](docs/img/findings.png)
 
@@ -138,17 +147,18 @@ Full tables, ablations and significance tests: **[EVALUATION.md](EVALUATION.md)*
 
 ## What's next
 
-The system currently ranks by content alone, which is the right place to start and the wrong
-place to stop. A recommender improves by observing what actually gets played.
+The system ranks purely on what a track sounds like and what its words say. It does not yet
+learn from the person using it. Three planned stages, in order:
 
-1. **Behavioural personalization.** The app already plays results in place, so a play, a skip
-   or a replay can be attributed to the query and rank that produced it. That gives
-   first-party feedback without needing anyone's streaming history.
-2. **Intent-specific preference.** The finding above says a listener's intent changes which
-   signal matters; the same should hold for their taste. Preference learned on *"for running"*
-   should not leak into *"for studying"*.
-3. **Relevance against discovery.** Content similarity converges on the familiar. Measuring
-   novelty as an explicit trade-off comes after preference exists to trade against.
+1. **Learn from plays.** Results play inside the app, so each play, skip or replay can be
+   recorded against the query and position that produced it. That produces preference data
+   from ordinary use, without needing anyone's streaming account.
+2. **Keep preference specific to the request.** The result above shows that what counts as a
+   good match changes with the question. Taste likely behaves the same way, so what is
+   learned from *"music for running"* should not change results for *"music for studying"*.
+3. **Balance familiarity against discovery.** Ranking on similarity alone tends to return
+   more of what a listener already knows. Measuring that trade-off only becomes possible once
+   there is preference data to measure it against, which is why it comes last.
 
 ---
 
@@ -160,12 +170,15 @@ place to stop. A recommender improves by observing what actually gets played.
 - **The lyric results use a 160-track personal library.** No public corpus available here has
   a usable lyric channel: 56% of a sampled 75 Free Music Archive clips are instrumental, with
   transcripts running a median of 11 words.
-- **Theme labels are model-generated**, validated against blind human judgement at Cohen's
-  **κ = 0.60**. Dropping the two themes below that bar narrows the lyric lead from 0.734 to
-  0.717 against 0.430 — the conclusion holds.
+- **The "songs about X" labels were generated by a model**, then checked against blind human
+  judgement on a sample. Agreement was substantial but not perfect. Dropping the two themes
+  where agreement was weakest narrows the lyric lead from 0.734 to 0.717 against 0.430, so
+  the conclusion holds without them.
 - **The router comparison uses 96 queries.** It rules out large effects, not small ones.
-- **No learned fusion and no ANN index.** At this corpus size exact search is instant, and a
-  learned combiner would be fitted on the same proxy labels whose weakness is the point.
+- **The blend weight is set by hand, and search compares against every track.** At this
+  corpus size comparing everything is instant, so an approximate index would add complexity
+  for no gain. A learned blend was not attempted because it would have to be trained on the
+  same imperfect labels described above.
 
 ## Layout
 
