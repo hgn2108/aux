@@ -21,9 +21,10 @@ gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
     artifactregistry.googleapis.com --quiet
 
 # Built on Cloud Build rather than locally: the image carries ~4GB of model weights, and
-# pushing that from a laptop is slow.
-echo "==> building (this takes 15-25 minutes the first time)"
-gcloud builds submit --tag "gcr.io/$PROJECT/$SERVICE" --timeout=3600s
+# pushing that from a laptop is slow. cloudbuild.yaml reuses the previous image's layers,
+# so only the first build pays for the weights.
+echo "==> building (15-25 minutes the first time, ~2 minutes after a code-only change)"
+gcloud builds submit --config cloudbuild.yaml
 
 echo "==> deploying"
 gcloud run deploy "$SERVICE" \

@@ -2,8 +2,13 @@
 
 A container that fetches 3.6 GB of weights on first request turns every cold start into a
 multi-minute wait, and on Cloud Run the writable filesystem is memory-backed, so the
-download is paid for twice -- in latency and in RAM. Baking the weights in makes cold start
-the cost of loading them from local disk instead.
+download costs RAM as well as latency.
+
+**This script imports nothing from `aux` on purpose.** It runs in the Dockerfile before the
+source tree is copied, so that editing any project file does not invalidate the layer
+holding several gigabytes of weights. The cost of that is a second copy of two model
+identifiers, which `tests/test_prefetch.py` pins to the adapters' own defaults so they
+cannot drift apart silently.
 
 Whisper is deliberately not prefetched. It is only needed if a visitor turns on lyric
 transcription for their own upload, so it is left to download on demand rather than adding
@@ -15,21 +20,25 @@ half a gigabyte to every image.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+#: Must match `aux.encode.muq.DEFAULT_CHECKPOINT`.
+MUQ_CHECKPOINT = "OpenMuQ/MuQ-MuLan-large"
+
+#: Must match `aux.lyrics.embed.DEFAULT_MODEL`.
+LYRIC_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 
 
 def main() -> int:
-    from aux.encode.muq import MuQMuLanAdapter
+    from muq import MuQMuLan
 
-    print("fetching MuQ-MuLan…", file=sys.stderr)
-    MuQMuLanAdapter()
+    print(f"fetching {MUQ_CHECKPOINT}…", file=sys.stderr)
+    MuQMuLan.from_pretrained(MUQ_CHECKPOINT)
 
-    from aux.lyrics import LyricEmbedder
+    from transformers import AutoModel, AutoTokenizer
 
-    print("fetching Qwen3-Embedding…", file=sys.stderr)
-    LyricEmbedder()
+    print(f"fetching {LYRIC_MODEL}…", file=sys.stderr)
+    AutoTokenizer.from_pretrained(LYRIC_MODEL)
+    AutoModel.from_pretrained(LYRIC_MODEL)
 
     print("done", file=sys.stderr)
     return 0

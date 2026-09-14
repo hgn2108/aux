@@ -1,0 +1,28 @@
+# Build with layer caching. `gcloud builds submit --tag` starts from a clean machine with
+# no cache, so every rebuild re-ran the dependency install and re-downloaded 3.6GB of model
+# weights -- twenty minutes to change one line. Pulling the previous image and passing it
+# as --cache-from reuses every layer up to the first real change, which for a code-only
+# edit is all of the expensive ones.
+
+steps:
+  # First build has nothing to pull; `|| exit 0` keeps that from failing the run.
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args:
+      - -c
+      - docker pull gcr.io/$PROJECT_ID/aux:latest || exit 0
+
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --cache-from=gcr.io/$PROJECT_ID/aux:latest
+      - --tag=gcr.io/$PROJECT_ID/aux:latest
+      - .
+
+images:
+  - gcr.io/$PROJECT_ID/aux:latest
+
+timeout: 3600s
+
+options:
+  machineType: E2_HIGHCPU_8

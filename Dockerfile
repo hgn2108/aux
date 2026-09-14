@@ -52,13 +52,18 @@ RUN python -c "import torch, torchvision, x_clip; \
     print('torch', torch.__version__, '| torchvision', torchvision.__version__); \
     torchvision.ops.nms(torch.zeros(0, 4), torch.zeros(0), 0.5)"
 
+# Weights go in the image: fetching them on first request would make every cold start a
+# multi-minute wait, and Cloud Run's writable filesystem is memory-backed, so the download
+# would cost RAM as well.
+#
+# This runs BEFORE the source is copied, and the script it runs imports nothing from the
+# project, so that editing any file leaves the several-gigabyte layer untouched. With the
+# copy above it, a one-line change re-downloaded all 3.6GB.
+COPY --chown=user scripts/prefetch_models.py scripts/
+RUN python scripts/prefetch_models.py
+
 COPY --chown=user . .
 RUN pip install --no-cache-dir --user --no-deps -e .
-
-# Weights go in the image. Fetching them on first request would make every cold start a
-# multi-minute wait, and the writable filesystem on Cloud Run is memory-backed, so the
-# download would cost RAM as well as latency.
-RUN python scripts/prefetch_models.py
 
 # Cloud Run sets PORT and ignores EXPOSE; a Space uses app_port from its README. Binding to
 # ${PORT:-7860} serves both from one image.
