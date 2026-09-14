@@ -14,8 +14,8 @@ but dreamier"*.
 `aux` builds that recommender from the audio itself — no tags, no play counts, no listening
 history.
 
-**[▶ Try the live demo](https://aux-339224224982.us-central1.run.app)** · first load takes a
-minute while the model starts
+**Live demo:** https://aux-339224224982.us-central1.run.app — the first search takes about a
+minute while the model loads.
 
 ![Searching by description](docs/img/search.png)
 
