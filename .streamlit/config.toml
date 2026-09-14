@@ -17,3 +17,8 @@ headingFont = "sans-serif"
 backgroundColor = "#f4f5f6"
 secondaryBackgroundColor = "#e9ebed"
 borderColor = "#dfe2e6"
+
+[client]
+# Hides the "Deploy" button and the hamburger's developer entries. This is a demo, and
+# those controls belong to whoever is hosting it, not to whoever is reading it.
+toolbarMode = "minimal"

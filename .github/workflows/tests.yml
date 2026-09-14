@@ -1,0 +1,25 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      # Everything except the tests that load MuQ-MuLan and Whisper. Those need ~4GB of
+      # model weights and a corpus that is not in the repository, so they are run locally
+      # and excluded here rather than pretended at with mocks.
+      - name: Run tests
+        run: pytest -m "not slow" -q

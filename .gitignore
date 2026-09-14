@@ -56,7 +56,8 @@ STATUS.md
 DECISIONS.md
 EVALS.md
 CLAUDE.md
-docs/
+docs/*
+!docs/img/
 evals/
 
 # Editor/tooling config

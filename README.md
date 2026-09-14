@@ -1,5 +1,9 @@
 # aux
 
+[![tests](https://github.com/hgn2108/aux/actions/workflows/tests.yml/badge.svg)](https://github.com/hgn2108/aux/actions/workflows/tests.yml)
+[![python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
+[![licence](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
+
 **Search your own music by how it feels.**
 
 You own a folder of music. You cannot search it for *"something quiet and bittersweet"* or
@@ -14,6 +18,11 @@ listening history, nothing but the files.
 pip install -e ".[app]"
 streamlit run app.py
 ```
+
+![Searching by description](docs/img/search.png)
+
+*Typing "sparse piano, quiet and unhurried" against 250 tracks with no tags. The top two
+results are ambient piano artists.*
 
 ---
 
@@ -166,6 +175,11 @@ deliberately biasing *against* the router expected to win.
 It went from **+0.058 to −0.053**. Best arm to worst, on held-out phrasing alone. It had been
 fitted to queries written by the same person who wrote the rules.
 
+![The findings tab](docs/img/findings.png)
+
+*The app carries its own evidence: every table is read from a committed results file, so
+nothing on screen can drift from the run that produced it.*
+
 Full tables, ablations and significance tests: **[EVALUATION.md](EVALUATION.md)**.
 
 ---
@@ -281,3 +295,8 @@ Results are written to `results/*.json`, and the app reads them from there.
 | `src/aux/eval/` | ranking metrics, paired significance tests |
 | `scripts/` | every experiment, one file each |
 | `results/` | committed JSON behind every number above |
+
+## Licence
+
+MIT, for the code. The model weights downloaded at runtime carry their own licences
+(MuQ-MuLan is CC-BY-NC). No music is distributed here — see [LICENSE](LICENSE).

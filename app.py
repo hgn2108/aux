@@ -489,7 +489,8 @@ def page_findings() -> None:
                 "P@10": round(audio["precision@10"], 3),
                 "NDCG@10": round(audio["ndcg@10"], 3),
                 "random NDCG@10": round(random["ndcg@10"], 3),
-                "lift": f"{audio['ndcg@10'] / max(random['ndcg@10'], 1e-9):.0f}x",
+                "lift": (lambda x: f"{x:.1f}x" if x < 10 else f"{x:.0f}x")(
+                    audio["ndcg@10"] / max(random["ndcg@10"], 1e-9)),
             })
         st.dataframe(rows, hide_index=True, width="stretch")
 
@@ -599,10 +600,8 @@ def choose_corpus():
 
 def page_browse() -> None:
     corpus, recommender = choose_corpus()
-    st.divider()
     how = st.segmented_control("Find tracks", ["By description", "By a track you like"],
                                default="By description", key="browse_mode")
-    st.write("")
     if how == "By a track you like":
         page_recommend(corpus, recommender)
     else:
