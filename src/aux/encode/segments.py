@@ -3,8 +3,8 @@
 A 3-5 minute track must become one vector, but encoders accept windows of seconds. The
 choice of how to sample the track is E1's subject:
 
-- **baseline** -- one representative centre segment;
-- **candidate** -- 3-5 deterministic windows spread across the track, excluding obvious
+- **baseline**, one representative centre segment;
+- **candidate**, 3-5 deterministic windows spread across the track, excluding obvious
   leading and trailing silence.
 
 Everything here is deterministic. No random offsets: Eval 0A's repeatability guarantee has
@@ -37,7 +37,7 @@ def trim_silence(
 ) -> tuple[int, int]:
     """Return ``(start, end)`` sample indices with leading/trailing silence removed.
 
-    Coarse by design -- measured on 50 ms blocks rather than per sample, so a single
+    Coarse by design, measured on 50 ms blocks rather than per sample, so a single
     non-zero sample in a fade cannot defeat it. Returns the full range if the track is
     silent throughout, leaving that judgement to the caller.
     """
@@ -63,7 +63,7 @@ def select_segments(
 ) -> list[Segment]:
     """Pick ``n_segments`` deterministic windows of ``segment_seconds`` from a track.
 
-    One segment is taken from the centre -- the least-bad single choice, since intros and
+    One segment is taken from the centre, the least-bad single choice, since intros and
     outros are the least representative parts of a track. Several segments are spaced
     evenly across the trimmed region, each centred in its own equal share of the track, so
     coverage does not depend on track length.

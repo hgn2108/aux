@@ -1,8 +1,8 @@
-"""Context→acoustic translation by fixed lexicon — DEC-013's rung 1.
+"""Context→acoustic translation by fixed lexicon, DEC-013's rung 1.
 
 Irene's own queries are context-led: 7 of 12 name an activity or setting. Slice 1 found
 context the weakest category (3.14), and specifically that context *without* a genre anchor
-fails badly — "background music while reading" scored 1.6, "warming up before going out"
+fails badly, "background music while reading" scored 1.6, "warming up before going out"
 1.6. Meanwhile concrete instrumentation language works well ("solo piano" z = 4.97).
 
 The gap is between the language people use and the language the encoder was trained on:
@@ -10,7 +10,7 @@ descriptive captions of *sound*. This module closes it the cheapest way availabl
 rewriting situations into sounds.
 
 **Why a hand-written table when an LLM would write a better one.** Because it costs nothing,
-runs offline, is deterministic, and captures the genuinely universal half of the mapping —
+runs offline, is deterministic, and captures the genuinely universal half of the mapping:
 running is fast, sleeping is slow. DEC-013 requires the LLM to beat this before its cost and
 network dependency are justified, and a measured "the table was enough" is a real result.
 
@@ -25,7 +25,7 @@ import re
 from dataclasses import dataclass
 
 CONTEXT_LEXICON: dict[str, str] = {
-    # Activity — the dominant form in Irene's queries.
+    # Activity, the dominant form in Irene's queries.
     "running": "fast tempo, driving percussion, high energy, steady beat",
     "workout": "fast tempo, driving percussion, high energy, aggressive",
     "gym": "fast tempo, heavy bass, high energy, aggressive",
@@ -50,7 +50,7 @@ CONTEXT_LEXICON: dict[str, str] = {
     "going out": "upbeat, energetic, danceable, bright",
     "dancing": "danceable, strong rhythm, steady beat, energetic",
 
-    # Setting and time — weaker mappings, kept short on purpose.
+    # Setting and time, weaker mappings, kept short on purpose.
     "late night": "slow, dark, spacious, subdued, intimate",
     "night drive": "slow to mid tempo, dark, spacious, sustained",
     "morning": "bright, gentle, warm, unhurried",
@@ -65,7 +65,7 @@ Terms are the ones that actually appeared in Irene's queries and in the Slice 1 
 their near neighbours. Deliberately small: an unused entry cannot be validated, and a table
 that guesses at situations nobody asks for is untested surface area.
 
-Values name **acoustic properties** — tempo, density, dynamics, texture — not genres.
+Values name **acoustic properties**, tempo, density, dynamics, texture, not genres.
 Mapping "studying" to "lo-fi hip hop" would bake one listener's taste into the system, which
 is the personal half this module explicitly does not attempt.
 """
@@ -88,7 +88,7 @@ class Expansion:
 def expand(query: str) -> Expansion:
     """Find context terms in a query and return their acoustic translation.
 
-    The original query is never discarded — the genre and mood words in it are doing real
+    The original query is never discarded, the genre and mood words in it are doing real
     work, as Slice 1 showed when genre-anchored context queries (4.18) far outscored
     context-only ones. The expansion is additional evidence, combined at retrieval time.
     """

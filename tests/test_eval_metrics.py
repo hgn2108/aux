@@ -1,7 +1,7 @@
 """Metric tests.
 
 These matter more than they look. A silently wrong Recall@K or an off-by-one in ranking
-would not crash anything -- it would produce a plausible number that every later decision
+would not crash anything, it would produce a plausible number that every later decision
 is then made from.
 """
 

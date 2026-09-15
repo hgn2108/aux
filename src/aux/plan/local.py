@@ -1,4 +1,4 @@
-"""Ollama-backed planner — the local half of E2a.
+"""Ollama-backed planner, the local half of E2a.
 
 Exists so the question "does this need a hosted model?" is answered by measurement rather
 than assumption. If a local model matches the hosted one, DEC-007's hosted-API concession is

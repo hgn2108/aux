@@ -42,7 +42,7 @@ def test_multiple_negations_are_separated():
 
 
 def test_word_boundary_prevents_false_matches():
-    """"piano" contains "no" — matching inside a word would wreck ordinary queries."""
+    """"piano" contains "no", matching inside a word would wreck ordinary queries."""
     p = parse("piano and snow patrol vibes")
     assert not p.has_negation
     assert p.positive == "piano and snow patrol vibes"

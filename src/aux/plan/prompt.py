@@ -3,10 +3,10 @@
 Written against what Slice 1 actually measured, not against intuition:
 
 - concrete instrumentation language retrieves well ("solo piano" z = 4.97), abstract mood
-  language poorly ("upbeat energetic party track" z = 1.77) — so the rewrite should name
+  language poorly ("upbeat energetic party track" z = 1.77), so the rewrite should name
   sound, not vibe;
 - genre words carry real signal (genre-anchored context queries scored 4.18 against 3.14
-  for context alone) — so the rewrite must *keep* the genre rather than translate it away.
+  for context alone), so the rewrite must *keep* the genre rather than translate it away.
   This is where the fixed lexicon failed: it diluted the genre and fidelity fell 0.80 to
   0.46;
 - the encoder is blind to language identity and to lyrical content, so asking for those in

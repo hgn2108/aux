@@ -1,4 +1,4 @@
-"""The search entry point — everything Slice 0 to 2 established, in one place.
+"""The search entry point, everything Slice 0 to 2 established, in one place.
 
 Every component here earned its place by measurement, and the ones that did not are absent.
 What survived:
@@ -15,7 +15,7 @@ What was measured and rejected: a fixed context lexicon (DEC-016), five rerankin
 
 **The planner is off by default** and available behind `use_planner`. It helps vague queries
 (+1.07 on ones the baseline handled badly) and *harms* specific ones (-0.58), so applied
-indiscriminately it nets to nothing — measured at +0.05, p = 1.000. It also costs ~1.7 s and
+indiscriminately it nets to nothing, measured at +0.05, p = 1.000. It also costs ~1.7 s and
 an internet connection, in a project whose first principle is local-first. DEC-021 records
 the rule for when it is worth enabling; that rule is not yet validated on held-out queries.
 """
@@ -49,7 +49,7 @@ class SearchResponse:
     top_score: float
     z_top: float
     low_coverage: bool
-    """True when even the best match is a poor one — the library probably cannot answer.
+    """True when even the best match is a poor one, the library probably cannot answer.
 
     Phase B validated the *signal*: raw top score detected a removed genre in 20 of 22
     cases, where every distribution-shape measure sat at or below chance. The **threshold**

@@ -3,7 +3,7 @@
 A dependency declared under an optional extra but imported at module level by the library
 makes the package uninstallable-in-practice: it imports fine on a development machine,
 where the extra happens to be present, and fails everywhere else. That is exactly how the
-first CI run broke -- `aux.data` imports pandas to read the FMA metadata CSV, and pandas
+first CI run broke, `aux.data` imports pandas to read the FMA metadata CSV, and pandas
 was declared under `[app]`.
 
 This hides the optional packages with an import hook and runs the suite, so the failure

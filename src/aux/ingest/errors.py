@@ -24,7 +24,7 @@ class FailureCategory(str, Enum):
     """Demuxer could not open the container. Truncated download, or a mislabelled extension."""
 
     NO_AUDIO_STREAM = "no_audio_stream"
-    """Opened fine but carries no audio -- e.g. a silent-video MP4."""
+    """Opened fine but carries no audio, e.g. a silent-video MP4."""
 
     DECODE_FAILED = "decode_failed"
     """Audio stream present but decoding raised. Includes DRM-protected M4A, which

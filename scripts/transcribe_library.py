@@ -8,8 +8,8 @@ Produces three things Slice 3 needs, from one pass:
 - **an instrumental flag**, which addresses another ("solo piano, no vocals" was the
   worst-scoring query in Slice 1).
 
-Transcripts of personal music are personal data — arguably more identifying than filenames,
-since they are the words — so the full output is written to a gitignored `.private.json` and
+Transcripts of personal music are personal data, arguably more identifying than filenames,
+since they are the words, so the full output is written to a gitignored `.private.json` and
 only aggregates are committed.
 
     python scripts/transcribe_library.py data/music --model small

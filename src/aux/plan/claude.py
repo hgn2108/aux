@@ -52,7 +52,7 @@ class ClaudePlanner(Planner):
         """Enforce the JSON schema server-side rather than asking for it in the prompt.
 
         This API version exposes no temperature control, so the planner cannot be made
-        deterministic by sampling settings — and it is not deterministic: an E2 measurement
+        deterministic by sampling settings, and it is not deterministic: an E2 measurement
         moved from +0.34 to +0.40 between two runs whose baseline was identical to two
         decimal places, which was the planner re-sampling its own inputs. Reproducibility is
         therefore handled by caching plans (`plan.cache`), and schema enforcement removes the

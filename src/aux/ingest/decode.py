@@ -1,4 +1,4 @@
-"""AudioDecoder -- decode any supported container to a mono float32 waveform.
+"""AudioDecoder, decode any supported container to a mono float32 waveform.
 
 Two decisions are load-bearing here and both come from DESIGN.md:
 

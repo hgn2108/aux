@@ -9,7 +9,7 @@ An oracle allowed to pick the better modality per query scores +0.042 over the b
 weight. That is the ceiling for everything in this package, and it is deliberately small: a
 router is worth building only if it captures most of it for less than it costs. Three
 implementations are measured against that bound rather than one being assumed best, which is
-the same treatment the query planner got — and the planner lost, and is off by default.
+the same treatment the query planner got, and the planner lost, and is off by default.
 """
 
 from __future__ import annotations

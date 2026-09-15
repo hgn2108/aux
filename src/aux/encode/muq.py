@@ -1,7 +1,7 @@
 """MuQ-MuLan adapter.
 
 E0's comparator against CLAP. Music-specific rather than general-audio, ~700M parameters,
-24 kHz input, code MIT, released weights **CC-BY-NC 4.0** -- which constrains
+24 kHz input, code MIT, released weights **CC-BY-NC 4.0**, which constrains
 productization and is a factor in E0's decision, not only retrieval quality.
 
 **One behaviour worth naming.** MuQ-MuLan crops audio longer than 10 s into multiple clips
@@ -56,7 +56,7 @@ class MuQMuLanAdapter(EncoderAdapter):
     """Frozen MuQ-MuLan, music and text in one space."""
 
     sample_rate = 24_000
-    """MuQ-MuLan's contract, and deliberately different from CLAP's 48 kHz -- which is why
+    """MuQ-MuLan's contract, and deliberately different from CLAP's 48 kHz, which is why
     resampling belongs in the adapter and the library keeps its source rates."""
     segment_seconds = 10.0
 
@@ -104,7 +104,7 @@ class MuQMuLanAdapter(EncoderAdapter):
 
         The stray-tensor patch above moves weights that `Module.to()` misses. A patch like
         that could plausibly change numerics rather than merely fix placement, and the
-        result would be corrupt embeddings that still look well-formed -- the exact failure
+        result would be corrupt embeddings that still look well-formed, the exact failure
         mode DEC-010 was written about. So the patch is trusted only if it reproduces the
         CPU result on a deterministic signal.
         """

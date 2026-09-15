@@ -24,7 +24,7 @@ def test_reversed_order_scores_less_than_perfect():
 
 
 def test_ndcg_is_order_sensitive_not_set_sensitive():
-    """Same items, different order — the whole point of the metric."""
+    """Same items, different order, the whole point of the metric."""
     assert ndcg(np.array([5, 1])) > ndcg(np.array([1, 5]))
 
 

@@ -2,15 +2,15 @@
 
 The retrieval surface the rest of the project is measured through. Three modes:
 
-- **audio** — MuQ-MuLan embeddings of the recording itself;
-- **lyrics** — Qwen3 embeddings of Whisper transcripts;
-- **fused** — a weighted blend, with `alpha` controlling the balance.
+- **audio**, MuQ-MuLan embeddings of the recording itself;
+- **lyrics**, Qwen3 embeddings of Whisper transcripts;
+- **fused**, a weighted blend, with `alpha` controlling the balance.
 
 **Why weighted-score fusion rather than rank fusion.** Reciprocal rank fusion was measured
 first and is the wrong tool here: it weights its inputs equally by construction, and E3
 showed that halves performance when one modality knows nothing about the query (lyric-line
 retrieval, where audio sits at chance). A weight makes the balance explicit, tunable, and
-measurable — which is what an ablation needs.
+measurable, which is what an ablation needs.
 
 **Why per-query normalisation.** Audio and lyric cosines come from different models with
 different score distributions, so `0.6 * audio + 0.4 * lyric` on raw values silently weights
@@ -25,8 +25,8 @@ the default. Min-max is kept selectable because that comparison is the evidence 
 choice, and because the displayed per-result scores still use it: a 0-1 range is meaningful
 to a reader, and a standard deviation is not.
 
-**Missing modality.** A track with no reliable transcript — instrumental, or a failed
-transcription — has no lyric vector. It falls back to its audio score rather than being
+**Missing modality.** A track with no reliable transcript, instrumental, or a failed
+transcription, has no lyric vector. It falls back to its audio score rather than being
 scored zero, since zero would push every instrumental track to the bottom of every fused
 ranking and quietly turn fusion into a vocal-music filter.
 """
@@ -71,7 +71,7 @@ class Recommendation:
     score: float
     audio_score: float
     lyric_score: float | None
-    """None when this track has no usable transcript — surfaced rather than faked, so the
+    """None when this track has no usable transcript, surfaced rather than faked, so the
     UI can say "no lyrics" instead of showing a fabricated zero."""
 
     def explain(self) -> str:
@@ -184,7 +184,7 @@ class Recommender:
         """Text-to-track search: rank by a query embedding in the audio space.
 
         Kept on the same object as track-to-track so both retrieval modes share one index,
-        one cache and one set of results — they are two entry points to the same system, not
+        one cache and one set of results, they are two entry points to the same system, not
         two systems.
         """
         scores = self.audio @ np.asarray(query_vector, dtype=np.float32)
@@ -195,5 +195,5 @@ class Recommender:
                 for r, j in enumerate(order)]
 
     def score_matrix(self, *, modality: str = "audio", alpha: float = 0.5) -> np.ndarray:
-        """Every track against every track — what the evaluation consumes."""
+        """Every track against every track, what the evaluation consumes."""
         return np.stack([self.score(i, modality=modality, alpha=alpha) for i in range(len(self))])

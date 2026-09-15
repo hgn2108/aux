@@ -3,7 +3,7 @@
 The closest objective proxy this project has to "did the system deliver what was asked",
 and the one that needs neither an opposed pair nor a human.
 
-A query — or a planner's rewrite of it — names properties: "quiet", "fast", "sparse". Those
+A query, or a planner's rewrite of it, names properties: "quiet", "fast", "sparse". Those
 map to measurable features of the waveform, which the encoder never sees. So the check is
 direct: when a query says *quiet*, are the retrieved tracks actually quieter than the
 library's average?
@@ -66,7 +66,7 @@ def intent_match(text: str, retrieved_features: np.ndarray,
     - **zero** means the words had no effect;
     - **negative** means it moved the wrong way.
 
-    Returns None when the text names no measurable property — reported as such rather than
+    Returns None when the text names no measurable property, reported as such rather than
     scored as zero, because "no opinion" and "no effect" are different.
     """
     found = terms_in(text)

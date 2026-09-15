@@ -263,7 +263,7 @@ def test_display_shows_written_artist_names_not_the_matching_key():
     """`TrackMeta.artist` is case-folded because it decides same-artist relevance.
 
     Showing it directly put "a boogie wit da hoodie" on screen, so display names are
-    resolved separately -- and a filename with no separable artist must not print the same
+    resolved separately, and a filename with no separable artist must not print the same
     text twice.
     """
     from aux.app.data import Corpus
@@ -331,7 +331,7 @@ def test_a_bundled_corpus_needs_no_encoder(monkeypatch, tmp_path):
     """Loading stored vectors must not pull in a 2.5GB model.
 
     It did: the encoder was passed to `load_corpus` unconditionally, and Python evaluates
-    arguments before the call, so a deployment -- where both corpora are bundles -- loaded
+    arguments before the call, so a deployment, where both corpora are bundles, loaded
     MuQ-MuLan before rendering a single track.
     """
     from aux.app import data

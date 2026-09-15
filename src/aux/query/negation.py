@@ -6,7 +6,7 @@ the un-negated query. The opposite also happens: "acoustic guitar and soft vocal
 "acoustic guitar, no vocals" return *identical* results.
 
 The cause is structural, not a tuning problem. A contrastively trained encoder has no
-negation operator — it learned to place text near matching audio, and "no vocals" is a
+negation operator, it learned to place text near matching audio, and "no vocals" is a
 string containing "vocals", so it lands near vocal music. No amount of prompt phrasing fixes
 that inside a single embedding.
 
@@ -53,7 +53,7 @@ def parse(query: str) -> ParsedQuery:
 
     Deliberately a small set of surface patterns rather than a parser. It is the cheap rung
     that an LLM rewrite has to beat before the LLM is worth its cost and its network
-    dependency — if this handles the negations users actually write, the LLM is not earning
+    dependency, if this handles the negations users actually write, the LLM is not earning
     its place.
 
     The negated phrase runs from the marker to the next clause boundary, so

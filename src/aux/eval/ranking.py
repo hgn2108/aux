@@ -1,20 +1,20 @@
 """Ranking metrics for recommendation against binary relevance labels.
 
 Separate from `relevance.py`, which handles graded 1-5 human ratings. Here relevance is
-binary and comes from metadata — same genre, same artist, same album — so the metrics are
+binary and comes from metadata, same genre, same artist, same album, so the metrics are
 the standard retrieval set rather than graded NDCG.
 
 All four are reported because they answer different questions, and a recommender can look
 good on one while failing another:
 
-- **Precision@K** — of what was shown, how much was relevant. The user-facing quality of a
+- **Precision@K**, of what was shown, how much was relevant. The user-facing quality of a
   short list.
-- **Recall@K** — of everything relevant, how much was found. Meaningless when a query has
+- **Recall@K**, of everything relevant, how much was found. Meaningless when a query has
   249 relevant items and K is 10, which is exactly the case for the genre label, so it is
   reported but not used to compare systems there.
-- **HitRate@K** — did *anything* relevant appear. The right metric when relevant items are
+- **HitRate@K**, did *anything* relevant appear. The right metric when relevant items are
   scarce, as with the album label.
-- **NDCG@K** — rewards putting relevant items higher, not merely including them.
+- **NDCG@K**, rewards putting relevant items higher, not merely including them.
 """
 
 from __future__ import annotations
@@ -40,7 +40,7 @@ def ndcg_at_k(ranked_relevant: np.ndarray, k: int, total_relevant: int) -> float
     """NDCG with binary gains.
 
     The ideal ranking places `min(k, total_relevant)` relevant items first, so a query with
-    fewer relevant items than K is not penalised for the shortfall — without that, a query
+    fewer relevant items than K is not penalised for the shortfall, without that, a query
     with one relevant item could never score 1.0.
     """
     gains = np.asarray(ranked_relevant[:k], dtype=float)
@@ -59,7 +59,7 @@ def evaluate_ranking(scores: np.ndarray, relevant: np.ndarray, ks: tuple[int, ..
     """Score one system over every query.
 
     `scores[i, j]` is how strongly track j is recommended for query i; `relevant[i, j]` is
-    whether it should be. `exclude` masks pairs out of both ranking and labels — used to
+    whether it should be. `exclude` masks pairs out of both ranking and labels, used to
     drop same-artist pairs when scoring the genre label, which otherwise rewards a model for
     recognising an album's production rather than its genre.
 
@@ -67,7 +67,7 @@ def evaluate_ranking(scores: np.ndarray, relevant: np.ndarray, ks: tuple[int, ..
     bad one, and including them just dilutes every metric by a constant.
 
     `queries` restricts scoring to a subset of query rows while every track stays a
-    candidate — used for per-genre breakdowns. Pass it rather than slicing `scores`
+    candidate, used for per-genre breakdowns. Pass it rather than slicing `scores`
     yourself: a sliced matrix is no longer square, so the diagonal that stops a track
     recommending itself would land on the wrong tracks.
     """

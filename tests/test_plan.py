@@ -1,7 +1,7 @@
 """Planner schema, parsing and failure-handling tests.
 
-None of these need a live model. That is the point: the parts that must not break —
-validation, JSON recovery, and degrading to the baseline instead of to noise — are exactly
+None of these need a live model. That is the point: the parts that must not break  -
+validation, JSON recovery, and degrading to the baseline instead of to noise, are exactly
 the parts that should be testable without a network or a bill.
 """
 

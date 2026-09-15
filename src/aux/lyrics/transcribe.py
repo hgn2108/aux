@@ -4,13 +4,13 @@
 to a catalogue entry, which is exactly the failure DEC-001 was written to avoid: it breaks
 on remixes, live versions, mashups and mislabelled files, and Irene's library is full of
 them. Transcription reads whatever audio is actually there, so it satisfies the
-train/inference parity rule — anything computed in development is computable for an
+train/inference parity rule, anything computed in development is computable for an
 arbitrary local file.
 
 **Three signals come out of one pass**, and two were unplanned:
 
 - **the text**, for lyrical search (Slice 3's purpose);
-- **the detected language**, which directly addresses a measured Slice 1 failure — "sung in
+- **the detected language**, which directly addresses a measured Slice 1 failure, "sung in
   Vietnamese" returned jazz, because the audio encoder is blind to language;
 - **`no_speech_prob`**, a per-segment estimate that nothing is being sung. That is an
   instrumental detector, and "solo piano, no vocals" was the worst-scoring query in Slice 1.
@@ -86,7 +86,7 @@ class Transcriber:
 
     Whisper detects language from a *single* 30-second window at the start of the file, and
     on this library that is wrong often enough to matter: of five Vietnamese tracks, the
-    default identified three, calling one English (0.47) and one Korean (0.27) — both low
+    default identified three, calling one English (0.47) and one Korean (0.27), both low
     confidence, both from an unrepresentative opening. Voting over five windows spread
     across the track gets all five right.
 
@@ -96,7 +96,7 @@ class Transcriber:
 
     WHISPER_RATE = 16_000
     """Whisper's fixed input rate. The adapter resamples to it, exactly as the encoder
-    adapters do for their own rates — the library is never stored at one universal rate."""
+    adapters do for their own rates, the library is never stored at one universal rate."""
 
     def detect_language(self, audio: np.ndarray) -> tuple[str, float]:
         """Vote on the language across several windows spread through the track.
@@ -131,8 +131,8 @@ class Transcriber:
         transcription sees exactly the same decoded audio the encoder does.
 
         `max_seconds` transcribes only the opening of a track. Cost is linear in the audio
-        fed in -- measured on CPU, `small` takes about 4s for a 60s window and 8s for 120s
-        -- so bounding it is how an interactive caller trades coverage for latency. The
+        fed in, measured on CPU, `small` takes about 4s for a 60s window and 8s for 120s
+       , so bounding it is how an interactive caller trades coverage for latency. The
         indexed library is transcribed in full and passes no bound; only the demo does,
         where waiting on a four-minute song would be worse than reading fewer of its words.
         Language voting still spans the audio it is given.
@@ -151,7 +151,7 @@ class Transcriber:
         result = self._model.transcribe(
             audio,
             # Pass the voted language explicitly, or transcribe() re-detects from the first
-            # window and undoes the vote — which is what produced an English "translation"
+            # window and undoes the vote, which is what produced an English "translation"
             # of a Vietnamese song.
             language=detected,
             # Deterministic: an evaluation that re-samples its own inputs cannot confirm a

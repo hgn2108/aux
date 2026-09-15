@@ -2,7 +2,7 @@
 
 DEC-020 gates query rewriting on this: rewrite only when nothing already stands out. The
 gate is only useful if the measure means the same thing in different libraries, which is not
-obvious — `z_top` divides by the library's spread, but the maximum of 8,000 samples sits
+obvious, `z_top` divides by the library's spread, but the maximum of 8,000 samples sits
 further into the tail than the maximum of 26, so a fixed threshold can drift with collection
 size even though the statistic is nominally normalised.
 
@@ -43,8 +43,8 @@ def relative_gap(scores: np.ndarray, k: int = 10) -> float:
 def crowding(scores: np.ndarray, fraction: float = 0.9) -> float:
     """Share of the library scoring within `fraction` of the top.
 
-    Scale-free because it is a proportion. **High crowding means low confidence** — many
-    tracks are nearly as good as the best one — so it runs opposite to the others and is
+    Scale-free because it is a proportion. **High crowding means low confidence**, many
+    tracks are nearly as good as the best one, so it runs opposite to the others and is
     inverted where a single direction is wanted.
     """
     scores = np.asarray(scores, dtype=float)

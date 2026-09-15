@@ -1,6 +1,6 @@
 """Retrieval that handles negation at the score level.
 
-A single embedding cannot represent "X but not Y" — see `negation`. So the query is split,
+A single embedding cannot represent "X but not Y", see `negation`. So the query is split,
 the parts are embedded separately, and the exclusion is applied where subtraction is
 meaningful:
 
@@ -56,8 +56,8 @@ def score_query(
                 - w * max_j cos(negative_j)
 
     The original query keeps most of the weight by default. Slice 1 showed the genre and
-    mood words carry real signal -- genre-anchored context queries scored 4.18 against 3.14
-    for context alone -- so the expansion is added as evidence rather than substituted for
+    mood words carry real signal, genre-anchored context queries scored 4.18 against 3.14
+    for context alone, so the expansion is added as evidence rather than substituted for
     what the user actually typed.
 
     Both extra terms are embedded separately rather than concatenated into one string. That

@@ -1,4 +1,4 @@
-"""MediaProbe -- identify a file without decoding it.
+"""MediaProbe, identify a file without decoding it.
 
 Reads container headers only. Cheap enough to run over a whole library to categorise it,
 which is what Eval 0A's per-format breakdown needs.
@@ -77,7 +77,7 @@ def probe(path: Path) -> MediaInfo:
 def _container_duration(container: "av.container.InputContainer", stream) -> float:
     """Best-effort duration in seconds from header metadata.
 
-    Header duration is advisory only -- some MP3s report it wrongly, and a truncated file
+    Header duration is advisory only, some MP3s report it wrongly, and a truncated file
     reports its intended length. AudioAsset.duration_seconds is measured from the decoded
     sample count instead; this value exists so probing alone can characterise a library.
     """

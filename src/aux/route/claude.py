@@ -1,6 +1,6 @@
 """The paid arm: ask a model for the weight.
 
-Included because the free baselines have a known weakness — they recognise *phrasings*, and
+Included because the free baselines have a known weakness, they recognise *phrasings*, and
 a listener can ask about meaning without using any of the constructions a rule lists. A model
 that understands the request should route those correctly, and should be able to grade a
 compound query rather than picking a side.
@@ -8,7 +8,7 @@ compound query rather than picking a side.
 Whether that is worth a network call per search is exactly what the evaluation decides. The
 same question was asked of the query planner and answered no, so nothing here is assumed.
 
-Only the query string leaves the machine — the same boundary the planner holds, and narrower
+Only the query string leaves the machine, the same boundary the planner holds, and narrower
 than the theme labeller's.
 """
 
@@ -28,9 +28,9 @@ latency is visible to the user."""
 SYSTEM = """You choose how a music search should be answered.
 
 Two signals are available:
-- SOUND: how the recording actually sounds -- genre, instruments, tempo, production, mood
+- SOUND: how the recording actually sounds, genre, instruments, tempo, production, mood
   carried by the music itself.
-- LYRICS: what the words are about -- topics, stories, feelings stated in the text.
+- LYRICS: what the words are about, topics, stories, feelings stated in the text.
 
 Return `alpha`, the weight on SOUND, between 0 and 1.
 
@@ -75,16 +75,16 @@ class ClaudeRouter(Router):
         self.api_seconds = 0.0
         """Latency is measured over calls that actually went out. Timing the wrapper
         instead reports ~0 ms on a warm cache, which would claim a network round trip is
-        free -- true for a repeated query, false for the novel ones a router exists to
+        free, true for a repeated query, false for the novel ones a router exists to
         handle."""
         self.failures = 0
         """Counted, not swallowed. A router that falls back on every query returns a clean
         constant, which is indistinguishable from a deliberate routing decision unless the
-        failures are surfaced — an earlier run reported the fallback weight as a measured
+        failures are surfaced, an earlier run reported the fallback weight as a measured
         result because nothing recorded that all 24 calls had failed."""
         self._cache: dict[str, tuple[float, str]] = cache if cache is not None else {}
         """Routing the same query twice must give the same answer. This API exposes no
-        temperature control, so determinism comes from caching rather than sampling —
+        temperature control, so determinism comes from caching rather than sampling  -
         the same resolution the planner reached."""
 
     def route(self, query: str) -> Route:

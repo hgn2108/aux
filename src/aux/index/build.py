@@ -24,7 +24,7 @@ def build_index(
 ) -> tuple[np.ndarray, list[Path], list[np.ndarray]]:
     """Return `(track_vectors, paths, segment_vectors)`.
 
-    Either walk `root`, or index an explicit `paths` list — the latter is what a curated
+    Either walk `root`, or index an explicit `paths` list, the latter is what a curated
     evaluation subset needs, where membership is chosen by metadata rather than by what
     happens to sit in a directory.
 

@@ -22,7 +22,7 @@ def mcnemar_exact(b: int, c: int) -> float:
     ``b`` is the count that the baseline got right and the treatment got wrong; ``c`` the
     reverse. Under the null the discordant outcomes split 50/50, so the p-value is the
     two-sided binomial tail. Exact rather than the chi-square approximation, which is
-    unreliable when ``b + c`` is small -- exactly the regime where a marginal result would
+    unreliable when ``b + c`` is small, exactly the regime where a marginal result would
     otherwise be over-read.
     """
     n = b + c
@@ -81,7 +81,7 @@ def permutation_test(a: np.ndarray, b: np.ndarray, *, n_resamples: int = 20000,
                      seed: int = 0) -> dict:
     """Paired two-sided permutation test on the mean difference between two systems.
 
-    Used where the paired values are continuous — per-query NDCG, say — rather than the
+    Used where the paired values are continuous, per-query NDCG, say, rather than the
     win/loss counts `mcnemar_exact` takes. Under the null the two systems are
     interchangeable, so each query's difference is equally likely to carry either sign;
     the reference distribution flips those signs at random.

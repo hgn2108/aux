@@ -1,7 +1,7 @@
 """Blind spot-check of the model-generated theme labels, and the agreement they earn.
 
 `scripts/label_themes.py` labels every transcript with a model. Those labels are the ruler
-the semantic evaluation is measured with, and an unchecked ruler is worth nothing — so this
+the semantic evaluation is measured with, and an unchecked ruler is worth nothing, so this
 samples pairs, asks a human, and reports agreement. Every number the semantic benchmark
 produces should be quoted with the kappa from here next to it.
 
@@ -88,7 +88,7 @@ def cohen_kappa(pairs: list[tuple[bool, bool]]) -> tuple[float, float]:
 
 def report(labels: dict) -> int:
     if not ANSWERS.exists():
-        print("no ratings yet — run scripts/rate_themes.py", file=sys.stderr)
+        print("no ratings yet, run scripts/rate_themes.py", file=sys.stderr)
         return 1
     answers = json.loads(ANSWERS.read_text())
     judged = [(theme in labels.get(h, {}).get("themes", []), bool(v))
@@ -103,7 +103,7 @@ def report(labels: dict) -> int:
     print(f"  raw agreement:  {agree:.2f}")
     print(f"  Cohen's kappa:  {kappa:.2f}")
     verdict = ("substantial" if kappa >= 0.6 else
-               "moderate" if kappa >= 0.4 else "weak — labels are not trustworthy")
+               "moderate" if kappa >= 0.4 else "weak, labels are not trustworthy")
     print(f"  interpretation: {verdict}")
     return 0
 

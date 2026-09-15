@@ -1,4 +1,4 @@
-"""Query planning — DEC-007's LLM rung, behind one interface."""
+"""Query planning, DEC-007's LLM rung, behind one interface."""
 
 from .base import Planner, extract_json
 from .cache import PlanCache, plan_all

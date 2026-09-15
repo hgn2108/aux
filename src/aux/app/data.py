@@ -2,7 +2,7 @@
 
 Two corpora, and the difference between them is a finding rather than an inconvenience.
 FMA is Creative Commons, so its audio can be played in a browser, but 56% of a sampled 75
-clips are instrumental with a median transcript of 11 words — there is no lyric channel to
+clips are instrumental with a median transcript of 11 words, there is no lyric channel to
 search. The personal library has both modalities but cannot be redistributed, so it runs
 locally and its tracks are shown under stable pseudonyms.
 
@@ -34,7 +34,7 @@ def is_public() -> bool:
     """Whether this instance is deployed rather than running on the owner's machine.
 
     Set AUX_PUBLIC=1 wherever the app is hosted. It gates the personal library, which must
-    never be served to anyone else -- and which is not present on a deployment anyway,
+    never be served to anyone else, and which is not present on a deployment anyway,
     since the audio is not committed.
     """
     return os.environ.get("AUX_PUBLIC", "").strip() not in ("", "0", "false", "False")
@@ -56,7 +56,7 @@ def personal_is_local() -> bool:
     """Whether the personal corpus loads from its audio rather than from the bundle.
 
     The same condition `load_corpus` branches on, exported so the interface cannot label
-    the corpus one way while the loader does the other -- which it did: the sidebar said
+    the corpus one way while the loader does the other, which it did: the sidebar said
     "no audio" on a machine where playback works.
     """
     return not is_public() and MUSIC.exists()
@@ -76,7 +76,7 @@ def needs_encoder(which: str) -> bool:
     """Whether loading this corpus has to index audio, rather than read stored vectors.
 
     A bundle carries its vectors, so it needs no model. Asking for one anyway costs a
-    2.5GB load before anything renders -- which is what a deployment does on every cold
+    2.5GB load before anything renders, which is what a deployment does on every cold
     start, since a deployment is exactly where both corpora are bundles.
     """
     return fma_is_local() if which == "fma" else personal_is_local()
@@ -109,13 +109,13 @@ class Corpus:
     anonymous: bool
     """Whether track identity is hidden. Off locally, where the point is to recognise the
     tracks, and irrelevant on a deployment, which cannot load this corpus. Published
-    artefacts -- results files, the README -- stay pseudonymous regardless."""
+    artefacts, results files, the README, stay pseudonymous regardless."""
     note: str
     artists: list[str] | None = None
     """Artist names as written, for display.
 
-    `TrackMeta.artist` is a case-folded matching key -- it decides which pairs count as
-    same-artist in the evaluation -- so showing it directly put "a boogie wit da hoodie" on
+    `TrackMeta.artist` is a case-folded matching key, it decides which pairs count as
+    same-artist in the evaluation, so showing it directly put "a boogie wit da hoodie" on
     screen. Display names are resolved once at load time instead.
     """
 
@@ -175,7 +175,7 @@ def load_corpus(which: str, encoder, *, limit: int | None = None) -> Corpus:
         return Corpus("FMA small", tracks, vectors, None, None, playable=True,
                       anonymous=False,
                       note=("Creative Commons, so it plays here. 56% instrumental in a "
-                            "sampled 75 clips, median transcript 11 words — no lyric "
+                            "sampled 75 clips, median transcript 11 words, no lyric "
                             "channel to search."))
 
     from aux.data import load_personal_tracks
@@ -241,7 +241,7 @@ def load_fma_bundle() -> Corpus:
 def load_personal_bundle() -> Corpus:
     """Load the exported personal corpus: metadata and vectors, no audio, no transcripts.
 
-    Used wherever the audio is absent — every deployment. The lyric modality stays fully
+    Used wherever the audio is absent, every deployment. The lyric modality stays fully
     functional, because ranking needs the embeddings and not the text they came from, which
     is what lets a public instance demonstrate the feature at all.
     """

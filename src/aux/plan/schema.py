@@ -1,4 +1,4 @@
-"""The structured interpretation a planner must produce — DEC-007's schema.
+"""The structured interpretation a planner must produce, DEC-007's schema.
 
 Two things come out of a plan, serving different purposes:
 
@@ -37,7 +37,7 @@ class QueryPlan:
     mood: tuple[str, ...] = ()
     genre: tuple[str, ...] = ()
     context: tuple[str, ...] = ()
-    """Situations named in the query — "for running", "late night"."""
+    """Situations named in the query, "for running", "late night"."""
     exclude: tuple[str, ...] = ()
     """Concepts to push away from, fed to the existing score-level negation."""
     lyrical: tuple[str, ...] = ()
@@ -73,7 +73,7 @@ def validate(payload: dict, original: str) -> QueryPlan:
     """Turn a model's JSON into a QueryPlan, or raise.
 
     `rewritten` is the one required field, because it is the only one retrieval depends on.
-    An empty rewrite falls back to the original query rather than searching for nothing —
+    An empty rewrite falls back to the original query rather than searching for nothing  -
     a planner that declines to rewrite should degrade to the baseline, not to noise.
     """
     if not isinstance(payload, dict):
@@ -98,7 +98,7 @@ def validate(payload: dict, original: str) -> QueryPlan:
 
 
 def passthrough(query: str) -> QueryPlan:
-    """The plan meaning "no interpretation" — used when a planner fails.
+    """The plan meaning "no interpretation", used when a planner fails.
 
     Retrieval on this is byte-identical to the Slice 1 baseline, so a planner outage
     degrades to measured behaviour rather than to something unknown.
@@ -126,6 +126,6 @@ request in a prompt.
 
 This is what DEC-007 actually specified. Prompting for JSON and parsing it leaves the model
 free to return prose, and the recovery path in `base.extract_json` exists for that. Enforcing
-the schema server-side removes the failure rather than handling it — and `validate` still
+the schema server-side removes the failure rather than handling it, and `validate` still
 runs afterwards, because the schema constrains shape while `validate` constrains content
 (trimming, capping list length, defaulting an empty rewrite to the original query)."""

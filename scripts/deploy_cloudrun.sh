@@ -4,7 +4,7 @@
 # Cloud Run bills only while a request is being served and scales to zero in between, so a
 # portfolio demo sits inside the always-free allowance: 180,000 vCPU-seconds and 360,000
 # GiB-seconds a month. At 16GiB and 4 CPU memory is the binding constraint, leaving roughly
-# six hours of actual serving a month -- ample for a demo, where a visit lasts minutes.
+# six hours of actual serving a month. A demo uses far less, since a visit lasts minutes.
 #
 #   ./scripts/deploy_cloudrun.sh YOUR_PROJECT_ID
 #

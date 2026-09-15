@@ -1,7 +1,7 @@
 """The planner contract.
 
-One interface over a hosted model and a local one, so E2a — does a local model match the
-hosted one on quality, latency and cost — is a config change rather than a rewrite. Same
+One interface over a hosted model and a local one, so E2a, does a local model match the
+hosted one on quality, latency and cost, is a config change rather than a rewrite. Same
 pattern as `EncoderAdapter`, and for the same reason: a comparison is only clean when
 everything except the thing being compared is held fixed.
 """
@@ -21,7 +21,7 @@ def extract_json(text: str) -> dict:
     """Pull a JSON object out of a model response.
 
     Models sometimes wrap JSON in a code fence or add a sentence despite instructions. That
-    is a formatting slip, not a refusal, so it is recovered rather than counted as failure —
+    is a formatting slip, not a refusal, so it is recovered rather than counted as failure  -
     but the recovery is narrow: the first outermost braces, parsed strictly.
     """
     text = text.strip()
@@ -53,7 +53,7 @@ class Planner(ABC):
     def plan(self, query: str, *, retries: int = 1) -> tuple[QueryPlan, dict]:
         """Plan one query, falling back to the baseline rather than to noise.
 
-        A schema violation is retried once — models mostly recover on a second attempt —
+        A schema violation is retried once, models mostly recover on a second attempt  -
         and then degrades to `passthrough`, which retrieves identically to Slice 1. The
         fallback is *counted*: Eval 2A reports the rate, because a planner that quietly
         fails half the time while scoring well on the half that works is not a planner.
@@ -67,7 +67,7 @@ class Planner(ABC):
                 text, usage = self._complete(query)
                 meta.update(usage)
                 return validate(extract_json(text), query), meta
-            except Exception as exc:  # noqa: BLE001 — any failure degrades, none propagates
+            except Exception as exc:  # noqa: BLE001, any failure degrades, none propagates
                 last = exc
         meta["fallback"] = True
         meta["error"] = f"{type(last).__name__}: {last}"[:200]

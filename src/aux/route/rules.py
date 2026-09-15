@@ -1,7 +1,7 @@
 """The free baseline: decide from the words in the query.
 
-Deliberately the first thing built. The task may simply be easy — "songs about X" is a
-strong, almost unambiguous signal — and if a rule captures most of the oracle's +0.042, then
+Deliberately the first thing built. The task may simply be easy, "songs about X" is a
+strong, almost unambiguous signal, and if a rule captures most of the oracle's +0.042, then
 an LLM call per query buys latency and cost for nothing. Every other router in this package
 has to beat this one to justify itself.
 
@@ -18,8 +18,8 @@ import re
 from ..eval.intent import INTENT_TERMS
 from .base import Route, Router
 
-#: Phrases that ask what a song is *about*. Matched as whole phrases, so "about" alone —
-#: which appears in plenty of acoustic queries — is not enough on its own.
+#: Phrases that ask what a song is *about*. Matched as whole phrases, so "about" alone  -
+#: which appears in plenty of acoustic queries, is not enough on its own.
 SEMANTIC_MARKERS = (
     "songs about", "song about", "tracks about", "music about", "lyrics about",
     "about being", "about a", "about the", "about someone", "about how",

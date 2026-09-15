@@ -54,7 +54,7 @@ def random_ordering_ndcg(ratings: np.ndarray, trials: int = 2000, seed: int = 0)
 
     This is the honest baseline for the ordering question, and only for that: it holds the
     retrieved set fixed and shuffles it. It says nothing about whether retrieval found the
-    right items -- answering that would require rating randomly drawn tracks, which this
+    right items, answering that would require rating randomly drawn tracks, which this
     rating set does not contain.
     """
     rng = np.random.default_rng(seed)

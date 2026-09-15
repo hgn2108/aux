@@ -3,8 +3,8 @@
 FMA is the right corpus for scale, but it cannot support a multimodal evaluation: 56% of a
 sampled 75 clips were instrumental and the median transcript ran 11 words. Creative Commons
 catalogues skew heavily instrumental, so the lyric modality has almost nothing to encode.
-This library is the opposite — 160 commercially released tracks, 79% with a reliable
-transcript at a median of 376 words — and is therefore used for the audio-vs-lyrics-vs-fused
+This library is the opposite, 160 commercially released tracks, 79% with a reliable
+transcript at a median of 376 words, and is therefore used for the audio-vs-lyrics-vs-fused
 comparison and the fusion-weight sweep.
 
 **The audio is never published or redistributed**, and no track title or artist appears in
@@ -12,9 +12,9 @@ committed results; tracks are identified by a stable pseudonym derived from the 
 
 Labels come from the layout rather than a metadata database:
 
-- **genre** — the containing folder. Files sitting at the library root predate the genre
+- **genre**, the containing folder. Files sitting at the library root predate the genre
   folders and are a hip-hop / R&B collection; they are labelled as such.
-- **artist** — the filename prefix before the first `" - "`, case-folded. This library was
+- **artist**, the filename prefix before the first `" - "`, case-folded. This library was
   assembled for listening rather than evaluation, so most artists appear exactly once; the
   artist label covers far fewer queries here than on FMA and is reported with its query
   count attached.
@@ -36,7 +36,7 @@ ROOT_GENRE = "hiphop_rnb"
 
 
 #: Junk that downloaded filenames carry: the uploader tag, and the bracketed noise labels
-#: that video titles append. Stripped for display only -- `artist` stays case-folded and
+#: that video titles append. Stripped for display only, `artist` stays case-folded and
 #: unstripped, because it is a matching key and must not depend on cosmetic choices.
 _NOISE = re.compile(
     r"\s*[\(\[](?:"
@@ -62,8 +62,11 @@ def clean_title(path: Path) -> str:
     title = _NOISE.sub("", title)
     title = re.sub(r"\s*[\(\[]\s*[\)\]]", "", title)
     title = re.sub(r"\s{2,}", " ", title).strip(" -·")
-    # Some titles arrive wrapped in the quotes the uploader typed.
-    if len(title) > 1 and title[0] in "\"'‘“" and title[-1] in "\"'’”":
+    # Some titles arrive wrapped in the quotes the uploader typed. Curly quotes are written
+    # as escapes so that a sweep over source punctuation cannot alter what this matches.
+    opening = "\"'\u2018\u201c"
+    closing = "\"'\u2019\u201d"
+    if len(title) > 1 and title[0] in opening and title[-1] in closing:
         title = title[1:-1].strip()
     return title or path.stem
 

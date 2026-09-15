@@ -2,7 +2,7 @@
 
 Every joint music-text encoder aux benchmarks sits behind this interface, so that E0
 (CLAP vs MuQ-MuLan) swaps one object and holds everything else fixed. Anything an encoder
-needs that differs between models -- input sample rate, window length, normalisation --
+needs that differs between models, input sample rate, window length, normalisation --
 belongs inside its adapter, never in ingestion or in the evaluation harness.
 """
 

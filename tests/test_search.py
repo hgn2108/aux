@@ -53,7 +53,7 @@ def test_planner_is_off_by_default(library):
 
 
 def test_negation_is_always_applied(library):
-    """Negation needs no flag — it is structural, and shipped (DEC-014)."""
+    """Negation needs no flag, it is structural, and shipped (DEC-014)."""
     v_plain = [r.path.name for r in library.search("drums").results]
     v_neg = [r.path.name for r in library.search("drums, no vocals").results]
     assert v_plain[0] == v_neg[0] == "b.mp3"                    # still finds the drums track

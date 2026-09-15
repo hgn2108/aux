@@ -2,7 +2,8 @@
 
 `AppTest` runs the script in-process, so a broken import, a bad widget key or an exception
 on a tab fails here rather than in front of whoever opened the link. These do not assert on
-recommendations -- the evaluation scripts do that -- only that every corpus and mode renders.
+recommendations. That is what the evaluation scripts are for. They check only that every
+corpus and every mode renders.
 """
 
 from __future__ import annotations

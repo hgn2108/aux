@@ -1,7 +1,7 @@
 """Reranking a retrieved candidate set.
 
-Eval 1 found that ordering within the returned top 5 was no better than chance — NDCG 0.866
-against 0.863 for the same items shuffled — while success@1 (67%) trailed success@5 (89%).
+Eval 1 found that ordering within the returned top 5 was no better than chance, NDCG 0.866
+against 0.863 for the same items shuffled, while success@1 (67%) trailed success@5 (89%).
 A clearly-relevant track was often retrieved and not placed first. That gap is the headroom
 these methods try to close, and none of them changes *which* tracks are retrieved.
 
@@ -25,7 +25,7 @@ def max_segment(query_vec: np.ndarray, segment_vecs: list[np.ndarray]) -> np.nda
     Mean pooling asks "is this track as a whole about the query". A listener asking for
     "a saxophone solo" may be satisfied by a track containing one, even if most of it is
     something else. Max is the natural counterpart to the pooling decision E1 settled, and
-    it costs nothing extra — the segment vectors already exist at index time.
+    it costs nothing extra, the segment vectors already exist at index time.
     """
     return np.array([float((segs @ query_vec).max()) for segs in segment_vecs])
 
@@ -38,7 +38,7 @@ def mean_plus_max(query_vec: np.ndarray, track_vecs: np.ndarray,
 
 
 def csls(query_vec: np.ndarray, track_vecs: np.ndarray, *, k: int = 10) -> np.ndarray:
-    """Cross-domain similarity local scaling — a hubness correction.
+    """Cross-domain similarity local scaling, a hubness correction.
 
     Eval 0C measured real hubness in this space: a few tracks are near neighbours of almost
     everything, and a hub is retrieved because it sits centrally, not because it matches.

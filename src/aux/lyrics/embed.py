@@ -5,19 +5,19 @@ trained to match text against *audio*, not text against text. Asking "which lyri
 yearning" is a text-to-text question and needs a text embedder.
 
 **Multilingual on purpose.** 13 of this library's tracks are Vietnamese, and a monolingual
-embedder would either fail on them or silently push them to the bottom of every ranking —
+embedder would either fail on them or silently push them to the bottom of every ranking  -
 reproducing the exact Slice 1 failure ("sung in Vietnamese" returned jazz) in a new
 component.
 
 **Whole-lyric embedding for now.** EVALS.md's E4 asks whether section-level chunking beats
 it. That is a later experiment, and doing it first would add storage and complexity before
-the simpler version has been measured — the same rule that killed three components in
+the simpler version has been measured, the same rule that killed three components in
 Slice 2.
 
 **Implemented on `transformers` directly rather than through `sentence-transformers`.**
 The latter's current release requires `transformers>=5`, while MuQ-MuLan breaks on 5.x, and
 installing it silently upgraded the shared dependency and broke the audio encoder. Qwen3
-embedding is last-token pooling over a causal model, which is a few lines — not worth a
+embedding is last-token pooling over a causal model, which is a few lines, not worth a
 dependency that constrains the encoder this project already chose by measurement.
 """
 
@@ -27,7 +27,7 @@ import numpy as np
 
 DEFAULT_MODEL = "Qwen/Qwen3-Embedding-0.6B"
 """Small, multilingual, and the family DESIGN.md named. 0.6B runs comfortably on local
-hardware, which keeps the lyric path local-first — unlike the Slice 2 planner."""
+hardware, which keeps the lyric path local-first, unlike the Slice 2 planner."""
 
 MAX_CHARS = 4000
 """Transcripts run to a few thousand characters. Truncating at the front keeps the opening

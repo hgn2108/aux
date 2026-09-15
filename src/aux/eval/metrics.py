@@ -47,7 +47,7 @@ def random_baseline(n_candidates: int) -> dict:
     """What the same task yields by chance.
 
     Reported next to every measured number so that "above random" is arithmetic rather
-    than an assertion -- on a 706-candidate benchmark, chance Recall@10 is already 1.4%.
+    than an assertion, on a 706-candidate benchmark, chance Recall@10 is already 1.4%.
     """
     return {
         "recall@1": 1 / n_candidates,
@@ -66,10 +66,10 @@ def space_diagnostics(
 
     Two Slice 0 risks are only visible here:
 
-    - **collapse** -- if track-track cosine is high with little spread, the encoder is not
+    - **collapse**, if track-track cosine is high with little spread, the encoder is not
       separating this corpus. That is a representation failure and no amount of ranking
       work recovers it, so it must be distinguished from a merely poor recall number.
-    - **hubness** -- contrastive spaces reliably produce a few vectors that are nearest
+    - **hubness**, contrastive spaces reliably produce a few vectors that are nearest
       neighbour to almost everything. A hub caps achievable recall while presenting as a
       ranking problem.
     """

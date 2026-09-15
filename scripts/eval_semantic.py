@@ -1,7 +1,7 @@
 """Text-to-track retrieval on *semantic* queries: where does each modality actually win?
 
 The recommendation evaluation scores track-to-track similarity against genre, artist and
-album. Those labels are acoustic constructs, so audio wins and fusion cannot help — there is
+album. Those labels are acoustic constructs, so audio wins and fusion cannot help. There is
 nothing for the lyric channel to contribute that audio has not already captured.
 
 That is a statement about the task, not about the modalities. This script asks the opposite
@@ -11,12 +11,12 @@ strawman; the lyric encoder answers by matching the query against transcripts.
 
 Three systems plus two bounds:
 
-- **audio** — the query embedded in MuQ-MuLan's text tower, matched against audio vectors.
-- **lyrics** — the query embedded by Qwen3, matched against transcript vectors.
-- **fused** — both, z-score normalised per query, blended at `alpha` (the audio share).
-- **oracle** — per query, whichever single modality scored better. An upper bound on every
+- **audio**: the query embedded in MuQ-MuLan's text tower, matched against audio vectors.
+- **lyrics**: the query embedded by Qwen3, matched against transcript vectors.
+- **fused**, both, z-score normalised per query, blended at `alpha` (the audio share).
+- **oracle**, per query, whichever single modality scored better. An upper bound on every
   possible router, so it says how much a router could ever be worth.
-- **random** — computed under the same labels and exclusions, not derived.
+- **random**, computed under the same labels and exclusions, not derived.
 
 Labels come from `scripts/label_themes.py` and are weak: a model read each transcript and
 marked the themes it is about. Agreement with blind human labels is measured separately by
@@ -150,7 +150,7 @@ def main() -> int:
             relevance_rows.append(row)
             queries.append(f"songs about {description}")
     if not themes:
-        print("no theme has enough labelled tracks — run scripts/label_themes.py",
+        print("no theme has enough labelled tracks, run scripts/label_themes.py",
               file=sys.stderr)
         return 1
     R = np.stack(relevance_rows)
@@ -175,7 +175,7 @@ def main() -> int:
     rows = {name: summarise(S, R) for name, S in systems.items()}
 
     # Oracle: per query, the better of the two single modalities. Not a system that could be
-    # built — it reads the labels — but an upper bound on every router that could be.
+    # built, since it reads the labels, but an upper bound on every router that could be.
     nd_audio = per_query_metrics(systems["audio"], R, args.k)
     nd_lyric = per_query_metrics(systems["lyrics"], R, args.k)
     oracle = float(np.mean(np.maximum(nd_audio, nd_lyric)))

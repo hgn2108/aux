@@ -32,12 +32,12 @@ def main() -> int:
     import torch
     from muq import MuQMuLan
 
-    print(f"fetching {MUQ_CHECKPOINT}…", file=sys.stderr)
+    print(f"fetching {MUQ_CHECKPOINT}...", file=sys.stderr)
     mulan = MuQMuLan.from_pretrained(MUQ_CHECKPOINT)
 
     # Encoding one string, rather than only constructing the model.
     #
-    # MuQ-MuLan's text tower wraps a *separate* checkpoint -- xlm-roberta-base -- behind a
+    # MuQ-MuLan's text tower wraps a *separate* checkpoint, xlm-roberta-base, behind a
     # lazy `tokenizer` property that loads on first use, not at from_pretrained. Building
     # the model alone left that outside the image, so the first search in a container tried
     # to download it and failed inside a property getter, which Python reports as the
@@ -45,13 +45,13 @@ def main() -> int:
     #
     # Running a real encode is what guarantees every lazily loaded piece is present,
     # without this script having to know which checkpoints those are.
-    print("warming the text tower…", file=sys.stderr)
+    print("warming the text tower...", file=sys.stderr)
     with torch.inference_mode():
         mulan(texts=["a quiet piano recording"])
 
     from transformers import AutoModel, AutoTokenizer
 
-    print(f"fetching {LYRIC_MODEL}…", file=sys.stderr)
+    print(f"fetching {LYRIC_MODEL}...", file=sys.stderr)
     AutoTokenizer.from_pretrained(LYRIC_MODEL)
     AutoModel.from_pretrained(LYRIC_MODEL)
 

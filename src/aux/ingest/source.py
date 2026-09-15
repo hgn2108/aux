@@ -1,4 +1,4 @@
-"""SourceAdapter -- the first stage of the ingestion contract.
+"""SourceAdapter, the first stage of the ingestion contract.
 
 Enumerates candidate media under a root. Deliberately dumb: it decides only what is worth
 opening, never whether a file is valid. Validity is MediaProbe's job, because deciding it
@@ -20,7 +20,7 @@ class DiscoveredFile:
     size_bytes: int
     extension: str
     supported: bool
-    """False files are reported, not silently dropped -- Eval 0A needs the denominator."""
+    """False files are reported, not silently dropped, Eval 0A needs the denominator."""
 
 
 def discover(

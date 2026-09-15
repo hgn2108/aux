@@ -31,7 +31,7 @@ def content_hash(path: Path) -> str:
     Keys the embedding cache. Hashing *bytes* rather than decoded audio is deliberate: it
     makes a moved or renamed file a cache hit, which is the stated purpose, and it is
     cheap. The accepted consequence is that a re-encode of the same recording is a cache
-    miss -- correct behaviour anyway, since a different encode is different audio to the
+    miss, correct behaviour anyway, since a different encode is different audio to the
     encoder.
     """
     digest = hashlib.blake2b(digest_size=16)

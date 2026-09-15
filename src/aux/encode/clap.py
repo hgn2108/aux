@@ -36,7 +36,7 @@ def _assert_projection_trained(model: ClapModel, checkpoint: str) -> None:
     `audio_projection` and the logit scales at their random initial values. The result is
     not an obvious crash: embeddings still come out unit-norm, and audio-audio similarity
     still shows structure because the audio backbone is trained and a random linear map
-    preserves some geometry. What breaks silently is the *joint* space -- every text
+    preserves some geometry. What breaks silently is the *joint* space, every text
     embedding collapses to near-identical, so retrieval ranks by audio alone and every
     downstream metric is quietly meaningless.
 

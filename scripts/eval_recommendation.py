@@ -6,13 +6,13 @@ the evaluation:
     python scripts/eval_recommendation.py --corpus fma --per-genre 250
     python scripts/eval_recommendation.py --corpus personal
 
-**fma** — 2,000 Creative Commons tracks, balanced at 250 per genre across 8 genres. Public,
+**fma**, 2,000 Creative Commons tracks, balanced at 250 per genre across 8 genres. Public,
 fully reproducible, and the corpus for the headline audio result. It has no usable lyric
 channel: a sample of 75 clips was 56% instrumental with a median transcript of 11 words, and
 the metadata alternatives are no better (tags are populated for 17% of tracks and are mostly
 place names; `track_genres` is the label itself). So this corpus runs audio-only.
 
-**personal** — 160 commercially released tracks, 79% with a reliable transcript at a median
+**personal**, 160 commercially released tracks, 79% with a reliable transcript at a median
 of 376 words. Not redistributable and far smaller, but it is the only corpus here where both
 modalities exist, so it carries the audio-vs-lyrics-vs-fused comparison and the fusion-weight
 sweep. Results identify tracks by pseudonym; no audio, title or artist is published.
@@ -166,7 +166,7 @@ def main() -> int:
         print(f"{int(has_lyrics.sum())}/{len(tracks)} tracks have usable lyrics "
               f"({coverage:.0%})", file=sys.stderr)
     if coverage < MIN_LYRIC_COVERAGE:
-        print(f"lyric coverage below {MIN_LYRIC_COVERAGE:.0%} — evaluating audio only",
+        print(f"lyric coverage below {MIN_LYRIC_COVERAGE:.0%}, evaluating audio only",
               file=sys.stderr)
         L, has_lyrics = None, None
 

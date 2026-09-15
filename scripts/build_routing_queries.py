@@ -6,7 +6,7 @@ is an underpowered test, not a null result, and the fix is more queries rather t
 claim.
 
 **Paraphrases are generated deliberately against the rule router.** The rule baseline keys on
-phrasings — "songs about", genre nouns, tempo words — so the model is told to avoid exactly
+phrasings, "songs about", genre nouns, tempo words, so the model is told to avoid exactly
 those constructions and to write the way people actually type. Every paraphrase therefore
 makes the test harder for the router most likely to win, which is the direction a bias should
 point. Paraphrases are generated from the label specification alone, never from any router's
@@ -42,7 +42,7 @@ Rules:
   for that genre; if it asks what songs are about, every rewrite must still ask that.
 - Vary the construction. Do NOT reuse the opening of the original. In particular, avoid
   starting with "songs about" unless the original did not, and vary how the request is framed
-  -- a question, a fragment, an instruction, a description of a moment.
+ , a question, a fragment, an instruction, a description of a moment.
 - Write how people actually type into a search box: lowercase is fine, short is fine.
 - No track names, no artist names."""
 

@@ -6,13 +6,13 @@ question and pushed experiments toward being underpowered.
 
 The cache key is `(content_hash, encoder version, n_segments)`. All three matter:
 
-- **content hash**, not path, so a moved or renamed file is a hit — that was the stated
+- **content hash**, not path, so a moved or renamed file is a hit, that was the stated
   reason for hashing bytes in the first place;
 - **encoder version**, because a vector produced by CLAP is meaningless to MuQ-MuLan, and a
   cache that ignored this would silently mix two spaces;
 - **n_segments**, because E1 established that pooling depth changes the vector.
 
-Stored as one `.npz` per corpus. Nothing here is authoritative — deleting the cache costs
+Stored as one `.npz` per corpus. Nothing here is authoritative, deleting the cache costs
 time and never correctness.
 """
 

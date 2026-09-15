@@ -2,7 +2,7 @@
 
 The Free Music Archive's `fma_small` subset is well suited to evaluating a recommender:
 8,000 tracks balanced at exactly 1,000 per genre across 8 genres, with complete artist and
-album metadata. That balance matters — an unbalanced corpus makes Precision@K partly a
+album metadata. That balance matters, an unbalanced corpus makes Precision@K partly a
 measure of how common a genre is.
 
 **These labels are proxies for musical similarity, not ground truth.** Two tracks sharing a
@@ -87,10 +87,10 @@ def relevance_matrix(tracks: list[TrackMeta], label: str) -> np.ndarray:
 
     The diagonal is False: a track is never its own recommendation.
 
-    - **genre** — same top-level genre. Broad, and the weakest proxy: audio encoders
+    - **genre**, same top-level genre. Broad, and the weakest proxy: audio encoders
       represent genre strongly, so this partly measures genre classification.
-    - **artist** — same artist. Strict, and not explainable by genre alone.
-    - **album** — same album. Strictest, and the closest thing here to "these belong
+    - **artist**, same artist. Strict, and not explainable by genre alone.
+    - **album**, same album. Strictest, and the closest thing here to "these belong
       together", though it also rewards shared production and mastering rather than
       musical similarity as such.
     """

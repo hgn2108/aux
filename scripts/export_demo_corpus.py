@@ -1,6 +1,6 @@
 """Export the personal library as a deployable bundle: no audio, no lyric text.
 
-The public corpus cannot demonstrate the lyric modality — 56% of FMA is instrumental — so a
+The public corpus cannot demonstrate the lyric modality, 56% of FMA is instrumental, so a
 deployed demo that only loads FMA ships a lyrics feature it can never show working. This
 exports what the personal library needs to be browsable and searchable on a public instance
 while leaving behind everything that would be redistribution.
@@ -41,7 +41,7 @@ DEMO = ROOT / "demo"
 def export_fma(n_tracks: int, n_segments: int) -> int:
     """Export a browsable slice of FMA: metadata, vectors, and the audio itself.
 
-    The full corpus cannot be deployed -- 7.4 GB of audio and a 248 MB metadata CSV, none
+    The full corpus cannot be deployed, 7.4 GB of audio and a 248 MB metadata CSV, none
     of it in the repository. This copies a genre-balanced slice small enough to ship, which
     is what lets a deployed demo play anything at all. It is Creative Commons, so unlike
     the personal library the audio travels with it.
@@ -75,7 +75,7 @@ def export_fma(n_tracks: int, n_segments: int) -> int:
     (DEMO / "fma_manifest.json").write_text(json.dumps({
         "name": "FMA small",
         "note": ("Creative Commons, so it plays here. 56% instrumental in a sampled 75 "
-                 "clips, median transcript 11 words — no lyric channel to search."),
+                 "clips, median transcript 11 words, no lyric channel to search."),
         "tracks": manifest,
     }, indent=2))
     np.savez_compressed(DEMO / "fma_vectors.npz", audio=vectors.astype(np.float32))
@@ -109,7 +109,7 @@ def export_examples() -> int:
     np.savez_compressed(EXAMPLES_PATH, queries=json.dumps(queries),
                         audio=audio, lyric=lyric)
     size = EXAMPLES_PATH.stat().st_size / 1e3
-    print(f"{len(queries)} example queries ({len(LYRIC_EXAMPLES)} about lyrics) — "
+    print(f"{len(queries)} example queries ({len(LYRIC_EXAMPLES)} about lyrics), "
           f"{size:.0f} KB")
     return 0
 
@@ -149,7 +149,7 @@ def main() -> int:
     (DEMO / "personal_manifest.json").write_text(json.dumps({
         "name": "personal library",
         "note": ("Commercially released music. Audio and transcripts are not "
-                 "redistributed, so this corpus cannot be played here — only searched and "
+                 "redistributed, so this corpus cannot be played here, only searched and "
                  "ranked, from embeddings computed locally."),
         "tracks": manifest,
     }, indent=2))
@@ -157,12 +157,12 @@ def main() -> int:
                         lyrics=lyrics.astype(np.float32), has_lyrics=has_lyrics)
 
     size = sum(f.stat().st_size for f in DEMO.iterdir()) / 1e6
-    print(f"{len(tracks)} tracks, {int(has_lyrics.sum())} with lyrics — {size:.1f} MB")
+    print(f"{len(tracks)} tracks, {int(has_lyrics.sum())} with lyrics, {size:.1f} MB")
     print(f"wrote {(DEMO / 'personal_manifest.json').relative_to(ROOT)} and "
           f"{(DEMO / 'personal_vectors.npz').relative_to(ROOT)}")
 
     # Guard rather than trust: a transcript or a local path reaching the bundle would be a
-    # problem no amount of intent prevents. Checked over the track records only -- the
+    # problem no amount of intent prevents. Checked over the track records only, the
     # explanatory note legitimately talks *about* transcripts.
     allowed = {"track_id", "title", "artist", "genre", "has_lyrics"}
     for record in manifest:
@@ -176,7 +176,7 @@ def main() -> int:
         if pattern in blob:
             print(f"REFUSING: manifest contains {pattern!r}", file=sys.stderr)
             return 1
-    print("checked: titles, artists, genres and vectors only — no audio, no transcripts")
+    print("checked: titles, artists, genres and vectors only, no audio, no transcripts")
     return 0
 
 

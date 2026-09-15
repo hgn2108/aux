@@ -2,7 +2,7 @@
 
 Two evaluations in this repo reach opposite conclusions with the same two systems.
 Track-to-track similarity against genre labels wants pure audio; "songs about X" wants pure
-lyrics. Neither is a failure of the other — they are different questions, and this script
+lyrics. Neither is a failure of the other, they are different questions, and this script
 puts them side by side to show that the fusion weight is not a constant to be tuned once.
 
 It reads the JSON both evaluations already wrote rather than recomputing anything, so the
@@ -40,7 +40,7 @@ def latest(prefix: str) -> Path:
     """
     matches = sorted(RESULTS.glob(f"{prefix}_2*.json"))
     if not matches:
-        raise SystemExit(f"no results file matching {prefix}_2*.json — run the evaluation")
+        raise SystemExit(f"no results file matching {prefix}_2*.json, run the evaluation")
     return matches[-1]
 
 

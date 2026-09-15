@@ -9,7 +9,7 @@ possible explanations, and they call for completely different fixes:
    this is the cause, a better normaliser fixes it.
 2. **Routing.** Lyrics win on some queries and lose on others, and a single global alpha
    averages the winner with the loser. If this is the cause, per-query routing fixes it.
-3. **Redundancy.** The labels available — same genre, same artist — are acoustic constructs
+3. **Redundancy.** The labels available, same genre, same artist, are acoustic constructs
    that lyrics predict only weakly and never independently. If this is the cause, nothing
    fixes it, because there is no complementary signal to recover.
 
@@ -47,7 +47,7 @@ K = 10
 
 
 def per_query_ndcg(scores: np.ndarray, relevant: np.ndarray, k: int = K) -> np.ndarray:
-    """NDCG@k for every query, rather than the mean — the mean hides routing headroom.
+    """NDCG@k for every query, rather than the mean, the mean hides routing headroom.
 
     Queries with no relevant candidate get NaN, so they can be dropped consistently across
     every system being compared rather than scored as zero.

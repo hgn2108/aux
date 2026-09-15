@@ -1,4 +1,4 @@
-"""Combining two rankings — DEC-013's rung 3.
+"""Combining two rankings, DEC-013's rung 3.
 
 E2 left a specific gap: the baseline is sharper at the very top (K=5) while the planner is
 better from K=10 outward. If those are complementary rather than redundant, taking both
@@ -12,7 +12,7 @@ Reciprocal rank fusion only looks at position, so it cannot be fooled that way.
     RRF(track) = sum over systems of 1 / (k + rank)
 
 `k` damps the top: without it, a first place in one system would dominate everything else.
-60 is the value from the original RRF paper and is left alone — tuning it on 18 pairs would
+60 is the value from the original RRF paper and is left alone, tuning it on 18 pairs would
 fit the evaluation rather than the problem.
 """
 
