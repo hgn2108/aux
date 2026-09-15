@@ -183,17 +183,37 @@ learn from the person using it. Three planned stages, in order:
 
 ## Layout
 
+The pipeline, in the order audio moves through it:
+
 | path | what |
 |---|---|
+| `src/aux/ingest/` | find files, probe them, decode to audio, hash by content |
+| `src/aux/encode/` | encoder adapters, windowing, pooling |
+| `src/aux/lyrics/` | transcription, lyric embedding, transcript index |
+| `src/aux/index/` | the embedding cache, keyed by content hash and encoder version |
+| `src/aux/recommend.py` | scoring, the blend, per-result explanations |
+| `src/aux/data/` | the two corpora and their relevance labels |
+| `src/aux/app/` | what the demo loads, and its precomputed example queries |
 | `app.py` | the demo |
-| `src/aux/ingest/` | probe, decode, content hashing, failure taxonomy |
-| `src/aux/encode/` | encoder adapters, segmentation, pooling |
-| `src/aux/lyrics/` | transcription and lyric embedding |
-| `src/aux/recommend.py` | scoring, blending, explanations |
-| `src/aux/route/` | the three fusion-weight routers |
+
+Measurement:
+
+| path | what |
+|---|---|
 | `src/aux/eval/` | ranking metrics, paired significance tests |
-| `scripts/` | every experiment, one file each |
-| `results/` | committed JSON behind every number above |
+| `scripts/` | one file per evaluation, plus corpus building and deployment |
+| `results/` | the JSON behind every number above, read by the app and the write-up |
+| `queries/` | the query sets the router comparison runs on |
+
+Three packages hold work that was measured and **not** shipped. They stay because
+[EVALUATION.md](EVALUATION.md) reports those results, and a rejection is worth no more than
+the code that backs it:
+
+| path | what, and why it is not in the product |
+|---|---|
+| `src/aux/route/` | three ways to pick the blend weight automatically. None beat a fixed weight. |
+| `src/aux/plan/` | an LLM query planner. Measured against the plain baseline; off by default. |
+| `src/aux/query/`, `src/aux/rank/` | negation handling, a context-to-acoustic lexicon, rank fusion. The lexicon and expansion scored zero weight; rank fusion was replaced by the weighted blend. |
 
 ## Licence
 
