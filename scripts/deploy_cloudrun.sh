@@ -16,6 +16,14 @@ PROJECT="${1:?usage: deploy_cloudrun.sh PROJECT_ID [REGION]}"
 REGION="${2:-us-central1}"
 SERVICE="aux"
 
+# gcloud can print a reauthentication notice and still exit 0, so pipefail catches nothing
+# and the script reports a successful deploy that never happened. Check for a usable token
+# before doing anything else.
+if ! gcloud auth print-access-token >/dev/null 2>&1; then
+    echo "gcloud credentials have expired. Run: gcloud auth login" >&2
+    exit 1
+fi
+
 echo "==> project $PROJECT, region $REGION"
 gcloud config set project "$PROJECT" >/dev/null
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
@@ -51,4 +59,10 @@ gcloud run deploy "$SERVICE" \
     --set-env-vars AUX_PUBLIC=1
 
 echo
-gcloud run services describe "$SERVICE" --region "$REGION" --format='value(status.url)'
+URL=$(gcloud run services describe "$SERVICE" --region "$REGION" \
+      --format='value(status.url)')
+if [ -z "$URL" ]; then
+    echo "deploy reported success but the service has no URL" >&2
+    exit 1
+fi
+echo "$URL"
