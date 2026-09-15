@@ -11,11 +11,11 @@ sits in a folder on your laptop, none of that applies: local players search file
 genre tags, and nothing lets you ask for *"something quiet and bittersweet"* or *"like this,
 but dreamier"*.
 
-`aux` builds that recommender from the audio itself — no tags, no play counts, no listening
+`aux` builds that recommender from the audio itself. No tags, no play counts, no listening
 history.
 
-**Live demo:** https://aux-339224224982.us-central1.run.app — the first search takes about a
-minute while the model loads.
+**Live demo:** https://aux-339224224982.us-central1.run.app
+The first search takes about a minute while the model loads.
 
 ![Searching by description](docs/img/search.png)
 
@@ -47,11 +47,11 @@ flowchart LR
 
 Two independent signals, searched the same way:
 
-- **Sound** — [MuQ-MuLan](https://huggingface.co/OpenMuQ/MuQ-MuLan-large) puts music and text
+- **Sound.** [MuQ-MuLan](https://huggingface.co/OpenMuQ/MuQ-MuLan-large) puts music and text
   in one embedding space, so a written description can be matched against a recording
   directly. Chosen over the main alternative, CLAP, after both were measured on this corpus
   and the difference was tested for significance.
-- **Lyrics** — Whisper transcribes the track, Qwen3 embeds the words.
+- **Lyrics.** Whisper transcribes the track, Qwen3 embeds the words.
 
 A slider blends the two. Which setting is right turns out to depend on the question, which is
 the main finding below.
@@ -76,8 +76,8 @@ that. It is graded on facts: two tracks count as a match if they share a genre, 
 an album. None of those *is* musical similarity, so all three are reported, because each is
 wrong in a different way.
 
-Every score below is **NDCG@10** — of the ten tracks returned, how many were matches, and
-were the matches near the top. 1.0 is perfect. Each is shown next to the score a random
+Every score below is **NDCG@10**: of the ten tracks returned, how many were matches, and
+whether the matches were near the top. 1.0 is perfect. Each is shown next to the score a random
 shuffle gets on the same labels, so the number has a floor to be read against.
 
 ### Recommending from sound alone
@@ -98,13 +98,14 @@ the genre result is not that effect in disguise.
 
 ### The right blend depends on the question
 
-The same two systems, the same music, opposite answers — decided only by what was asked.
+The same two systems and the same music give opposite answers, decided only by what was
+asked.
 
 | α (weight on sound) | *"tracks like this one"* | *"songs about heartbreak"* |
 |---:|---:|---:|
-| 0.00 — lyrics only | 0.555 | **0.734** |
+| 0.00, lyrics only | 0.555 | **0.734** |
 | 0.50 | 0.802 | 0.671 |
-| 1.00 — sound only | **0.832** | 0.367 |
+| 1.00, sound only | **0.832** | 0.367 |
 
 Genre and artist are audible, so lyrics add nothing when matching on those. Ask what a song
 is *about* and the lyrics score twice what sound does, winning 8 of the 9 subjects tested.
@@ -125,7 +126,7 @@ comparing the query to example queries, and asking an LLM.
 | keyword matching | 0.500 | instant |
 | compare to example queries | 0.570 | 2 ms |
 | ask an LLM | 0.571 | 1.7 s |
-| *perfect detection (upper bound)* | *0.670* | — |
+| *perfect detection (upper bound)* | *0.670* | n/a |
 
 The last row is the score if every question were classified correctly, so it is the most any
 method of this kind could be worth. None of the three got close, and none beat simply fixing
@@ -197,4 +198,4 @@ learn from the person using it. Three planned stages, in order:
 ## Licence
 
 MIT, for the code. The model weights downloaded at runtime carry their own licences
-(MuQ-MuLan is CC-BY-NC). No music is distributed here — see [LICENSE](LICENSE).
+(MuQ-MuLan is CC-BY-NC). No music is distributed here. See [LICENSE](LICENSE).

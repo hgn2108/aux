@@ -84,8 +84,8 @@ lyrics help identify something you can already hear. This asks the opposite ques
 
 Twelve themes were chosen to be semantically distinct and **acoustically non-obvious**, so a
 system that only hears production cannot guess them. Themes that map onto a genre were
-deliberately excluded — they would let the audio channel win by recognising the genre instead
-of understanding the query. Nine cleared the five-track floor.
+deliberately excluded: they would let the audio channel win by recognising the genre rather
+than understanding the query. Nine cleared the five-track floor.
 
 | system | P@5 | NDCG@5 | P@10 | NDCG@10 | P@20 | NDCG@20 |
 |---|---:|---:|---:|---:|---:|---:|
@@ -114,7 +114,7 @@ of understanding the query. Nine cleared the five-track floor.
 subject has an acoustic signature. `heartbreak` is the exception because sad songs sound sad.
 
 An oracle allowed to pick the better modality per query scores 0.739 against the lyric
-channel's 0.734 — within this family, routing has almost nothing to add, because lyrics win
+channel's 0.734. Within this family routing has almost nothing to add, because lyrics win
 89% of the queries outright.
 
 ---
@@ -124,8 +124,8 @@ channel's 0.734 — within this family, routing has almost nothing to add, becau
 `python scripts/rate_themes.py`
 
 The theme labels are model-generated, so they are the measuring instrument and cannot be
-assumed. A blind sample of 40 (track, theme) pairs — half the model called true, half false,
-its answer hidden — was rated by hand.
+assumed. A blind sample of 40 (track, theme) pairs was rated by hand: half of them the model had
+called true and half false, with its answer hidden.
 
 | | |
 |---|---|
@@ -135,12 +135,12 @@ its answer hidden — was rated by hand.
 | human said yes | 22 |
 
 κ rather than raw agreement, because most pairs are false and a labeller that always said
-"no" would score 0.95 raw with κ ≈ 0. Errors are symmetric — 3 over-applied against 5 missed —
-so the labeller is not simply marking everything true, which was the failure mode that would
+"no" would score 0.95 raw with κ ≈ 0. Errors are symmetric, 3 over-applied against 5 missed,
+so the labeller is not simply marking everything true. That was the failure mode that would
 have invalidated the benchmark.
 
 Disagreement is concentrated rather than spread: six themes agree perfectly, `heartbreak`
-reaches 0.86, and two fail — `substances` (0.20) and `doubt` (0.33). Both had scored strong
+reaches 0.86, and two fail: `substances` (0.20) and `doubt` (0.33). Both had scored strong
 lyric wins, so the benchmark was rerun without them:
 
 | | 9 themes | 7 themes (low-agreement dropped) |
@@ -152,7 +152,7 @@ lyric wins, so the benchmark was rerun without them:
 **The conclusion does not depend on the labels that failed the check.**
 
 One concern the check retired: `desire` is applied to 57% of the library, which looked like an
-over-broad theme inflating the lyric result. It agreed perfectly on every sampled pair — the
+over-broad theme inflating the lyric result. It agreed perfectly on every sampled pair. The
 corpus really is that concentrated.
 
 ---
@@ -164,9 +164,9 @@ corpus really is that concentrated.
 Fusing sound and lyrics scored below sound alone at every weight, even though the lyric
 channel beat random comfortably. Three explanations, with different fixes:
 
-1. **Combination** — the blend is miscalibrated.
-2. **Routing** — lyrics win on some queries and a global weight averages winner with loser.
-3. **Redundancy** — there is no complementary signal to recover.
+1. **Combination**: the blend is miscalibrated.
+2. **Routing**: lyrics win on some queries and a global weight averages winner with loser.
+3. **Redundancy**: there is no complementary signal to recover.
 
 The decisive test is an **oracle**: a cheating router allowed to see the labels and pick the
 better modality per query. It bounds every router that could ever be written.
@@ -178,7 +178,7 @@ better modality per query. It bounds every router that could ever be written.
 | oracle modality per query | 0.254 (+0.017) |
 | oracle weight per query | 0.277 (+0.040) |
 
-Lyrics beat sound on 11% of queries. Rank correlation between the two systems is **+0.273** —
+Lyrics beat sound on 11% of queries. Rank correlation between the two systems is **+0.273** -
 partly independent, but not in a way that predicts *artist*.
 
 **Calibration was a real defect.** Min-max normalisation takes its range from the two most
@@ -189,11 +189,11 @@ extreme candidates, so one outlier rescales everything else:
 | 0.25 | 0.088 | **0.120** |
 | 0.50 | 0.106 | **0.143** |
 | 0.75 | 0.152 | **0.183** |
-| RRF | 0.162 | — |
+| RRF | 0.162 | n/a |
 
 z-score is now the default; min-max stays selectable because that comparison is the evidence
-for the change. Restricting to the 127 tracks that all have transcripts — removing the
-missing-modality fallback — narrows the gap to within noise.
+for the change. Restricting to the 127 tracks that all have transcripts, removing the
+missing-modality fallback, narrows the gap to within noise.
 
 None of it overturns the headline, because the labels being scored against are acoustic.
 
@@ -226,7 +226,7 @@ The two families use different labels and different query sets, so their mean co
 
 `python scripts/eval_router.py`
 
-96 queries across three families — acoustic, semantic, and compound (*"Vietnamese pop songs
+96 queries across three families, acoustic, semantic, and compound (*"Vietnamese pop songs
 about missing someone"*, relevant only where both genre and theme hold). Scored **end to end**
 against real retrieval rather than as classification accuracy, because a router can classify
 well and still choose unhelpful weights.
@@ -236,8 +236,8 @@ well and still choose unhelpful weights.
 | keyword rules | 0.500 | −0.053 | −45% | 0.0 |
 | embedding prototypes | 0.570 | +0.017 | 15% | 2.3 |
 | LLM (Haiku) | 0.571 | +0.019 | 16% | 1686 |
-| *best fixed (α=0.25)* | *0.552* | — | — | — |
-| *oracle* | *0.670* | — | *100%* | — |
+| *best fixed (α=0.25)* | *0.552* | n/a |, | n/a |
+| *oracle* | *0.670* | n/a | *100%* | n/a |
 
 **Significance** (paired permutation, Bonferroni threshold 0.0125):
 
@@ -252,7 +252,7 @@ Per family, the best weights are α=0.95 (acoustic), α=0.40 (compound), α=0.00
 
 **The overfitting result.** On the original 24 hand-written queries the keyword router led at
 +0.058. The set was regenerated with paraphrases instructed to avoid the constructions the
-rules key on — generated from the label specification alone, never from any router's
+rules key on, generated from the label specification alone, never from any router's
 behaviour, and deliberately biased *against* the router expected to win. It fell to −0.053:
 best arm to worst, on held-out phrasing alone. It had been fitted to queries written by the
 same person who wrote the rules.
@@ -290,7 +290,7 @@ Every added component had to beat the simpler baseline on a stated metric. These
 
 | component | verdict |
 |---|---|
-| **LLM query planner** | Measured against the plain baseline; off by default. The API exposes no temperature control, so it re-sampled its own inputs between runs — reproducibility needed plan caching. |
+| **LLM query planner** | Measured against the plain baseline; off by default. The API exposes no temperature control, so it re-sampled its own inputs between runs, reproducibility needed plan caching. |
 | **Context→acoustic lexicon** | 30-term mapping from context words to acoustic properties. Weight 0. |
 | **Query expansion** | Rejected; weight 0. |
 | **Reciprocal rank fusion** | Weights its inputs equally by construction, which makes a weight ablation impossible. Replaced by weighted-score fusion. |
@@ -300,4 +300,4 @@ Every added component had to beat the simpler baseline on a stated metric. These
 
 Four times an objective proxy pointed the wrong way and was caught by a third, independent
 measurement. Proxies proved reliable for cheap disqualification and unreliable for
-confirmation — which is why no result here rests on a single metric.
+confirmation, which is why no result here rests on a single metric.

@@ -1,4 +1,4 @@
-"""aux — a multimodal music recommender you can interrogate.
+"""aux: search and recommend music from audio files.
 
 Three ways to ask for music, and a page of evidence about which one to use when.
 
@@ -31,12 +31,12 @@ from aux.app.examples import (  # noqa: E402
 )
 from aux.recommend import NORMALISERS, Recommender  # noqa: E402
 
-st.set_page_config(page_title="aux — multimodal music search", page_icon="🎧",
+st.set_page_config(page_title="aux: multimodal music search", page_icon="🎧",
                    layout="wide")
 
 # Default weight per mode. Streamlit renders any bare expression at module level, so
 # these notes are comments rather than the string literals used everywhere else in the
-# project -- a docstring here would print itself onto the page.
+# project, a docstring here would print itself onto the page.
 #
 # "Both" defaults to 0.25 rather than 0.5 because 0.25 is the best single weight measured
 # across every query family (NDCG@10 0.552 against 0.537 at 0.5).
@@ -47,14 +47,14 @@ MODES = {
 }
 
 
-@st.cache_resource(show_spinner="Loading the encoder…")
+@st.cache_resource(show_spinner="Loading the encoder...")
 def get_encoder():
     from aux.encode.muq import MuQMuLanAdapter
 
     return MuQMuLanAdapter()
 
 
-@st.cache_resource(show_spinner="Loading the library…")
+@st.cache_resource(show_spinner="Loading the library...")
 def get_corpus(which: str, limit: int | None):
     # Only fetch the encoder where the corpus actually has to be indexed. It was being
     # passed unconditionally, and Python evaluates arguments before the call, so a bundled
@@ -67,14 +67,14 @@ def get_corpus(which: str, limit: int | None):
     return corpus, recommender
 
 
-@st.cache_resource(show_spinner="Loading the lyric encoder…")
+@st.cache_resource(show_spinner="Loading the lyric encoder...")
 def get_lyric_embedder():
     from aux.lyrics import LyricEmbedder
 
     return LyricEmbedder()
 
 
-@st.cache_resource(show_spinner="Loading the transcriber…")
+@st.cache_resource(show_spinner="Loading the transcriber...")
 def get_transcriber():
     from aux.lyrics.transcribe import Transcriber
 
@@ -148,9 +148,9 @@ def render_results(corpus, results, scores) -> None:
 
 def page_recommend(corpus, recommender) -> None:
     key = corpus.name.replace(" ", "_")
-    st.markdown("Ranked from the audio itself — no genre tags, no listening history.")
+    st.markdown("Ranked from the audio itself. No genre tags, no listening history.")
 
-    labels = [f"{corpus.display(i)[0]} — {corpus.display(i)[1]}"
+    labels = [f"{corpus.display(i)[0]} / {corpus.display(i)[1]}"
               for i in range(len(corpus.tracks))]
     # Default to a track that has a transcript, so the lyric modes demonstrate themselves
     # instead of opening on the fallback notice.
@@ -167,7 +167,7 @@ def page_recommend(corpus, recommender) -> None:
     if modality != "audio" and corpus.has_lyrics is not None \
             and not corpus.has_lyrics[choice]:
         st.info(
-            "This track has no readable lyrics — it has no singing, or the words came out "
+            "This track has no readable lyrics. It has no singing, or the words came out "
             f"too unclear to use. {int(corpus.has_lyrics.sum())} of "
             f"{len(corpus.tracks)} tracks here do. Matching on sound instead; pick one of "
             "those to compare lyrics."
@@ -216,7 +216,7 @@ def page_search(corpus, recommender) -> None:
     stored = ready.get(query) if ready else None
     needs_lyrics = mode != "Sound" and corpus.supports_lyrics
     if stored is None or (needs_lyrics and "lyric" not in stored):
-        st.caption("Loading the model to read a new query — this takes a minute the first "
+        st.caption("Loading the model to read a new query. This takes a minute the first "
                    "time. The suggested queries above answer instantly.")
 
     audio_query = (stored["audio"] if stored is not None
@@ -258,8 +258,8 @@ def page_search(corpus, recommender) -> None:
 def encode_uploads(files, with_lyrics: bool = False) -> dict:
     """Encode uploaded audio, keeping results in session state across reruns.
 
-    Keyed by content hash, so re-running the script -- which Streamlit does on every
-    interaction -- never re-encodes a file already seen, and two uploads of the same
+    Keyed by content hash, so re-running the script, which Streamlit does on every
+    interaction, never re-encodes a file already seen, and two uploads of the same
     recording collapse to one entry.
     """
     import hashlib
@@ -277,13 +277,13 @@ def encode_uploads(files, with_lyrics: bool = False) -> dict:
             todo.append((digest, handle.name, payload))
 
     if todo:
-        progress = st.progress(0.0, text="Encoding…")
+        progress = st.progress(0.0, text="Encoding...")
         for done, (digest, name, payload) in enumerate(todo, 1):
             try:
                 with tempfile.NamedTemporaryFile(suffix=Path(name).suffix) as tmp:
                     tmp.write(payload)
                     tmp.flush()  # transcription reopens this path, so flush before both
-                    # Through the project's own probe, decode and segmentation -- the same
+                    # Through the project's own probe, decode and segmentation, the same
                     # path every indexed track took. That parity is the point of the
                     # feature: nothing here is precomputed or dataset-specific.
                     vector, _ = get_encoder().embed_track(decode(Path(tmp.name)),
@@ -304,7 +304,7 @@ def encode_uploads(files, with_lyrics: bool = False) -> dict:
                 store[digest] = {"name": Path(name).stem, "vector": None,
                                  "audio": None, "error": str(exc)}
             step = "Encoding and transcribing" if with_lyrics else "Encoding"
-            progress.progress(done / len(todo), text=f"{step}… {done}/{len(todo)}")
+            progress.progress(done / len(todo), text=f"{step}... {done}/{len(todo)}")
         progress.empty()
     return store
 
@@ -338,7 +338,7 @@ def page_upload() -> None:
     failed = [v["name"] for v in store.values() if v["error"]]
     if failed:
         st.warning(f"Could not read {len(failed)} file(s): {', '.join(failed[:3])}"
-                   + ("…" if len(failed) > 3 else ""))
+                   + ("..." if len(failed) > 3 else ""))
     if not good:
         return
 
@@ -442,7 +442,7 @@ def page_findings() -> None:
     st.markdown(
         "Whether two tracks \"sound similar\" is a matter of opinion, so the system is not "
         "graded on that. It is graded on facts: two tracks count as a match if they share a "
-        "genre, an artist or an album. Three systems — sound, lyrics, and a blend of both — "
+        "genre, an artist or an album. Three systems were scored that way: sound, lyrics, and "
         "were scored that way, each against the score a random shuffle gets."
     )
     st.caption(
@@ -501,7 +501,7 @@ def page_findings() -> None:
     if rec:
         st.markdown("#### 2. Recommending from sound alone")
         st.write(
-            f"Measured over {rec['corpus']['tracks']} tracks across 8 genres — the library "
+            f"Measured over {rec['corpus']['tracks']} tracks across 8 genres. The library "
             "browsed above is a smaller slice of it, so the demo loads quickly. None of "
             "these three definitions of a match *is* musical similarity, so all three are "
             "reported: each is wrong in a different way. The second row is a control. "
@@ -545,13 +545,13 @@ def page_findings() -> None:
                             else f"{row['ms_per_query'] / 1000:.1f} s")}
                  for name, row in router["routers"].items()]
         rows.append({"approach": "if every question were detected correctly",
-                     "NDCG@10": round(router["oracle"], 3), "speed": "—"})
+                     "NDCG@10": round(router["oracle"], 3), "speed": "n/a"})
         st.dataframe(rows, hide_index=True, width="stretch")
 
         st.warning(
             "**None of the three beat simply fixing the setting**, by enough to be "
             "confident it was not chance. The last row is the score if every question were "
-            "detected correctly, so it is the most any method of this kind could be worth — "
+            "detected correctly, so it is the most any method of this kind could be worth, "
             "and none came close. **The app therefore gives you the control instead of "
             "guessing.**"
         )
@@ -601,13 +601,13 @@ def page_findings() -> None:
 
 def header() -> None:
     # Name and purpose only. The headline metrics that used to sit here were static on
-    # every tab and each needed a sentence of context to mean anything -- and a test count
+    # every tab and each needed a sentence of context to mean anything, and a test count
     # is not a result. They belong on Findings, in the tables that explain them.
     left, right = st.columns([1, 3], vertical_alignment="center")
     left.title("🎧 aux")
     right.markdown(
         "Search and recommend music by how it **sounds**, by what the lyrics are "
-        "**about**, or by both — straight from audio files, with no genre tags, play "
+        "**about**, or by both, straight from audio files, with no genre tags, play "
         "counts or labels."
     )
 
@@ -616,11 +616,11 @@ def choose_corpus():
     """Corpus picker, shown inside the tab it governs.
 
     It used to live in the sidebar, where it stayed on screen while the user was on
-    "Your music" or "Findings" -- neither of which it affects -- and read as though it did.
+    "Your music" or "Findings", neither of which it affects, and read as though it did.
     """
     corpora = available_corpora()
     # Names say whose music it is; the note underneath carries the licensing and what that
-    # costs -- whether it plays, and whether there are lyrics to search.
+    # costs, whether it plays, and whether there are lyrics to search.
     labels = {
         "fma": "Demo library",
         "personal": "Example library (lyrics available)",
