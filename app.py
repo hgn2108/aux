@@ -29,7 +29,7 @@ from aux.app.examples import (  # noqa: E402
     SOUND_EXAMPLES,
     load_example_vectors,
 )
-from aux.recommend import NORMALISERS, Recommender  # noqa: E402
+from aux.recommend import Recommender, blend  # noqa: E402
 
 st.set_page_config(page_title="aux: multimodal music search", page_icon="🎧",
                    layout="wide")
@@ -229,19 +229,7 @@ def page_search(corpus, recommender) -> None:
         lyric_query = (stored["lyric"] if stored is not None and "lyric" in stored
                        else get_lyric_embedder().embed_query([query])[0])
         lyric_scores = corpus.lyrics @ np.asarray(lyric_query, dtype=np.float32)
-        lyric_scores[~corpus.has_lyrics] = -np.inf
-        if mode == "Lyrics":
-            scores = lyric_scores
-        else:
-            from aux.recommend import NORMALISERS
-
-            norm = NORMALISERS["zscore"]
-            a = norm(audio_scores)
-            usable = np.isfinite(lyric_scores)
-            lz = np.zeros_like(a)
-            lz[usable] = norm(lyric_scores[usable])
-            scores = alpha * a + (1 - alpha) * lz
-            scores[~usable] = a[~usable]
+        scores = blend(audio_scores, lyric_scores, alpha, corpus.has_lyrics)
 
     order = [i for i in np.argsort(-scores) if np.isfinite(scores[i])][:10]
     lo, hi = float(np.min(audio_scores)), float(np.max(audio_scores))
@@ -378,20 +366,11 @@ def page_upload() -> None:
         "What to do with them", ["Search by description", "Find similar"],
         default="Search by description", key="upload_action")
 
-    def blend(audio_scores, lyric_scores):
-        """Same rule the library uses: z-score per query, fall back where lyrics are absent."""
-        if lyric_vectors is None or alpha == 1.0:
+    def combine(audio_scores, lyric_scores):
+        """Uploads have no corpus behind them, so supply what the library blend expects."""
+        if lyric_vectors is None:
             return audio_scores
-        norm = NORMALISERS["zscore"]
-        a = norm(audio_scores)
-        if alpha == 0.0:
-            out = np.where(has_lyrics, lyric_scores, -np.inf)
-            return out
-        lz = np.zeros_like(a)
-        lz[has_lyrics] = norm(lyric_scores[has_lyrics])
-        out = alpha * a + (1 - alpha) * lz
-        out[~has_lyrics] = a[~has_lyrics]
-        return out
+        return blend(audio_scores, lyric_scores, alpha, has_lyrics)
 
     if action == "Search by description":
         with st.form("upload_search"):
@@ -403,7 +382,7 @@ def page_upload() -> None:
         audio_scores = vectors @ get_encoder().embed_text([query])[0]
         lyric_scores = (lyric_vectors @ get_lyric_embedder().embed_query([query])[0]
                         if lyric_vectors is not None else None)
-        scores = blend(audio_scores, lyric_scores)
+        scores = combine(audio_scores, lyric_scores)
         ranked = [i for i in np.argsort(-scores) if np.isfinite(scores[i])]
 
     else:
@@ -412,7 +391,7 @@ def page_upload() -> None:
         st.audio(good[keys[pick]]["audio"])
         lyric_scores = (lyric_vectors @ lyric_vectors[pick]
                         if lyric_vectors is not None and has_lyrics[pick] else None)
-        scores = blend(vectors @ vectors[pick],
+        scores = combine(vectors @ vectors[pick],
                        lyric_scores if lyric_scores is not None else None)
         if lyric_scores is None and alpha < 1.0:
             st.info("This track has no usable transcript, so there is nothing to compare "

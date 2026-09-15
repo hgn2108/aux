@@ -39,7 +39,8 @@ from aux.data import load_personal_tracks  # noqa: E402
 from aux.eval import bonferroni_threshold, ndcg_at_k, permutation_test  # noqa: E402
 from aux.index import build_index  # noqa: E402
 from aux.ingest.asset import content_hash  # noqa: E402
-from aux.recommend import NORMALISERS  # noqa: E402
+from aux.lyrics import load_lyric_vectors  # noqa: E402
+from aux.recommend import NORMALISERS, blend_rows, score_queries  # noqa: E402
 from aux.route import PrototypeRouter, Route, RuleRouter  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -85,10 +86,6 @@ def main() -> int:
     tracks = [t for t in tracks if str(t.path) in kept_set]
     hashes = [content_hash(t.path) for t in tracks]
 
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from eval_recommendation import load_lyric_vectors
-    from eval_semantic import fuse, score_queries
-
     L, has_lyrics = load_lyric_vectors(tracks, "small", "personal")
     from aux.lyrics import LyricEmbedder
 
@@ -104,7 +101,8 @@ def main() -> int:
 
     def ndcg_at_alpha(i: int, alpha: float) -> float:
         """NDCG@K for one query answered at one fusion weight."""
-        row = fuse(audio_scores[i : i + 1], lyric_scores[i : i + 1], alpha, has_lyrics, norm)[0]
+        row = blend_rows(audio_scores[i : i + 1], lyric_scores[i : i + 1], alpha,
+                         has_lyrics, args.normaliser)[0]
         order = np.argsort(-row)
         return ndcg_at_k(R[i][order], K, int(R[i].sum()))
 

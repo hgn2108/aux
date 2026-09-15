@@ -64,6 +64,71 @@ NORMALISERS = {"zscore": _zscore, "minmax": _minmax}
 DEFAULT_NORMALISER = "zscore"
 
 
+def blend(audio_scores: np.ndarray, lyric_scores: np.ndarray | None, alpha: float,
+          has_lyrics: np.ndarray | None = None,
+          normaliser: str = DEFAULT_NORMALISER) -> np.ndarray:
+    """Combine one row of audio scores with one row of lyric scores.
+
+    The single implementation of the rule. It was written out five times across the
+    recommender, the evaluations and both pages of the app, which is four chances for the
+    published numbers and the shipped behaviour to stop agreeing.
+
+    `alpha` is the weight on audio: 1.0 is audio only and 0.0 is lyrics only, so a sweep
+    collapses exactly onto each single-signal system at its ends. Scores are normalised per
+    query first, because the two come from different models with different spreads, and
+    without that `alpha` would silently favour whichever spreads wider.
+
+    A candidate with no usable transcript keeps its audio score rather than being scored
+    zero, which would push every instrumental to the bottom and quietly turn the blend into
+    a vocal-music filter. Passing `lyric_scores=None` does the same for the whole row, which
+    is the case when the *query* has no lyrics to match against.
+    """
+    norm = NORMALISERS[normaliser]
+    audio = norm(np.asarray(audio_scores, dtype=float))
+    if lyric_scores is None or alpha >= 1.0:
+        return audio
+
+    lyric_scores = np.asarray(lyric_scores, dtype=float)
+    usable = np.isfinite(lyric_scores)
+    if has_lyrics is not None:
+        usable &= np.asarray(has_lyrics, dtype=bool)
+    if not usable.any():
+        return audio
+
+    lyric = np.zeros_like(audio)
+    lyric[usable] = norm(lyric_scores[usable])
+    if alpha <= 0.0:
+        # Lyrics only: a candidate without a transcript cannot be ranked at all.
+        out = np.where(usable, lyric, -np.inf)
+        return out
+
+    out = alpha * audio + (1 - alpha) * lyric
+    out[~usable] = audio[~usable]
+    return out
+
+
+def score_queries(query_vectors: np.ndarray, item_vectors: np.ndarray,
+                  usable: np.ndarray | None = None) -> np.ndarray:
+    """Cosine scores for every text query against every track.
+
+    Items marked unusable score -inf so they never rank, which is how a track with no
+    transcript is kept out of a lyric ranking without being confused for a bad match.
+    """
+    scores = np.asarray(query_vectors, np.float32) @ np.asarray(item_vectors, np.float32).T
+    if usable is not None:
+        scores[:, ~np.asarray(usable, dtype=bool)] = -np.inf
+    return scores.astype(float)
+
+
+def blend_rows(audio: np.ndarray, lyric: np.ndarray, alpha: float,
+               has_lyrics: np.ndarray, normaliser: str = DEFAULT_NORMALISER) -> np.ndarray:
+    """Apply `blend` to every row of a query-by-track score matrix."""
+    out = np.empty_like(np.asarray(audio, dtype=float))
+    for i in range(out.shape[0]):
+        out[i] = blend(audio[i], lyric[i], alpha, has_lyrics, normaliser)
+    return out
+
+
 @dataclass(frozen=True, slots=True)
 class Recommendation:
     index: int
@@ -135,22 +200,12 @@ class Recommender:
         if modality != "fused":
             raise ValueError(f"unknown modality {modality!r}")
 
-        audio = self._norm(self.audio_scores(track_index))
-        if self.lyrics is None or not self.has_lyrics[track_index]:
-            # The *query* has no lyrics, so there is nothing lyrical to match against.
-            return audio
-
-        raw = self.lyric_scores(track_index)
-        usable = np.isfinite(raw)
-        lyric = np.zeros_like(audio)
-        if usable.any():
-            lyric[usable] = self._norm(raw[usable])
-
-        fused = alpha * audio + (1 - alpha) * lyric
-        # Candidates without a transcript keep their audio score rather than being zeroed,
-        # which would make fusion a vocal-music filter.
-        fused[~usable] = audio[~usable]
-        return fused
+        # The query itself having no lyrics means there is nothing lyrical to match
+        # against, which `blend` treats the same way as a row with no usable candidates.
+        query_has_lyrics = self.lyrics is not None and self.has_lyrics[track_index]
+        return blend(self.audio_scores(track_index),
+                     self.lyric_scores(track_index) if query_has_lyrics else None,
+                     alpha, normaliser=self.normaliser)
 
     # --- recommendation --------------------------------------------------------------
 

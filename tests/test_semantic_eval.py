@@ -12,7 +12,8 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
-from eval_semantic import fuse, per_query_metrics, score_queries  # noqa: E402
+from aux.recommend import blend, blend_rows, score_queries  # noqa: E402
+from eval_semantic import per_query_metrics  # noqa: E402
 from rate_themes import cohen_kappa, sample_pairs  # noqa: E402
 
 
@@ -78,26 +79,40 @@ def test_score_queries_marks_tracks_without_the_modality_unreachable():
     assert scores[0, 0] == pytest.approx(1.0)
 
 
-def test_fusion_falls_back_to_audio_where_a_track_has_no_lyrics():
-    """Zeroing a missing modality would push every instrumental to the bottom."""
-    audio = np.array([[0.9, 0.1, 0.5]])
-    lyric = np.array([[0.2, 0.8, 0.0]])
+def test_blend_falls_back_to_audio_where_a_track_has_no_lyrics():
+    """Zeroing a missing signal would push every instrumental to the bottom."""
+    from aux.recommend import NORMALISERS
+
+    audio = np.array([0.9, 0.1, 0.5])
+    lyric = np.array([0.2, 0.8, 0.0])
     has = np.array([True, True, False])
-    norm = lambda x: x  # noqa: E731 - identity keeps the assertion readable
 
-    fused = fuse(audio, lyric, 0.5, has, norm)
-    assert fused[0, 0] == pytest.approx(0.5 * 0.9 + 0.5 * 0.2)
-    assert fused[0, 2] == pytest.approx(0.5)      # audio score, untouched by the blend
+    fused = blend(audio, lyric, 0.5, has)
+    # The third track has no lyrics, so it keeps exactly its normalised audio score.
+    assert fused[2] == pytest.approx(NORMALISERS["zscore"](audio)[2])
+    # The first two are pulled toward whichever signal ranks them higher, so the one the
+    # lyrics prefer gains relative to the one they do not.
+    assert fused[1] > blend(audio, lyric, 1.0, has)[1]
 
 
-def test_fusion_collapses_onto_each_modality_at_the_ends_of_the_sweep():
-    audio = np.array([[0.9, 0.1, 0.4]])
-    lyric = np.array([[0.2, 0.8, 0.3]])
+def test_blend_collapses_onto_each_signal_at_the_ends_of_the_sweep():
+    """Ordering, not arithmetic: normalisation is monotone, so ranks are what must match."""
+    audio = np.array([0.9, 0.1, 0.4])
+    lyric = np.array([0.2, 0.8, 0.3])
     has = np.ones(3, dtype=bool)
-    norm = lambda x: x  # noqa: E731
 
-    assert np.allclose(fuse(audio, lyric, 1.0, has, norm), audio)
-    assert np.allclose(fuse(audio, lyric, 0.0, has, norm), lyric)
+    assert list(np.argsort(-blend(audio, lyric, 1.0, has))) == list(np.argsort(-audio))
+    assert list(np.argsort(-blend(audio, lyric, 0.0, has))) == list(np.argsort(-lyric))
+
+
+def test_blend_rows_applies_the_same_rule_to_every_query():
+    audio = np.array([[0.9, 0.1, 0.5], [0.2, 0.7, 0.4]])
+    lyric = np.array([[0.2, 0.8, 0.0], [0.6, 0.1, 0.3]])
+    has = np.array([True, True, False])
+
+    rows = blend_rows(audio, lyric, 0.5, has)
+    for i in range(2):
+        assert np.allclose(rows[i], blend(audio[i], lyric[i], 0.5, has))
 
 
 def test_oracle_is_an_upper_bound_on_both_modalities():

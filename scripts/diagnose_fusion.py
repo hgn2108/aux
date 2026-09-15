@@ -36,7 +36,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from aux.data import load_personal_tracks, relevance_matrix  # noqa: E402
 from aux.eval import ndcg_at_k  # noqa: E402
 from aux.index import build_index  # noqa: E402
-from aux.recommend import Recommender, _minmax  # noqa: E402
+from aux.lyrics import load_lyric_vectors  # noqa: E402
+from aux.recommend import Recommender, blend  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".cache"
@@ -63,34 +64,20 @@ def per_query_ndcg(scores: np.ndarray, relevant: np.ndarray, k: int = K) -> np.n
     return out
 
 
-def _zscore(scores: np.ndarray) -> np.ndarray:
-    """Standardise per query. Unlike min-max, not set by the two extreme candidates."""
-    scores = np.asarray(scores, dtype=float)
-    mu = scores.mean(axis=-1, keepdims=True)
-    sd = scores.std(axis=-1, keepdims=True)
-    return np.where(sd > 0, (scores - mu) / np.where(sd > 0, sd, 1.0), 0.0)
+def fused_matrix(rec: Recommender, alpha: float, normaliser: str) -> np.ndarray:
+    """Blend every row with a chosen normaliser, so calibration varies independently of alpha.
 
-
-def fused_matrix(rec: Recommender, alpha: float, norm) -> np.ndarray:
-    """Fuse with a chosen normaliser, so calibration can be varied independently of alpha.
-
-    Mirrors `Recommender.score` exactly apart from the normaliser: a candidate with no
-    transcript keeps its audio score, and a query with no transcript falls back to audio.
+    Calls the library blend rather than repeating it. That is what makes the comparison
+    below meaningful: the two normalisers are being measured through exactly the code the
+    product runs, not through a copy of it that happens to agree today.
     """
     n = len(rec)
     out = np.empty((n, n))
     for i in range(n):
-        audio = norm(rec.audio_scores(i))
-        if not rec.has_lyrics[i]:
-            out[i] = audio
-            continue
-        raw = rec.lyric_scores(i)
-        usable = np.isfinite(raw)
-        lyric = np.zeros_like(audio)
-        lyric[usable] = norm(raw[usable])
-        row = alpha * audio + (1 - alpha) * lyric
-        row[~usable] = audio[~usable]
-        out[i] = row
+        has_query_lyrics = rec.has_lyrics[i]
+        out[i] = blend(rec.audio_scores(i),
+                       rec.lyric_scores(i) if has_query_lyrics else None,
+                       alpha, normaliser=normaliser)
     return out
 
 
@@ -140,9 +127,6 @@ def main() -> int:
     kept_set = {str(p) for p in kept}
     tracks = [t for t in tracks if str(t.path) in kept_set]
 
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from eval_recommendation import load_lyric_vectors
-
     L, has_lyrics = load_lyric_vectors(tracks, "small", "personal")
     rec = Recommender(V, lyric_vectors=L, has_lyrics=has_lyrics)
     R = relevance_matrix(tracks, args.label)
@@ -163,8 +147,8 @@ def main() -> int:
     print("-" * 32)
     calib = {}
     for a in ALPHAS:
-        mm = float(np.nanmean(per_query_ndcg(fused_matrix(rec, a, _minmax), R)))
-        zz = float(np.nanmean(per_query_ndcg(fused_matrix(rec, a, _zscore), R)))
+        mm = float(np.nanmean(per_query_ndcg(fused_matrix(rec, a, "minmax"), R)))
+        zz = float(np.nanmean(per_query_ndcg(fused_matrix(rec, a, "zscore"), R)))
         calib[a] = {"minmax": mm, "zscore": zz}
         print(f"{a:>8.2f}{mm:>12.3f}{zz:>12.3f}")
     rrf = float(np.nanmean(per_query_ndcg(rrf_matrix(rec), R)))
@@ -177,7 +161,7 @@ def main() -> int:
     # than propagating a sentinel into the mean.
     oracle_alpha = np.full(len(tracks), np.nan)
     for a in ALPHAS:
-        oracle_alpha = np.fmax(oracle_alpha, per_query_ndcg(fused_matrix(rec, a, _minmax), R))
+        oracle_alpha = np.fmax(oracle_alpha, per_query_ndcg(fused_matrix(rec, a, "minmax"), R))
 
     mean_audio = float(np.nanmean(nd_audio))
     lyric_wins = float(np.nanmean((nd_lyric > nd_audio)[scored]))
@@ -215,7 +199,7 @@ def main() -> int:
     print("-" * 20)
     cov = {}
     for a in ALPHAS:
-        v = float(np.nanmean(per_query_ndcg(fused_matrix(sub, a, _minmax), R_sub)))
+        v = float(np.nanmean(per_query_ndcg(fused_matrix(sub, a, "minmax"), R_sub)))
         cov[a] = v
         print(f"{a:>8.2f}{v:>12.3f}")
     report["coverage_clean"] = {str(k): v for k, v in cov.items()}

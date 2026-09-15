@@ -176,7 +176,7 @@ better modality per query. It bounds every router that could ever be written.
 | sound only | 0.237 |
 | lyrics only | 0.057 |
 | oracle modality per query | 0.254 (+0.017) |
-| oracle weight per query | 0.277 (+0.040) |
+| oracle weight per query | 0.291 (+0.054) |
 
 Lyrics beat sound on 11% of queries. Rank correlation between the two systems is **+0.273** -
 partly independent, but not in a way that predicts *artist*.

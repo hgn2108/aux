@@ -32,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from aux.data import load_personal_tracks  # noqa: E402
 from aux.data.personal import display_artist  # noqa: E402
 from aux.index import build_index  # noqa: E402
+from aux.lyrics import load_lyric_vectors  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".cache"
@@ -135,9 +136,6 @@ def main() -> int:
                                  cache_path=CACHE / "personal.npz", progress_every=0)
     kept_set = {str(p) for p in kept}
     tracks = [t for t in tracks if str(t.path) in kept_set]
-
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from eval_recommendation import load_lyric_vectors
 
     lyrics, has_lyrics = load_lyric_vectors(tracks, "small", "personal")
 

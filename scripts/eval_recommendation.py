@@ -43,6 +43,7 @@ from aux.data import balanced_subset, load_personal_tracks, load_tracks  # noqa:
 from aux.data import relevance_matrix, same_artist_matrix  # noqa: E402
 from aux.eval import evaluate_ranking, random_ranking_baseline  # noqa: E402
 from aux.index import build_index  # noqa: E402
+from aux.lyrics import load_lyric_vectors  # noqa: E402
 from aux.ingest.asset import content_hash  # noqa: E402
 from aux.recommend import Recommender  # noqa: E402
 
@@ -58,46 +59,6 @@ KS = (5, 10, 20)
 #: have no text at all, so the ranking is driven by which tracks happen to have been
 #: transcribed. FMA sits far under the floor and is therefore evaluated audio-only.
 MIN_LYRIC_COVERAGE = 0.5
-
-
-def load_lyric_vectors(tracks, whisper_model: str, cache_tag: str):
-    """Embed transcripts for the corpus, caching the embedding matrix.
-
-    Returns `(vectors, has_lyrics)`, or `(None, None)` when no track has a reliable
-    transcript. A track without one gets a zero vector and a False flag; the recommender
-    reads the flag and never the zero.
-    """
-    tpath = CACHE / f"transcripts_{whisper_model}.json"
-    if not tpath.exists():
-        return None, None
-    transcripts = json.loads(tpath.read_text())
-    by_hash = {k.split("|")[0]: v for k, v in transcripts.items()}
-
-    texts, has = [], []
-    for t in tracks:
-        rec = by_hash.get(content_hash(t.path))
-        if rec and rec.get("reliable"):
-            texts.append(rec["text"])
-            has.append(True)
-        else:
-            texts.append("")
-            has.append(False)
-    has = np.array(has, dtype=bool)
-    if not has.any():
-        return None, None
-
-    vec_path = CACHE / f"lyrics_{cache_tag}.npy"
-    if vec_path.exists():
-        vectors = np.load(vec_path)
-        if vectors.shape[0] == len(tracks):
-            return vectors, has
-
-    from aux.lyrics import LyricEmbedder
-
-    vectors = LyricEmbedder().embed_documents(texts)
-    vectors[~has] = 0.0
-    np.save(vec_path, vectors)
-    return vectors, has
 
 
 def build_systems(rec: Recommender, has_lyrics) -> dict[str, np.ndarray]:

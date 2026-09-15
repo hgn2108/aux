@@ -169,3 +169,23 @@ def test_displayed_scores_stay_bounded_under_zscore_ranking():
         assert 0.0 <= r.audio_score <= 1.0
         assert r.lyric_score is None or 0.0 <= r.lyric_score <= 1.0
         assert "similarity" in r.explain()
+
+
+def test_blend_is_the_only_implementation_of_the_rule():
+    """The blend was written out five times before this existed.
+
+    Two of those copies were in the app and two in evaluation scripts, so the published
+    numbers and the shipped behaviour could have drifted apart without anything failing.
+    This checks the duplicates have not come back.
+    """
+    import re
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    sources = [root / "app.py", *(root / "scripts").glob("*.py"),
+               *(root / "src" / "aux").rglob("*.py")]
+    # The arithmetic that defines the blend. Only recommend.py should contain it.
+    pattern = re.compile(r"alpha\s*\*\s*\w+\s*\+\s*\(1\s*-\s*alpha\)\s*\*")
+    offenders = [p.name for p in sources
+                 if pattern.search(p.read_text()) and p.name != "recommend.py"]
+    assert offenders == [], f"blend reimplemented in: {offenders}"

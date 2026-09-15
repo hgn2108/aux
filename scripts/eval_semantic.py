@@ -41,7 +41,8 @@ from aux.data import load_personal_tracks  # noqa: E402
 from aux.eval import ndcg_at_k, precision_at_k, hit_rate_at_k, recall_at_k  # noqa: E402
 from aux.index import build_index  # noqa: E402
 from aux.ingest.asset import content_hash  # noqa: E402
-from aux.recommend import NORMALISERS  # noqa: E402
+from aux.lyrics import load_lyric_vectors  # noqa: E402
+from aux.recommend import NORMALISERS, blend_rows, score_queries  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 CACHE = ROOT / ".cache"
@@ -52,35 +53,6 @@ KS = (5, 10, 20)
 MIN_TRACKS_PER_THEME = 5
 """A theme matching fewer tracks than this cannot separate systems: with two relevant items
 in a 160-track corpus, one lucky hit swings NDCG by more than the effect being measured."""
-
-
-def score_queries(query_vectors: np.ndarray, item_vectors: np.ndarray,
-                  usable: np.ndarray | None = None) -> np.ndarray:
-    """Cosine scores for every query against every track; unusable items get -inf."""
-    scores = np.asarray(query_vectors, np.float32) @ np.asarray(item_vectors, np.float32).T
-    if usable is not None:
-        scores[:, ~usable] = -np.inf
-    return scores.astype(float)
-
-
-def fuse(audio: np.ndarray, lyric: np.ndarray, alpha: float, has_lyrics: np.ndarray,
-         norm) -> np.ndarray:
-    """Blend two score matrices per query, falling back to audio where lyrics are missing.
-
-    Identical in shape to `Recommender.score`: a track with no transcript keeps its audio
-    score rather than being zeroed, which would turn fusion into a vocal-music filter.
-    """
-    out = np.empty_like(audio)
-    for i in range(audio.shape[0]):
-        a = norm(audio[i])
-        row = np.array(a)
-        if has_lyrics.any():
-            lz = np.zeros_like(a)
-            lz[has_lyrics] = norm(lyric[i][has_lyrics])
-            row = alpha * a + (1 - alpha) * lz
-            row[~has_lyrics] = a[~has_lyrics]
-        out[i] = row
-    return out
 
 
 def per_query_metrics(scores: np.ndarray, relevant: np.ndarray, k: int) -> np.ndarray:
@@ -132,9 +104,6 @@ def main() -> int:
     kept_set = {str(p) for p in kept}
     tracks = [t for t in tracks if str(t.path) in kept_set]
 
-    sys.path.insert(0, str(ROOT / "scripts"))
-    from eval_recommendation import load_lyric_vectors
-
     L, has_lyrics = load_lyric_vectors(tracks, args.whisper, "personal")
 
     # Build the query set: one query per theme with enough labelled tracks to be measurable.
@@ -161,13 +130,11 @@ def main() -> int:
 
     audio_scores = score_queries(encoder.embed_text(queries), V)
     lyric_scores = score_queries(LyricEmbedder().embed_query(queries), L, has_lyrics)
-
-    norm = NORMALISERS[args.normaliser]
     systems = {"audio": audio_scores, "lyrics": np.where(np.isfinite(lyric_scores),
                                                          lyric_scores, -1e9)}
     for a in ALPHAS:
         if a not in (0.0, 1.0):
-            systems[f"fused a={a}"] = fuse(audio_scores, lyric_scores, a, has_lyrics, norm)
+            systems[f"fused a={a}"] = blend_rows(audio_scores, lyric_scores, a, has_lyrics, args.normaliser)
 
     rng = np.random.default_rng(0)
     systems["random"] = rng.random(audio_scores.shape)
