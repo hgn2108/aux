@@ -64,14 +64,10 @@ def space_diagnostics(
 ) -> dict:
     """Health checks on the embedding space itself, independent of retrieval quality.
 
-    Two Slice 0 risks are only visible here:
-
-    - **collapse**, if track-track cosine is high with little spread, the encoder is not
-      separating this corpus. That is a representation failure and no amount of ranking
-      work recovers it, so it must be distinguished from a merely poor recall number.
-    - **hubness**, contrastive spaces reliably produce a few vectors that are nearest
-      neighbour to almost everything. A hub caps achievable recall while presenting as a
-      ranking problem.
+    Two failures only visible here. Collapse: high track-track cosine with little spread
+    means the encoder is not separating this corpus, which no amount of ranking work
+    recovers. Hubness: contrastive spaces produce a few vectors that are nearest neighbour
+    to almost everything, capping achievable recall while looking like a ranking problem.
     """
     n = vectors.shape[0]
     sims = vectors @ vectors.T

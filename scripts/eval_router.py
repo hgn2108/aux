@@ -6,16 +6,16 @@ ceiling. This measures how much of it each router actually captures, and what ea
 
 Three routers, in increasing order of price:
 
-- **rules**, keyword and phrase matching. Free, instant.
-- **prototype**, the query embedded once and compared to two small prototype sets. Free,
+- rules, keyword and phrase matching. Free, instant.
+- prototype, the query embedded once and compared to two small prototype sets. Free,
   about a millisecond, no hand-written vocabulary.
-- **claude**, a model call per query. Roughly half a second and a fraction of a cent.
+- claude, a model call per query. Roughly half a second and a fraction of a cent.
 
 Measured end to end, not as classification accuracy: each router's weight is fed to the
 actual retrieval and scored against objective relevance. A router that classifies well but
 picks unhelpful weights should lose, and accuracy alone would hide that.
 
-**Relevance.** Queries name a genre, a theme, or both. Genre comes from the folder layout,
+Relevance. Queries name a genre, a theme, or both. Genre comes from the folder layout,
 theme from the validated labels (Cohen's kappa 0.60 against blind human judgement). A
 compound query is relevant only where both hold, which is what makes it need both channels.
 
@@ -219,7 +219,7 @@ def main() -> int:
 
     # --- family-level routing -----------------------------------------------------------
     # The routers above choose per query and mostly fail. This asks the prior question:
-    # is the *decision* worth making at all? One weight per family, fitted on that family,
+    # is the decision worth making at all? One weight per family, fitted on that family,
     # is what a perfect family classifier would achieve: above any per-query router, and below
     # the per-query oracle. If this is significant while the routers are not, the gap is an
     # implementation problem rather than a missing effect.

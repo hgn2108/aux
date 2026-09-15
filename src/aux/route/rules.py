@@ -7,7 +7,7 @@ has to beat this one to justify itself.
 
 The acoustic vocabulary is borrowed from `aux.eval.intent`, which already lists terms with an
 unambiguous physical direction, plus the genre and instrument words a listener actually
-types. The semantic side keys on the constructions people use to ask about *meaning* rather
+types. The semantic side keys on the constructions people use to ask about meaning rather
 than on a list of topics, since topics are open-ended and phrasings are not.
 """
 
@@ -18,7 +18,7 @@ import re
 from ..eval.intent import INTENT_TERMS
 from .base import Route, Router
 
-#: Phrases that ask what a song is *about*. Matched as whole phrases, so "about" alone  -
+#: Phrases that ask what a song is about. Matched as whole phrases, so "about" alone  -
 #: which appears in plenty of acoustic queries, is not enough on its own.
 SEMANTIC_MARKERS = (
     "songs about", "song about", "tracks about", "music about", "lyrics about",

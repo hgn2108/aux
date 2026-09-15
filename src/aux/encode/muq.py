@@ -1,13 +1,13 @@
 """MuQ-MuLan adapter.
 
 E0's comparator against CLAP. Music-specific rather than general-audio, ~700M parameters,
-24 kHz input, code MIT, released weights **CC-BY-NC 4.0**, which constrains
+24 kHz input, code MIT, released weights CC-BY-NC 4.0, which constrains
 productization and is a factor in E0's decision, not only retrieval quality.
 
-**One behaviour worth naming.** MuQ-MuLan crops audio longer than 10 s into multiple clips
+One behaviour worth naming. MuQ-MuLan crops audio longer than 10 s into multiple clips
 and returns their average latent, internally. This adapter feeds it exactly one
 `segment_seconds` window at a time, so that internal averaging never fires and E1's
-segment-count comparison measures *our* pooling rather than a mixture of ours and the
+segment-count comparison measures our pooling rather than a mixture of ours and the
 model's. Raising `segment_seconds` above 10 would silently re-introduce it.
 """
 
@@ -22,16 +22,10 @@ DEFAULT_CHECKPOINT = "OpenMuQ/MuQ-MuLan-large"
 
 
 def _move_stray_tensors(module: "torch.nn.Module", device: str) -> int:
-    """Move plain tensor attributes that ``Module.to()`` cannot reach.
+    """Move tensors that `.to(device)` missed.
 
-    MuQ-MuLan's residual vector quantiser holds its projection weights as ordinary
-    attributes rather than as parameters or registered buffers, so they stay on CPU when
-    the model is moved to an accelerator and the forward pass dies on a device mismatch.
-
-    Patching them is safe only because it is verified: the adapter checks accelerator
-    output against CPU output on construction (see `_assert_device_agreement`). Without
-    that check this would be exactly the kind of silent-corruption fix that DEC-010 exists
-    to warn about.
+    MuQ registers some RVQ codebooks as plain attributes rather than buffers, so they stay
+    on CPU and every forward pass then fails on mixed devices.
     """
     moved = 0
     for mod in module.modules():
@@ -77,7 +71,7 @@ class MuQMuLanAdapter(EncoderAdapter):
         model = MuQMuLan.from_pretrained(checkpoint).eval()
         window = int(self.sample_rate * self.segment_seconds)
 
-        # Deterministic probe signal, embedded on CPU *before* the device move so the
+        # Deterministic probe signal, embedded on CPU before the device move so the
         # agreement check below needs no model copy (weight-normed modules cannot be
         # deepcopied).
         rng = np.random.default_rng(0)

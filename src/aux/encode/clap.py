@@ -4,7 +4,7 @@ DESIGN.md's mature baseline for E0. Loaded through `transformers`' `ClapModel` r
 the `laion_clap` package: the weights are the same, and the HF path avoids a second
 checkpoint-download mechanism and a second preprocessing implementation.
 
-**Checkpoint choice.** The default is the music-specialised variant. LAION publishes a
+Checkpoint choice. The default is the music-specialised variant. LAION publishes a
 general-audio checkpoint and music-specialised ones; a general-audio model must separate a
 dog bark from a siren as well as two indie tracks, which is the coarse-musical-resolution
 concern recorded in DESIGN.md. Choosing the music variant as the baseline gives CLAP its
@@ -21,7 +21,7 @@ from transformers import AutoProcessor, ClapModel
 from .base import EncoderAdapter
 
 DEFAULT_CHECKPOINT = "laion/larger_clap_music_and_speech"
-"""Music-relevant *and* verified to load with trained projection weights.
+"""Music-relevant and verified to load with trained projection weights.
 
 Not `laion/larger_clap_music`: that checkpoint loads without any missing-key warning but
 its projection heads and logit scales arrive at their random initial values, so both towers
@@ -32,21 +32,14 @@ are projected into the shared space by random matrices. See `_assert_projection_
 def _assert_projection_trained(model: ClapModel, checkpoint: str) -> None:
     """Fail loudly if the joint-space head did not actually load.
 
-    A checkpoint can load with no missing-key warning and still leave `text_projection`,
-    `audio_projection` and the logit scales at their random initial values. The result is
-    not an obvious crash: embeddings still come out unit-norm, and audio-audio similarity
-    still shows structure because the audio backbone is trained and a random linear map
-    preserves some geometry. What breaks silently is the *joint* space, every text
-    embedding collapses to near-identical, so retrieval ranks by audio alone and every
-    downstream metric is quietly meaningless.
+    A checkpoint can load without warning and still leave `text_projection`,
+    `audio_projection` and the logit scales at random init. Nothing crashes: embeddings are
+    still unit-norm, and audio-audio similarity still shows structure because the backbone
+    is trained. What breaks is the joint space, so every text embedding collapses to
+    near-identical and retrieval silently ranks by audio alone.
 
-    Two signals distinguish trained from initialised weights:
-
-    - projection **biases** are zero-initialised, so a trained head has non-zero spread;
-    - `logit_scale` is trained to roughly 2.5-4.0, but initialises near zero.
-
-    Checked at load rather than left to eval, because the failure is invisible in the
-    numbers it corrupts.
+    Two tells: projection biases are zero-initialised, so a trained head has non-zero
+    spread; `logit_scale` trains to roughly 2.5-4.0 but initialises near zero.
     """
     bias_spread = float(model.text_projection.linear1.bias.std())
     logit_scale = float(model.logit_scale_t)

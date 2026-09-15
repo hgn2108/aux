@@ -2,11 +2,11 @@
 
 Two decisions are load-bearing here and both come from DESIGN.md:
 
-1. **Native sample rate is preserved.** The decoder never resamples. Each encoder adapter
+1. Native sample rate is preserved. The decoder never resamples. Each encoder adapter
    resamples to its own contract downstream, so that adding an encoder with a different
    input rate never requires re-ingesting the library and never feeds a second encoder
    audio that was already resampled for the first.
-2. **MP4 is a container, not a special case.** The audio stream is extracted and decoded
+2. MP4 is a container, not a special case. The audio stream is extracted and decoded
    through the identical path as a standalone MP3; the video stream is never touched.
 """
 

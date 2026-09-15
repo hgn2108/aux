@@ -1,18 +1,10 @@
-"""Download the model weights into the image at build time.
+"""Download model weights at build time, so cold starts do not wait on 3.6 GB.
 
-A container that fetches 3.6 GB of weights on first request turns every cold start into a
-multi-minute wait, and on Cloud Run the writable filesystem is memory-backed, so the
-download costs RAM as well as latency.
+Imports nothing from `aux`: this runs before the source is copied into the image, so
+editing project files does not invalidate the weights layer. test_prefetch.py checks the
+two identifiers below still match the adapters.
 
-**This script imports nothing from `aux` on purpose.** It runs in the Dockerfile before the
-source tree is copied, so that editing any project file does not invalidate the layer
-holding several gigabytes of weights. The cost of that is a second copy of two model
-identifiers, which `tests/test_prefetch.py` pins to the adapters' own defaults so they
-cannot drift apart silently.
-
-Whisper is deliberately not prefetched. It is only needed if a visitor turns on lyric
-transcription for their own upload, so it is left to download on demand rather than adding
-half a gigabyte to every image.
+Whisper is left out. It is only needed if someone transcribes their own upload.
 
     python scripts/prefetch_models.py
 """
@@ -35,16 +27,9 @@ def main() -> int:
     print(f"fetching {MUQ_CHECKPOINT}...", file=sys.stderr)
     mulan = MuQMuLan.from_pretrained(MUQ_CHECKPOINT)
 
-    # Encoding one string, rather than only constructing the model.
-    #
-    # MuQ-MuLan's text tower wraps a *separate* checkpoint, xlm-roberta-base, behind a
-    # lazy `tokenizer` property that loads on first use, not at from_pretrained. Building
-    # the model alone left that outside the image, so the first search in a container tried
-    # to download it and failed inside a property getter, which Python reports as the
-    # tower having no attribute 'tokenizer' rather than as a download error.
-    #
-    # Running a real encode is what guarantees every lazily loaded piece is present,
-    # without this script having to know which checkpoints those are.
+    # Encode a string rather than just building the model. The text tower loads
+    # xlm-roberta-base lazily on first use, so constructing alone leaves it out of the
+    # image. Running the real path catches whatever else is lazy too.
     print("warming the text tower...", file=sys.stderr)
     with torch.inference_mode():
         mulan(texts=["a quiet piano recording"])

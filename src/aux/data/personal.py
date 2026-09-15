@@ -1,25 +1,14 @@
-"""Labels for the personal library, the only corpus here with a real lyric channel.
+"""Labels for the local library, the only corpus here with usable lyrics.
 
-FMA is the right corpus for scale, but it cannot support a multimodal evaluation: 56% of a
-sampled 75 clips were instrumental and the median transcript ran 11 words. Creative Commons
-catalogues skew heavily instrumental, so the lyric modality has almost nothing to encode.
-This library is the opposite, 160 commercially released tracks, 79% with a reliable
-transcript at a median of 376 words, and is therefore used for the audio-vs-lyrics-vs-fused
-comparison and the fusion-weight sweep.
+FMA has the scale but not the words: 56% instrumental, median transcript 11 words. This one
+is 160 tracks, 127 with real lyrics, so the lyric comparisons run here. The audio is never
+redistributed.
 
-**The audio is never published or redistributed**, and no track title or artist appears in
-committed results; tracks are identified by a stable pseudonym derived from the content hash.
-
-Labels come from the layout rather than a metadata database:
-
-- **genre**, the containing folder. Files sitting at the library root predate the genre
-  folders and are a hip-hop / R&B collection; they are labelled as such.
-- **artist**, the filename prefix before the first `" - "`, case-folded. This library was
-  assembled for listening rather than evaluation, so most artists appear exactly once; the
-  artist label covers far fewer queries here than on FMA and is reported with its query
-  count attached.
-
-There is no album label: the filenames do not carry one.
+Labels come from the layout, not a metadata database. Genre is the containing folder; files
+at the root predate the folders and are hip-hop / R&B. Artist is the filename prefix before
+the first " - ", case-folded, since downloads capitalise inconsistently. Most artists appear
+once, so the artist label covers far fewer queries here than on FMA. No album label, the
+filenames do not carry one.
 """
 
 from __future__ import annotations

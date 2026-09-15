@@ -1,11 +1,10 @@
 """Graded-relevance metrics for human-rated retrieval.
 
-Ratings are 1-5, where **1 means "not relevant at all"**. Gains are therefore `rating - 1`,
-so a 1 contributes nothing: a list of five 1s should score zero, not score for having
-returned five things.
+Ratings are 1-5 where 1 means "not relevant at all", so gains are `rating - 1`. Five 1s
+should score zero, not score for having returned five things.
 
-Kept in the package rather than in the Slice 1 script because these numbers decide whether
-Slice 2 is built, and a metric that only exists inside a one-off script cannot be tested.
+Lives in the package rather than the script that used it, because a metric that only exists
+inside a one-off script cannot be tested.
 """
 
 from __future__ import annotations
@@ -31,7 +30,7 @@ def ndcg(ratings_in_rank_order: np.ndarray) -> float:
     """NDCG over one query's returned list.
 
     Note the scope: with only the system's own top-K rated, this measures whether the
-    system *ordered its own results well*, not whether it found the right ones at all. A
+    system ordered its own results well, not whether it found the right ones at all. A
     system returning five mediocre tracks in the perfect order scores 1.0. Mean relevance
     is the metric that speaks to the second question.
     """
@@ -50,7 +49,7 @@ def success_at_k(ratings_in_rank_order: np.ndarray, k: int = 5, threshold: int =
 
 
 def random_ordering_ndcg(ratings: np.ndarray, trials: int = 2000, seed: int = 0) -> float:
-    """Expected NDCG if the *same* items were returned in random order.
+    """Expected NDCG if the same items were returned in random order.
 
     This is the honest baseline for the ordering question, and only for that: it holds the
     retrieved set fixed and shuffles it. It says nothing about whether retrieval found the

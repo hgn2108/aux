@@ -50,16 +50,12 @@ class EncoderAdapter(ABC):
     ) -> tuple[np.ndarray, np.ndarray]:
         """Turn an AudioAsset into one track vector.
 
-        Returns ``(track_vector, segment_vectors)``. The segment vectors are returned
-        rather than discarded because within-track variance is what makes an E1 result
-        interpretable: if pooling helps or hurts, the spread across a track's own segments
-        is the thing that explains why.
+        Returns ``(track_vector, segment_vectors)``. The segments come back rather than
+        being discarded because within-track spread is what explains whether pooling helped.
 
-        Pipeline, in DESIGN.md's order: resample to the encoder's rate -> select
-        deterministic segments -> encode -> L2-normalise each -> mean pool -> L2-normalise.
-        Normalising before pooling matters. Without it a loud segment carries more weight
-        than a quiet one purely through vector magnitude, which is a volume artefact rather
-        than a musical one.
+        Resample -> select deterministic segments -> encode -> L2-normalise each -> mean
+        pool -> L2-normalise. Normalising before pooling matters: without it a loud segment
+        outweighs a quiet one through magnitude alone, which is a volume artefact.
         """
         audio = resample(asset.samples, asset.sample_rate, self.sample_rate)
         segments = select_segments(

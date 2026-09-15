@@ -1,20 +1,12 @@
-"""Ranking metrics for recommendation against binary relevance labels.
+"""Ranking metrics against binary relevance labels.
 
-Separate from `relevance.py`, which handles graded 1-5 human ratings. Here relevance is
-binary and comes from metadata, same genre, same artist, same album, so the metrics are
-the standard retrieval set rather than graded NDCG.
+Separate from relevance.py, which handles graded 1-5 human ratings. Here relevance is
+binary and comes from metadata: same genre, same artist, same album.
 
-All four are reported because they answer different questions, and a recommender can look
-good on one while failing another:
-
-- **Precision@K**, of what was shown, how much was relevant. The user-facing quality of a
-  short list.
-- **Recall@K**, of everything relevant, how much was found. Meaningless when a query has
-  249 relevant items and K is 10, which is exactly the case for the genre label, so it is
-  reported but not used to compare systems there.
-- **HitRate@K**, did *anything* relevant appear. The right metric when relevant items are
-  scarce, as with the album label.
-- **NDCG@K**, rewards putting relevant items higher, not merely including them.
+All four are reported because a system can look good on one and fail another. Recall@K is
+meaningless on the genre label, where a query has ~249 relevant items and K is 10, so it is
+reported but not used to compare there. HitRate@K is the useful one when relevant items are
+scarce, as with album.
 """
 
 from __future__ import annotations
@@ -58,18 +50,16 @@ def evaluate_ranking(scores: np.ndarray, relevant: np.ndarray, ks: tuple[int, ..
                      queries: np.ndarray | None = None) -> dict:
     """Score one system over every query.
 
-    `scores[i, j]` is how strongly track j is recommended for query i; `relevant[i, j]` is
-    whether it should be. `exclude` masks pairs out of both ranking and labels, used to
-    drop same-artist pairs when scoring the genre label, which otherwise rewards a model for
-    recognising an album's production rather than its genre.
+    `scores[i, j]` is how strongly track j is recommended for query i, `relevant[i, j]`
+    whether it should be. `exclude` masks pairs out of both, used to drop same-artist pairs
+    when scoring genre.
 
-    Queries with no relevant item are skipped: they cannot distinguish a good system from a
-    bad one, and including them just dilutes every metric by a constant.
+    Queries with no relevant item are skipped; they cannot separate a good system from a
+    bad one.
 
-    `queries` restricts scoring to a subset of query rows while every track stays a
-    candidate, used for per-genre breakdowns. Pass it rather than slicing `scores`
-    yourself: a sliced matrix is no longer square, so the diagonal that stops a track
-    recommending itself would land on the wrong tracks.
+    `queries` scores a subset of rows while every track stays a candidate. Use it rather
+    than slicing `scores`: a sliced matrix is not square, so the self-exclusion diagonal
+    would land on the wrong tracks.
     """
     scores = np.array(scores, dtype=float, copy=True)
     relevant = np.asarray(relevant, dtype=bool)

@@ -1,13 +1,8 @@
-"""Loading a corpus for the demo: vectors, metadata, and the modalities it supports.
+"""Loading a corpus for the demo: vectors, metadata, and which modes it supports.
 
-Two corpora, and the difference between them is a finding rather than an inconvenience.
-FMA is Creative Commons, so its audio can be played in a browser, but 56% of a sampled 75
-clips are instrumental with a median transcript of 11 words, there is no lyric channel to
-search. The personal library has both modalities but cannot be redistributed, so it runs
-locally and its tracks are shown under stable pseudonyms.
-
-Everything here is cached by Streamlit, so the encoder and the index load once per session
-rather than once per interaction.
+Two corpora with opposite limitations. FMA is Creative Commons so it plays in the browser,
+but it is 56% instrumental and has nothing to search lyrically. The local library has both
+signals but cannot be redistributed, so a deployment gets its vectors without its audio.
 """
 
 from __future__ import annotations

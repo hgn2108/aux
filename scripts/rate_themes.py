@@ -5,7 +5,7 @@ the semantic evaluation is measured with, and an unchecked ruler is worth nothin
 samples pairs, asks a human, and reports agreement. Every number the semantic benchmark
 produces should be quoted with the kappa from here next to it.
 
-**Blind.** The model's own label is never shown, and the sample is drawn half from pairs the
+Blind. The model's own label is never shown, and the sample is drawn half from pairs the
 model marked true and half from pairs it marked false. Rating only the positives would
 measure precision and call it agreement, which flatters a labeller that marks everything.
 

@@ -1,16 +1,11 @@
-"""The example queries offered in the demo, and their precomputed embeddings.
+"""Example queries for the demo, and their precomputed embeddings.
 
-A hosted container loads 2.5GB of model weights the first time anyone searches, which takes
-minutes on a cold start. Nobody evaluating the project waits that long, and they should not
-have to: the examples are fixed, so their embeddings can be computed once at export time and
-shipped with the corpus bundle.
+A cold container takes minutes to load the encoder. These queries are fixed, so their
+embeddings are computed at export time and clicking one costs a dot product instead.
+Typing something new still loads the model.
 
-Clicking one then costs a dot product against vectors already in memory, with no model
-involved. Typing something new still loads the encoder, because an arbitrary string cannot be
-answered any other way.
-
-The queries live here rather than in `app.py` so that the exporter and the app read the same
-list. If they drifted, a precomputed vector would silently answer the wrong question.
+They live here, not in app.py, so the exporter and the app read the same list. If those
+drifted, a stored vector would answer the wrong question.
 """
 
 from __future__ import annotations

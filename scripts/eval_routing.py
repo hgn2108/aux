@@ -8,9 +8,9 @@ puts them side by side to show that the fusion weight is not a constant to be tu
 It reads the JSON both evaluations already wrote rather than recomputing anything, so the
 numbers here cannot drift from the numbers they were taken from.
 
-**What the averaged column is and is not.** The two families are scored against different
+What the averaged column is and is not. The two families are scored against different
 labels on different query sets, so their mean is a presentational device for comparing
-*policies*, not a metric anyone should quote on its own. It answers one question only: if a
+policies, not a metric anyone should quote on its own. It answers one question only: if a
 single fusion weight had to serve both families, what would it cost? The per-family columns
 are the real evidence.
 

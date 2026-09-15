@@ -3,18 +3,18 @@
 Every component here earned its place by measurement, and the ones that did not are absent.
 What survived:
 
-- **negation split** (DEC-014), always on. A contrastive encoder cannot represent "not X",
+- negation split (DEC-014), always on. A contrastive encoder cannot represent "not X",
   so the query is split and the exclusion applied at score level. Largest single measured
   gain in the project: a rated query moved 1.00 to 5.00.
-- **five-segment pooling** (DEC-011), in the index. Beat single-segment on two independent
+- five-segment pooling (DEC-011), in the index. Beat single-segment on two independent
   encoders.
-- **MuQ-MuLan** (DEC-012). Beat CLAP at every pooling depth, paired p = 4.5e-08.
+- MuQ-MuLan (DEC-012). Beat CLAP at every pooling depth, paired p = 4.5e-08.
 
 What was measured and rejected: a fixed context lexicon (DEC-016), five reranking methods
 (DEC-015), rank fusion (DEC-017), and the LLM planner as a default (DEC-018).
 
-**The planner is off by default** and available behind `use_planner`. It helps vague queries
-(+1.07 on ones the baseline handled badly) and *harms* specific ones (-0.58), so applied
+The planner is off by default and available behind `use_planner`. It helps vague queries
+(+1.07 on ones the baseline handled badly) and harms specific ones (-0.58), so applied
 indiscriminately it nets to nothing, measured at +0.05, p = 1.000. It also costs ~1.7 s and
 an internet connection, in a project whose first principle is local-first. DEC-021 records
 the rule for when it is worth enabling; that rule is not yet validated on held-out queries.
@@ -51,8 +51,8 @@ class SearchResponse:
     low_coverage: bool
     """True when even the best match is a poor one, the library probably cannot answer.
 
-    Phase B validated the *signal*: raw top score detected a removed genre in 20 of 22
-    cases, where every distribution-shape measure sat at or below chance. The **threshold**
+    Phase B validated the signal: raw top score detected a removed genre in 20 of 22
+    cases, where every distribution-shape measure sat at or below chance. The threshold
     is not validated, so this is surfaced as advisory rather than used to suppress results.
     """
 

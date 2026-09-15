@@ -4,16 +4,16 @@ The recommendation evaluation found that every fusion weight scores below audio-
 both label definitions, despite the lyric channel scoring well above random. That has three
 possible explanations, and they call for completely different fixes:
 
-1. **Combination.** The blend is miscalibrated. Scores are min-max normalised per query, and
+1. Combination. The blend is miscalibrated. Scores are min-max normalised per query, and
    min-max is set by the two most extreme candidates, so one outlier rescales everything. If
    this is the cause, a better normaliser fixes it.
-2. **Routing.** Lyrics win on some queries and lose on others, and a single global alpha
+2. Routing. Lyrics win on some queries and lose on others, and a single global alpha
    averages the winner with the loser. If this is the cause, per-query routing fixes it.
-3. **Redundancy.** The labels available, same genre, same artist, are acoustic constructs
+3. Redundancy. The labels available, same genre, same artist, are acoustic constructs
    that lyrics predict only weakly and never independently. If this is the cause, nothing
    fixes it, because there is no complementary signal to recover.
 
-The decisive test is an **oracle**: a cheating router allowed to see the labels and pick the
+The decisive test is an oracle: a cheating router allowed to see the labels and pick the
 better modality per query. It is an upper bound on every routing strategy that could ever be
 written. If the oracle barely beats audio alone, explanations 1 and 2 are ruled out no matter
 what normaliser or router is tried, and the answer is 3.

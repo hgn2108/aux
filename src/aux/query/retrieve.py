@@ -7,7 +7,7 @@ meaningful:
     score(track) = cos(positive, track) - lambda * max_j cos(negative_j, track)
 
 `max` rather than a sum over negatives: two exclusions should not penalise a track twice as
-hard as one, and a track needs to be pushed down if it matches *any* excluded concept.
+hard as one, and a track needs to be pushed down if it matches any excluded concept.
 
 `lambda` is the one free parameter. Its value is chosen by measurement in
 `scripts/eval_negation.py`, against ground truth that costs no human rating: genre folders
@@ -30,7 +30,7 @@ baseline exactly, so the rung can be switched off for a clean comparison. Set by
 DEFAULT_NEGATION_WEIGHT = 0.5
 """Chosen by sweep in `scripts/eval_negation.py` (2026-09-09).
 
-Selected on the *margin* between satisfying the request and honouring the exclusion, not on
+Selected on the margin between satisfying the request and honouring the exclusion, not on
 leakage alone. Leakage alone is trivially minimised by returning things nobody asked for:
 at weight 1.5 leakage reaches 0.00 while the share of correctly-targeted results falls from
 0.90 to 0.75, and at 3.0 to 0.50.
@@ -50,19 +50,11 @@ def score_query(
     negation_weight: float = DEFAULT_NEGATION_WEIGHT,
     expansion_weight: float = DEFAULT_EXPANSION_WEIGHT,
 ) -> tuple[np.ndarray, ParsedQuery, Expansion]:
-    """Score every track for one query: expand context, subtract negated concepts.
+    """Score every track against a parsed query.
 
-        score = (1-b) * cos(positive) + b * cos(acoustic expansion)
-                - w * max_j cos(negative_j)
-
-    The original query keeps most of the weight by default. Slice 1 showed the genre and
-    mood words carry real signal, genre-anchored context queries scored 4.18 against 3.14
-    for context alone, so the expansion is added as evidence rather than substituted for
-    what the user actually typed.
-
-    Both extra terms are embedded separately rather than concatenated into one string. That
-    is the same lesson negation taught: a single embedding of "hip hop, fast tempo, driving
-    percussion" is one point in space, and there is no way to weight its parts afterwards.
+    Subtracts the strongest negative match rather than summing them: two exclusions should
+    not penalise twice as hard as one, and a track needs pushing down if it matches any of
+    them.
     """
     parsed = parse(query)
     expansion = expand(parsed.positive)
@@ -93,7 +85,7 @@ def score_plan(
 
     Retrieval runs on `plan.rewritten` and pushes away from `plan.exclude`, reusing the same
     score-level negation the deterministic path uses. Sharing that machinery is deliberate:
-    it means an E2 difference is attributable to the *rewrite*, not to two different
+    it means an E2 difference is attributable to the rewrite, not to two different
     exclusion implementations.
 
     A fallback plan has `rewritten == original` and no exclusions, so this reduces exactly

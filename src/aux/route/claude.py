@@ -1,6 +1,6 @@
 """The paid arm: ask a model for the weight.
 
-Included because the free baselines have a known weakness, they recognise *phrasings*, and
+Included because the free baselines have a known weakness, they recognise phrasings, and
 a listener can ask about meaning without using any of the constructions a rule lists. A model
 that understands the request should route those correctly, and should be able to grade a
 compound query rather than picking a side.

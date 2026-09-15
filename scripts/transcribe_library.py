@@ -2,10 +2,10 @@
 
 Produces three things Slice 3 needs, from one pass:
 
-- **lyrics text** for lyrical search;
-- **detected language**, which addresses a measured Slice 1 failure ("sung in Vietnamese"
+- lyrics text for lyrical search;
+- detected language, which addresses a measured Slice 1 failure ("sung in Vietnamese"
   returned jazz);
-- **an instrumental flag**, which addresses another ("solo piano, no vocals" was the
+- an instrumental flag, which addresses another ("solo piano, no vocals" was the
   worst-scoring query in Slice 1).
 
 Transcripts of personal music are personal data, arguably more identifying than filenames,

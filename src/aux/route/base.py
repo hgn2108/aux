@@ -1,15 +1,9 @@
-"""Choosing the fusion weight from the query.
+"""Choosing the blend weight from the query.
 
-The evaluation found that the best weight is not a constant. Track-to-track similarity and
-genre-style queries want pure audio (NDCG@10 0.832 against 0.555 for lyrics); "songs about X"
-wants pure lyrics (0.734 against 0.367). Applying either family's best weight to the other
-costs 0.28-0.37, so a system serving both needs to decide per query.
-
-An oracle allowed to pick the better modality per query scores +0.042 over the best single
-weight. That is the ceiling for everything in this package, and it is deliberately small: a
-router is worth building only if it captures most of it for less than it costs. Three
-implementations are measured against that bound rather than one being assumed best, which is
-the same treatment the query planner got, and the planner lost, and is off by default.
+The best weight is not a constant: similarity queries want audio, "songs about X" wants
+lyrics, and using the wrong one costs 0.28-0.37 NDCG@10. An oracle picking per query gains
+only +0.042 over the best fixed weight, so that is the ceiling here. Three implementations
+are measured against it; none is assumed best.
 """
 
 from __future__ import annotations

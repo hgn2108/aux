@@ -5,8 +5,8 @@ Two things come out of a plan, serving different purposes:
 - **`rewritten`** drives retrieval today. It restates the query in the descriptive,
   sound-naming language the encoder was trained on, which is the mechanism DEC-013 proposed
   and the fixed lexicon failed to deliver generically.
-- **the facets** are the structured decomposition DEC-007 committed to. They are what makes
-  the planner *evaluable* field by field (Eval 2A) rather than only end to end, and they are
+- the facets are the structured decomposition DEC-007 committed to. They are what makes
+  the planner evaluable field by field (Eval 2A) rather than only end to end, and they are
   what a later routing step would consume.
 
 Validation is strict and total: a plan that does not parse is a measured failure with a

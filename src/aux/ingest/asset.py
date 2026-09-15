@@ -28,7 +28,7 @@ _HASH_CHUNK_BYTES = 1 << 20
 def content_hash(path: Path) -> str:
     """BLAKE2b digest of the file's bytes.
 
-    Keys the embedding cache. Hashing *bytes* rather than decoded audio is deliberate: it
+    Keys the embedding cache. Hashing bytes rather than decoded audio is deliberate: it
     makes a moved or renamed file a cache hit, which is the stated purpose, and it is
     cheap. The accepted consequence is that a re-encode of the same recording is a cache
     miss, correct behaviour anyway, since a different encode is different audio to the
@@ -64,7 +64,7 @@ class MediaInfo:
 class AudioAsset:
     """A decoded, pipeline-ready audio file.
 
-    ``samples`` is mono float32 in [-1, 1] **at the file's native sample rate**. DESIGN.md
+    ``samples`` is mono float32 in [-1, 1] at the file's native sample rate. DESIGN.md
     forbids normalising the library to one universal rate: each encoder adapter resamples
     to its own contract downstream (CLAP and MuQ-MuLan differ), so baking one encoder's
     rate in here would degrade every other encoder's input and invalidate E0.

@@ -43,7 +43,7 @@ def relative_gap(scores: np.ndarray, k: int = 10) -> float:
 def crowding(scores: np.ndarray, fraction: float = 0.9) -> float:
     """Share of the library scoring within `fraction` of the top.
 
-    Scale-free because it is a proportion. **High crowding means low confidence**, many
+    Scale-free because it is a proportion. High crowding means low confidence, many
     tracks are nearly as good as the best one, so it runs opposite to the others and is
     inverted where a single direction is wanted.
     """

@@ -9,7 +9,7 @@ family. The gap between the two mean similarities is mapped to a weight through 
 so the output is graded rather than binary: a query sitting between the prototypes lands
 between the weights, which is what a compound query should do.
 
-**Prototypes are not the evaluation queries.** They are written separately and generically;
+Prototypes are not the evaluation queries. They are written separately and generically;
 reusing evaluation queries as prototypes would measure memorisation.
 """
 

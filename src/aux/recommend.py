@@ -1,34 +1,10 @@
-"""Track-to-track and text-to-track recommendation over two modalities.
+"""Recommendation from a reference track or a text query.
 
-The retrieval surface the rest of the project is measured through. Three modes:
+Three modes: audio (MuQ-MuLan), lyrics (Qwen3 over Whisper transcripts), and a weighted
+blend of the two. See `blend` for the combination rule.
 
-- **audio**, MuQ-MuLan embeddings of the recording itself;
-- **lyrics**, Qwen3 embeddings of Whisper transcripts;
-- **fused**, a weighted blend, with `alpha` controlling the balance.
-
-**Why weighted-score fusion rather than rank fusion.** Reciprocal rank fusion was measured
-first and is the wrong tool here: it weights its inputs equally by construction, and E3
-showed that halves performance when one modality knows nothing about the query (lyric-line
-retrieval, where audio sits at chance). A weight makes the balance explicit, tunable, and
-measurable, which is what an ablation needs.
-
-**Why per-query normalisation.** Audio and lyric cosines come from different models with
-different score distributions, so `0.6 * audio + 0.4 * lyric` on raw values silently weights
-whichever has more spread. Each modality's scores are normalised across candidates for that
-query first, so `alpha` means what it says.
-
-**Why z-score rather than min-max.** Min-max was measured first and is worse: its range is
-set by the two most extreme candidates, so a single outlier rescales every other score and
-compresses the differences that matter. `scripts/diagnose_fusion.py` found z-score ahead at
-every interior alpha (0.143 vs 0.106 at alpha=0.5 on the artist label, NDCG@10), so it is
-the default. Min-max is kept selectable because that comparison is the evidence for the
-choice, and because the displayed per-result scores still use it: a 0-1 range is meaningful
-to a reader, and a standard deviation is not.
-
-**Missing modality.** A track with no reliable transcript, instrumental, or a failed
-transcription, has no lyric vector. It falls back to its audio score rather than being
-scored zero, since zero would push every instrumental track to the bottom of every fused
-ranking and quietly turn fusion into a vocal-music filter.
+Rank fusion was tried first and dropped: it weights its inputs equally by construction, so
+there is nothing to ablate. A weight is explicit and measurable.
 """
 
 from __future__ import annotations
@@ -49,11 +25,8 @@ def _minmax(scores: np.ndarray) -> np.ndarray:
 
 
 def _zscore(scores: np.ndarray) -> np.ndarray:
-    """Standardise per query row, leaving a constant row at zero.
-
-    Unlike min-max, the scale comes from the whole distribution rather than its two extreme
-    candidates, so one outlier cannot rescale everything else.
-    """
+    """Standardise per query row. Scale comes from the whole distribution, not the two
+    extreme candidates, so one outlier cannot rescale everything else."""
     scores = np.asarray(scores, dtype=float)
     mu = scores.mean(axis=-1, keepdims=True)
     sd = scores.std(axis=-1, keepdims=True)
@@ -69,19 +42,12 @@ def blend(audio_scores: np.ndarray, lyric_scores: np.ndarray | None, alpha: floa
           normaliser: str = DEFAULT_NORMALISER) -> np.ndarray:
     """Combine one row of audio scores with one row of lyric scores.
 
-    The single implementation of the rule. It was written out five times across the
-    recommender, the evaluations and both pages of the app, which is four chances for the
-    published numbers and the shipped behaviour to stop agreeing.
+    `alpha` weights audio: 1.0 is audio only, 0.0 lyrics only. Normalised per query first,
+    or alpha would favour whichever model spreads its scores wider.
 
-    `alpha` is the weight on audio: 1.0 is audio only and 0.0 is lyrics only, so a sweep
-    collapses exactly onto each single-signal system at its ends. Scores are normalised per
-    query first, because the two come from different models with different spreads, and
-    without that `alpha` would silently favour whichever spreads wider.
-
-    A candidate with no usable transcript keeps its audio score rather than being scored
-    zero, which would push every instrumental to the bottom and quietly turn the blend into
-    a vocal-music filter. Passing `lyric_scores=None` does the same for the whole row, which
-    is the case when the *query* has no lyrics to match against.
+    Candidates with no transcript keep their audio score instead of zero, which would sink
+    every instrumental. `lyric_scores=None` does that for the whole row, for when the query
+    itself has no lyrics.
     """
     norm = NORMALISERS[normaliser]
     audio = norm(np.asarray(audio_scores, dtype=float))
@@ -136,8 +102,8 @@ class Recommendation:
     score: float
     audio_score: float
     lyric_score: float | None
-    """None when this track has no usable transcript, surfaced rather than faked, so the
-    UI can say "no lyrics" instead of showing a fabricated zero."""
+    """None when the track has no transcript, so the UI can say so rather than show a
+    fabricated zero."""
 
     def explain(self) -> str:
         """A deterministic one-line reason, for display alongside the result."""
@@ -187,12 +153,7 @@ class Recommender:
 
     def score(self, track_index: int, *, modality: str = "audio",
               alpha: float = 0.5) -> np.ndarray:
-        """Score every track against a query track.
-
-        `alpha` is the audio weight: 1.0 is audio-only, 0.0 is lyrics-only, so the fused
-        mode collapses exactly onto each unimodal system at the ends of the sweep. That is
-        what makes an alpha ablation interpretable rather than three unrelated systems.
-        """
+        """Score every track against a query track. See `blend` for what alpha does."""
         if modality == "audio":
             return self.audio_scores(track_index)
         if modality == "lyrics":
@@ -200,8 +161,7 @@ class Recommender:
         if modality != "fused":
             raise ValueError(f"unknown modality {modality!r}")
 
-        # The query itself having no lyrics means there is nothing lyrical to match
-        # against, which `blend` treats the same way as a row with no usable candidates.
+        # No lyrics on the query means nothing to match lyrically.
         query_has_lyrics = self.lyrics is not None and self.has_lyrics[track_index]
         return blend(self.audio_scores(track_index),
                      self.lyric_scores(track_index) if query_has_lyrics else None,
@@ -215,8 +175,8 @@ class Recommender:
         scores = np.array(self.score(track_index, modality=modality, alpha=alpha), dtype=float)
         scores[track_index] = -np.inf
 
-        # Displayed scores are always min-max, whatever the ranking uses: `explain()`
-        # bands them into low/moderate/high, which needs a bounded 0-1 range.
+        # Display uses min-max whatever the ranking uses: explain() bands into
+        # low/moderate/high and needs a bounded range.
         audio_n = _minmax(self.audio_scores(track_index))
         lyric_n = None
         if self.lyrics is not None and self.has_lyrics[track_index]:
@@ -236,11 +196,9 @@ class Recommender:
 
     def recommend_from_text(self, query_vector: np.ndarray, *, top_k: int = 10
                             ) -> list[Recommendation]:
-        """Text-to-track search: rank by a query embedding in the audio space.
+        """Rank by a text query embedded in the audio space.
 
-        Kept on the same object as track-to-track so both retrieval modes share one index,
-        one cache and one set of results, they are two entry points to the same system, not
-        two systems.
+        On the same object as track-to-track so both share one index and one cache.
         """
         scores = self.audio @ np.asarray(query_vector, dtype=np.float32)
         normalised = _minmax(scores)
@@ -250,5 +208,5 @@ class Recommender:
                 for r, j in enumerate(order)]
 
     def score_matrix(self, *, modality: str = "audio", alpha: float = 0.5) -> np.ndarray:
-        """Every track against every track, what the evaluation consumes."""
+        """Every track against every track. What the evaluation consumes."""
         return np.stack([self.score(i, modality=modality, alpha=alpha) for i in range(len(self))])

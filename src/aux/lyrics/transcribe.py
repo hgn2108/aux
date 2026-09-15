@@ -1,21 +1,21 @@
 """Transcribing sung lyrics from audio.
 
-**Why transcription rather than a lyrics database.** A lyrics API works by matching a file
+Why transcription rather than a lyrics database. A lyrics API works by matching a file
 to a catalogue entry, which is exactly the failure DEC-001 was written to avoid: it breaks
 on remixes, live versions, mashups and mislabelled files, and Irene's library is full of
 them. Transcription reads whatever audio is actually there, so it satisfies the
 train/inference parity rule, anything computed in development is computable for an
 arbitrary local file.
 
-**Three signals come out of one pass**, and two were unplanned:
+Three signals come out of one pass, and two were unplanned:
 
-- **the text**, for lyrical search (Slice 3's purpose);
-- **the detected language**, which directly addresses a measured Slice 1 failure, "sung in
+- the text, for lyrical search (Slice 3's purpose);
+- the detected language, which directly addresses a measured Slice 1 failure, "sung in
   Vietnamese" returned jazz, because the audio encoder is blind to language;
 - **`no_speech_prob`**, a per-segment estimate that nothing is being sung. That is an
   instrumental detector, and "solo piano, no vocals" was the worst-scoring query in Slice 1.
 
-**Expect this to be imperfect on music.** Whisper is trained for speech; singing over a
+Expect this to be imperfect on music. Whisper is trained for speech; singing over a
 dense mix is harder, and quality will vary with how buried the vocal is. Confidence signals
 are recorded per track so that unreliable transcripts can be excluded by measurement rather
 than assumed good.
@@ -84,7 +84,7 @@ class Transcriber:
     LANGUAGE_WINDOWS = 5
     """How many windows to vote over when detecting the language.
 
-    Whisper detects language from a *single* 30-second window at the start of the file, and
+    Whisper detects language from a single 30-second window at the start of the file, and
     on this library that is wrong often enough to matter: of five Vietnamese tracks, the
     default identified three, calling one English (0.47) and one Korean (0.27), both low
     confidence, both from an unrepresentative opening. Voting over five windows spread
@@ -125,17 +125,13 @@ class Transcriber:
                    max_seconds: float | None = None) -> Transcript:
         """Transcribe one file. `language=None` lets Whisper detect it, which is the point.
 
-        Audio is decoded through this project's own pipeline and handed to Whisper as an
-        array, rather than letting Whisper shell out to an `ffmpeg` binary. Two reasons: no
-        such binary is installed (PyAV bundles the libraries, not the CLI), and this way
-        transcription sees exactly the same decoded audio the encoder does.
+        Audio is decoded through this project's pipeline and passed as an array rather than
+        letting Whisper shell out to ffmpeg, which is not installed (PyAV bundles the
+        libraries, not the CLI) and would not see the same audio the encoder does.
 
-        `max_seconds` transcribes only the opening of a track. Cost is linear in the audio
-        fed in, measured on CPU, `small` takes about 4s for a 60s window and 8s for 120s
-       , so bounding it is how an interactive caller trades coverage for latency. The
-        indexed library is transcribed in full and passes no bound; only the demo does,
-        where waiting on a four-minute song would be worse than reading fewer of its words.
-        Language voting still spans the audio it is given.
+        `max_seconds` bounds how much is transcribed. Cost is linear: on CPU, `small` takes
+        about 4s for a 60s window and 8s for 120s. The library is transcribed in full; only
+        the demo passes a bound. Language voting still spans whatever it is given.
         """
         from ..encode.resample import resample
         from ..ingest import decode

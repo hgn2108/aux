@@ -1,12 +1,10 @@
 """Reranking a retrieved candidate set.
 
-Eval 1 found that ordering within the returned top 5 was no better than chance, NDCG 0.866
-against 0.863 for the same items shuffled, while success@1 (67%) trailed success@5 (89%).
-A clearly-relevant track was often retrieved and not placed first. That gap is the headroom
-these methods try to close, and none of them changes *which* tracks are retrieved.
+Ordering within the top 5 was no better than chance (NDCG 0.866 against 0.863 shuffled),
+while success@1 at 67% trailed success@5 at 89%. Relevant tracks were being retrieved but
+not put first. These methods try to close that gap; none changes what is retrieved.
 
-Each method is parameter-free or carries a single parameter, deliberately: with 36 rated
-queries, anything with real capacity would fit the evaluation rather than the problem.
+One parameter at most, on purpose: 36 rated queries will fit anything with real capacity.
 """
 
 from __future__ import annotations
@@ -40,13 +38,9 @@ def mean_plus_max(query_vec: np.ndarray, track_vecs: np.ndarray,
 def csls(query_vec: np.ndarray, track_vecs: np.ndarray, *, k: int = 10) -> np.ndarray:
     """Cross-domain similarity local scaling, a hubness correction.
 
-    Eval 0C measured real hubness in this space: a few tracks are near neighbours of almost
-    everything, and a hub is retrieved because it sits centrally, not because it matches.
-    CSLS subtracts each track's average similarity to its own k nearest neighbours, so a
-    track sitting in a dense region must clear a higher bar.
-
-    Principled here rather than borrowed: the correction targets a property that was
-    independently measured in this exact space, instead of being a generic ranking trick.
+    Subtracts each track's average similarity to its own k nearest neighbours, so a track
+    in a dense region must clear a higher bar. Used here because hubness was measured in
+    this space, not because it is a generic ranking trick.
     """
     sims = track_vecs @ track_vecs.T
     np.fill_diagonal(sims, -np.inf)
@@ -57,7 +51,7 @@ def csls(query_vec: np.ndarray, track_vecs: np.ndarray, *, k: int = 10) -> np.nd
 
 def query_z(query_vec: np.ndarray, track_vecs: np.ndarray,
             all_query_vecs: np.ndarray) -> np.ndarray:
-    """Standardise each track's score against how it scores for *other* queries.
+    """Standardise each track's score against how it scores for other queries.
 
     A track that scores high for every query carries little information when it scores high
     for this one. Requires the other queries, so it is only available in batch evaluation --

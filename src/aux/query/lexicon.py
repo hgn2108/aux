@@ -1,20 +1,20 @@
 """Context→acoustic translation by fixed lexicon, DEC-013's rung 1.
 
 Irene's own queries are context-led: 7 of 12 name an activity or setting. Slice 1 found
-context the weakest category (3.14), and specifically that context *without* a genre anchor
+context the weakest category (3.14), and specifically that context without a genre anchor
 fails badly, "background music while reading" scored 1.6, "warming up before going out"
 1.6. Meanwhile concrete instrumentation language works well ("solo piano" z = 4.97).
 
 The gap is between the language people use and the language the encoder was trained on:
-descriptive captions of *sound*. This module closes it the cheapest way available, by
+descriptive captions of sound. This module closes it the cheapest way available, by
 rewriting situations into sounds.
 
-**Why a hand-written table when an LLM would write a better one.** Because it costs nothing,
+Why a hand-written table when an LLM would write a better one. Because it costs nothing,
 runs offline, is deterministic, and captures the genuinely universal half of the mapping:
 running is fast, sleeping is slow. DEC-013 requires the LLM to beat this before its cost and
 network dependency are justified, and a measured "the table was enough" is a real result.
 
-**What it cannot do.** The other half of context is personal: "for studying" means lo-fi to
+What it cannot do. The other half of context is personal: "for studying" means lo-fi to
 one listener and solo piano to another. No table and no LLM knows which. That is Slice 5's
 intent profile, learned from behaviour, and this module is deliberately not an attempt at it.
 """
@@ -65,7 +65,7 @@ Terms are the ones that actually appeared in Irene's queries and in the Slice 1 
 their near neighbours. Deliberately small: an unused entry cannot be validated, and a table
 that guesses at situations nobody asks for is untested surface area.
 
-Values name **acoustic properties**, tempo, density, dynamics, texture, not genres.
+Values name acoustic properties, tempo, density, dynamics, texture, not genres.
 Mapping "studying" to "lo-fi hip hop" would bake one listener's taste into the system, which
 is the personal half this module explicitly does not attempt.
 """

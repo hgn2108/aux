@@ -1,6 +1,6 @@
 """Anthropic-backed planner.
 
-**Privacy boundary, enforced here rather than by convention.** Only the query string leaves
+Privacy boundary, enforced here rather than by convention. Only the query string leaves
 the machine. Never audio, never file paths, never library contents, never ratings. This is
 the concession DEC-007 accepted in a local-first project, and keeping it to a single
 `content=query` line is what makes it checkable.
@@ -56,7 +56,7 @@ class ClaudePlanner(Planner):
         moved from +0.34 to +0.40 between two runs whose baseline was identical to two
         decimal places, which was the planner re-sampling its own inputs. Reproducibility is
         therefore handled by caching plans (`plan.cache`), and schema enforcement removes the
-        other source of variation, which is response *shape*."""
+        other source of variation, which is response shape."""
         self._client = anthropic.Anthropic(api_key=key)
 
     def _complete(self, query: str) -> tuple[str, dict]:

@@ -1,19 +1,19 @@
 """Weak-label each transcript with the lyrical themes it is about.
 
 The recommendation evaluation scores against genre, artist and album. All three are
-*acoustic* constructs, so they ask "do lyrics help identify the artist?", and mostly they
+acoustic constructs, so they ask "do lyrics help identify the artist?", and mostly they
 do not, which is why fusion loses there. That result says nothing about the queries a lyric
 channel exists to serve: "songs about heartbreak", "songs about proving people wrong". This
 script builds the labels needed to measure those.
 
-**Why a model and not a keyword list.** Matching keywords against the transcript would label
+Why a model and not a keyword list. Matching keywords against the transcript would label
 a track using the exact text the lyric encoder reads, biasing the benchmark toward the system
 under test. A separate model reading for meaning is not independent either, but its errors
 are far less aligned with cosine similarity in Qwen3 space. The honest check is human
 agreement, which `scripts/rate_themes.py` measures on a blind sample and which is reported
 alongside every number these labels produce.
 
-**Privacy.** Only transcript text leaves the machine, never audio, never a file path, never
+Privacy. Only transcript text leaves the machine, never audio, never a file path, never
 a filename, never the library listing. Each request carries one transcript and nothing that
 links it to a person or to the rest of the collection. This is a wider concession than the
 planner's (DEC-007, query strings only) and is recorded as such.
@@ -43,7 +43,7 @@ MODEL = "claude-sonnet-5"
 """Labelling is the measurement instrument, so accuracy matters more than latency here  -
 the opposite tradeoff from the planner, which runs inside a search and uses Haiku."""
 
-#: Themes chosen to be semantically distinct and *acoustically* non-obvious: a system that
+#: Themes chosen to be semantically distinct and acoustically non-obvious: a system that
 #: only hears production should not be able to guess them. Deliberately excludes themes that
 #: map onto a genre ("songs about DJing"), which would let the audio channel win by
 #: recognising the genre instead of understanding the query.

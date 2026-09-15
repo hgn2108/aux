@@ -1,24 +1,13 @@
 """Embedding transcribed lyrics for semantic search.
 
-A separate model from the audio encoder, and necessarily so: MuQ-MuLan's text tower is
-trained to match text against *audio*, not text against text. Asking "which lyrics are about
-yearning" is a text-to-text question and needs a text embedder.
+A separate model from the audio encoder, necessarily: MuQ-MuLan's text tower matches text
+against audio, not text against text. "Which lyrics are about yearning" is a text-to-text
+question.
 
-**Multilingual on purpose.** 13 of this library's tracks are Vietnamese, and a monolingual
-embedder would either fail on them or silently push them to the bottom of every ranking  -
-reproducing the exact Slice 1 failure ("sung in Vietnamese" returned jazz) in a new
-component.
+Multilingual, because 13 tracks here are Vietnamese and a monolingual embedder would push
+them to the bottom of every ranking, reproducing an earlier failure in a new component.
 
-**Whole-lyric embedding for now.** EVALS.md's E4 asks whether section-level chunking beats
-it. That is a later experiment, and doing it first would add storage and complexity before
-the simpler version has been measured, the same rule that killed three components in
-Slice 2.
-
-**Implemented on `transformers` directly rather than through `sentence-transformers`.**
-The latter's current release requires `transformers>=5`, while MuQ-MuLan breaks on 5.x, and
-installing it silently upgraded the shared dependency and broke the audio encoder. Qwen3
-embedding is last-token pooling over a causal model, which is a few lines, not worth a
-dependency that constrains the encoder this project already chose by measurement.
+Whole-lyric embedding. Section-level chunking is an open question, not tested here.
 """
 
 from __future__ import annotations
@@ -39,7 +28,7 @@ class LyricEmbedder:
 
     QUERY_PROMPT = ("Instruct: Given a search query, retrieve song lyrics that match its "
                     "meaning or theme\nQuery: ")
-    """Qwen3 embedding models are trained with an instruction prefix on the **query** side
+    """Qwen3 embedding models are trained with an instruction prefix on the query side
     only; documents are embedded bare. Applying it to both, or to neither, loses accuracy,
     so the asymmetry is deliberate."""
 

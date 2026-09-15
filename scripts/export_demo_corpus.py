@@ -5,13 +5,13 @@ deployed demo that only loads FMA ships a lyrics feature it can never show worki
 exports what the personal library needs to be browsable and searchable on a public instance
 while leaving behind everything that would be redistribution.
 
-**What ships.** Track title, artist, genre, and the derived vectors: a 512-d audio embedding
+What ships. Track title, artist, genre, and the derived vectors: a 512-d audio embedding
 and a lyric embedding per track. Titles and artist names are facts about recordings, and
 embeddings are lossy derived representations from which no audio can be reconstructed.
 Distributing features rather than audio is the standard arrangement in music information
 retrieval, which is why public music datasets ship exactly this.
 
-**What does not ship.** The audio, and the transcripts. A transcript is the lyrics, which are
+What does not ship. The audio, and the transcripts. A transcript is the lyrics, which are
 a copyrighted text; the embedding of one is not. The app therefore has no playback and no
 lyric display for this corpus, only ranking.
 
@@ -161,7 +161,7 @@ def main() -> int:
 
     # Guard rather than trust: a transcript or a local path reaching the bundle would be a
     # problem no amount of intent prevents. Checked over the track records only, the
-    # explanatory note legitimately talks *about* transcripts.
+    # explanatory note legitimately talks about transcripts.
     allowed = {"track_id", "title", "artist", "genre", "has_lyrics"}
     for record in manifest:
         extra = set(record) - allowed

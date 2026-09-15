@@ -3,8 +3,8 @@
 A 3-5 minute track must become one vector, but encoders accept windows of seconds. The
 choice of how to sample the track is E1's subject:
 
-- **baseline**, one representative centre segment;
-- **candidate**, 3-5 deterministic windows spread across the track, excluding obvious
+- baseline, one representative centre segment;
+- candidate, 3-5 deterministic windows spread across the track, excluding obvious
   leading and trailing silence.
 
 Everything here is deterministic. No random offsets: Eval 0A's repeatability guarantee has
@@ -61,15 +61,11 @@ def select_segments(
     segment_seconds: float = 10.0,
     trim: bool = True,
 ) -> list[Segment]:
-    """Pick ``n_segments`` deterministic windows of ``segment_seconds`` from a track.
+    """Pick deterministic windows spanning the track.
 
-    One segment is taken from the centre, the least-bad single choice, since intros and
-    outros are the least representative parts of a track. Several segments are spaced
-    evenly across the trimmed region, each centred in its own equal share of the track, so
-    coverage does not depend on track length.
-
-    Tracks shorter than one window are zero-padded to the window length, which keeps the
-    encoder's input shape fixed without inventing content.
+    Deterministic so the same file always yields the same vector, which the content-hash
+    cache depends on. Spread across the track rather than taken from the start, because an
+    intro is not the song.
     """
     if n_segments < 1:
         raise ValueError("n_segments must be >= 1")

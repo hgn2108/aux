@@ -1,17 +1,12 @@
 """Does the retrieved audio have the properties the query asked for?
 
-The closest objective proxy this project has to "did the system deliver what was asked",
-and the one that needs neither an opposed pair nor a human.
+A query naming "quiet" or "fast" names something measurable in the waveform, which the
+encoder never sees. So: when a query says quiet, are the results actually quieter than the
+library average? No human or opposed pair needed.
 
-A query, or a planner's rewrite of it, names properties: "quiet", "fast", "sparse". Those
-map to measurable features of the waveform, which the encoder never sees. So the check is
-direct: when a query says *quiet*, are the retrieved tracks actually quieter than the
-library's average?
-
-Deliberately a small, one-sided vocabulary. Every term here has an unambiguous physical
-direction. Words like "warm", "dreamy" or "nostalgic" are excluded, not because they do not
-matter but because no waveform feature honestly stands in for them, and a fabricated mapping
-would produce numbers that look like evidence.
+Small vocabulary on purpose. Every term here has an unambiguous physical direction. "Warm",
+"dreamy" and "nostalgic" are left out because no waveform feature honestly stands in for
+them, and a made-up mapping would produce numbers that look like evidence.
 """
 
 from __future__ import annotations
@@ -59,15 +54,11 @@ def intent_match(text: str, retrieved_features: np.ndarray,
                  feature_names: tuple[str, ...] = FEATURES) -> float | None:
     """How well retrieved audio matches the properties named in `text`.
 
-    `retrieved_features` are z-scores against the library, one row per retrieved track.
-    Returns the mean z-score in each named term's expected direction, so:
+    `retrieved_features` are z-scores against the library. Returns the mean z-score in each
+    named term's expected direction: positive means the audio moved the way the words asked,
+    negative the wrong way.
 
-    - **positive** means the audio moved the way the words asked;
-    - **zero** means the words had no effect;
-    - **negative** means it moved the wrong way.
-
-    Returns None when the text names no measurable property, reported as such rather than
-    scored as zero, because "no opinion" and "no effect" are different.
+    None when the text names nothing measurable. "No opinion" and "no effect" are different.
     """
     found = terms_in(text)
     if not found:

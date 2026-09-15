@@ -1,6 +1,6 @@
 """Paired comparison of two evaluation runs.
 
-Two configurations scored on the *same* query set are not two independent samples, and
+Two configurations scored on the same query set are not two independent samples, and
 treating them as such throws away most of the available power: the queries that behaved
 identically under both carry no information about which is better, and they are the
 majority. McNemar's exact test conditions on the discordant queries only.
@@ -81,14 +81,10 @@ def permutation_test(a: np.ndarray, b: np.ndarray, *, n_resamples: int = 20000,
                      seed: int = 0) -> dict:
     """Paired two-sided permutation test on the mean difference between two systems.
 
-    Used where the paired values are continuous, per-query NDCG, say, rather than the
-    win/loss counts `mcnemar_exact` takes. Under the null the two systems are
-    interchangeable, so each query's difference is equally likely to carry either sign;
-    the reference distribution flips those signs at random.
-
-    Exact enumeration is used when there are few enough pairs for it, which is common here:
-    a 24-query set has 2**24 sign assignments, so sampling is the practical choice, but a
-    small subset can be enumerated outright and is not left to chance.
+    For continuous per-query scores, where `mcnemar_exact` takes win/loss counts. Under the
+    null the two are interchangeable, so each query's difference is equally likely to carry
+    either sign; the reference distribution flips those signs at random. Enumerated exactly
+    for 20 pairs or fewer, sampled above that.
     """
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)

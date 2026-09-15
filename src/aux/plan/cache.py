@@ -3,7 +3,7 @@
 Two reasons, and the second is the important one:
 
 - a re-run should not pay for the same queries again;
-- a re-run should **get the same plans**. Even at temperature 0 an API is not contractually
+- a re-run should get the same plans. Even at temperature 0 an API is not contractually
   deterministic, and an evaluation that silently re-samples its own inputs cannot confirm a
   previous result.
 

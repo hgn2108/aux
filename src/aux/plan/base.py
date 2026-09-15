@@ -55,7 +55,7 @@ class Planner(ABC):
 
         A schema violation is retried once, models mostly recover on a second attempt  -
         and then degrades to `passthrough`, which retrieves identically to Slice 1. The
-        fallback is *counted*: Eval 2A reports the rate, because a planner that quietly
+        fallback is counted: Eval 2A reports the rate, because a planner that quietly
         fails half the time while scoring well on the half that works is not a planner.
         """
         meta: dict = {"planner": self.name, "version": self.version, "attempts": 0,

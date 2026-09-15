@@ -5,7 +5,7 @@ leading router was +0.058 NDCG@10 with p=0.066 against a Bonferroni threshold of
 is an underpowered test, not a null result, and the fix is more queries rather than a softer
 claim.
 
-**Paraphrases are generated deliberately against the rule router.** The rule baseline keys on
+Paraphrases are generated deliberately against the rule router. The rule baseline keys on
 phrasings, "songs about", genre nouns, tempo words, so the model is told to avoid exactly
 those constructions and to write the way people actually type. Every paraphrase therefore
 makes the test harder for the router most likely to win, which is the direction a bias should
