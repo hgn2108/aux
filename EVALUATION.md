@@ -82,6 +82,12 @@ Genre, artist and album are acoustic constructs, so scoring lyrics against them 
 lyrics help identify something you can already hear. This asks the opposite question: given
 *"songs about heartbreak"*, which signal finds them?
 
+Scope first. This runs on a private 160-track collection with model-generated subject labels,
+validated on a sample (section 4). Everything below is a result on that benchmark. It is
+evidence that the lyric channel carries signal the audio channel does not, on this music; it
+is not a general claim about lyrics in music retrieval, and the corpus is too small and too
+concentrated in one genre to support one.
+
 Twelve themes were chosen to be semantically distinct and **acoustically non-obvious**, so a
 system that only hears production cannot guess them. Themes that map onto a genre were
 deliberately excluded: they would let the audio channel win by recognising the genre rather
@@ -233,22 +239,58 @@ well and still choose unhelpful weights.
 
 | router | NDCG@10 | vs best fixed | % of oracle gap | ms/query |
 |---|---:|---:|---:|---:|
-| keyword rules | 0.500 | −0.053 | −45% | 0.0 |
-| embedding prototypes | 0.570 | +0.017 | 15% | 2.3 |
-| LLM (Haiku) | 0.571 | +0.019 | 16% | 1686 |
-| *best fixed (α=0.25)* | *0.552* | n/a |, | n/a |
-| *oracle* | *0.670* | n/a | *100%* | n/a |
+| keyword rules | 0.500 | -0.053 | -39% | 0.0 |
+| embedding prototypes | 0.580 | +0.028 | 21% | 2.4 |
+| LLM (Haiku) | 0.567 | +0.015 | 11% | 1834 |
+| *best fixed (alpha=0.25)* | *0.552* | n/a | n/a | n/a |
+| *oracle* | *0.688* | n/a | *100%* | n/a |
 
-**Significance** (paired permutation, Bonferroni threshold 0.0125):
+Significance, paired permutation. Four comparisons are made here, so the threshold is
+Bonferroni-corrected to 0.0125:
 
 | comparison | difference | p | verdict |
 |---|---:|---:|---|
-| rules vs best fixed | −0.053 | 0.028 | not significant |
-| prototype vs best fixed | +0.017 | 0.173 | not significant |
-| LLM vs best fixed | +0.019 | 0.379 | not significant |
-| **family-level routing vs global** | **+0.051** | **0.0001** | **significant** |
+| rules vs best fixed | -0.053 | 0.028 | not significant |
+| prototype vs best fixed | +0.028 | 0.090 | not significant |
+| LLM vs best fixed | +0.015 | 0.373 | not significant |
+| prototype vs LLM | +0.013 | 0.539 | not significant |
 
-Per family, the best weights are α=0.95 (acoustic), α=0.40 (compound), α=0.00 (semantic).
+### Would knowing the family help, on queries it has not seen?
+
+The routers fail, but that does not settle whether the *decision* is worth making. An earlier
+version of this analysis answered that by picking the best weight for each family and the
+best global weight, then scoring both on the same queries. Selection and evaluation shared
+the examples, and routing was fitting three weights against the baseline's one, so it had
+more freedom on the same data. It reported +0.051, p=0.0001.
+
+Replaced with 5-fold cross-validation, stratified by family, seed 0. Each fold chooses the
+global weight and each family's weight on its training rows only, applies them unchanged to
+the held-out rows, and every query is held out exactly once. The paired test then runs on
+96 held-out per-query scores. This is a single pre-specified hypothesis, so no
+multiple-comparison correction applies to it.
+
+| | |
+|---|---|
+| held-out queries | 96 |
+| fixed global weight | 0.554 |
+| family-conditioned | 0.597 |
+| difference | **+0.044** (+7.9%) |
+| 95% CI on the difference | +0.015 to +0.072 |
+| paired permutation p | **0.004** |
+
+The result survives, smaller than before. Scoring on the same queries used for selection gave
++0.061 on this data; the honest figure is +0.044. Across 20 different fold assignments the
+difference ranges +0.041 to +0.064 (median +0.052) and is significant at 0.05 in 20 of 20, so
+the headline is not an artefact of one split. Seed 0 sits at the low end of that range.
+
+Per-fold weights are stable for two families and not the third: acoustic picks 0.95 in four
+folds of five and 0.75 in the last, semantic picks 0.00 in all five, and compound picks 0.00
+in three and 0.55/0.65 in the other two. Compound queries name both a genre and a subject, so
+which signal should lead is genuinely ambiguous, and the folds disagree.
+
+The in-sample figure in `scripts/eval_routing.py` (+0.042 across the two query families) is
+descriptive for the same reason and is labelled as such. That script reads aggregate scores
+from committed JSON and has no per-query data to hold out.
 
 **The overfitting result.** On the original 24 hand-written queries the keyword router led at
 +0.058. The set was regenerated with paraphrases instructed to avoid the constructions the

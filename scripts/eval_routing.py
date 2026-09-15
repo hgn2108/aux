@@ -85,10 +85,11 @@ def main() -> int:
 
     print(f"\n{'best single weight':26}alpha={best_alpha:.2f}  "
           f"{b_sim:.3f} / {b_sem:.3f}  mean {best_fixed:.3f}")
-    print(f"{'per-family routing':26}{'':10}"
+    print(f"{'best weight per family':26}{'':10}"
           f"{routed_sim:.3f} / {routed_sem:.3f}  mean {routed:.3f}")
-    print(f"\nrouting gains {routed - best_fixed:+.3f} over the best single weight, "
-          f"{routed - rows[-1][3]:+.3f} over audio-only")
+    print(f"\nin-sample gap {routed - best_fixed:+.3f}. Both weights are picked on the same")
+    print("aggregates they are scored on, so this is descriptive, not a held-out result.")
+    print("The generalising version is in scripts/eval_router.py, cross-validated.")
 
     # The cost of guessing wrong: applying each family's own best weight to the other.
     worst_sim = min(r[1] for r in rows)
@@ -104,7 +105,11 @@ def main() -> int:
         "by_alpha": [{"alpha": a, "similarity": s, "semantic": m, "mean": av}
                      for a, s, m, av in rows],
         "best_fixed_alpha": best_alpha, "best_fixed_mean": best_fixed,
-        "routed_mean": routed, "routing_gain": routed - best_fixed,
+        "routed_mean": routed,
+        "in_sample_gap": routed - best_fixed,
+        "note": ("Descriptive and in-sample: both weights are selected on the aggregates "
+                 "they are scored on. See results/router_*.json family_routing_cv for the "
+                 "held-out comparison."),
     }, indent=2))
     print(f"\nwrote {out.relative_to(ROOT)}", file=sys.stderr)
     return 0

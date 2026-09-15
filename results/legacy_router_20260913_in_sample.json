@@ -1,4 +1,6 @@
 {
+  "_superseded_by": "router_20260915.json",
+  "_why": "Family routing here was selected and scored on the same queries, so its +0.051 is optimistic. Kept as the record of what the earlier method reported. The replacement cross-validates.",
   "run_at": "2026-09-13T21:33:17.845550+00:00",
   "k": 10,
   "normaliser": "zscore",

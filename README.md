@@ -4,15 +4,17 @@
 [![python](https://img.shields.io/badge/python-3.11%2B-blue)](pyproject.toml)
 [![licence](https://img.shields.io/badge/licence-MIT-green)](LICENSE)
 
-**A Spotify-style recommender for the music you already own.**
+**A local-first multimodal music search and content-based recommendation system for music
+you already own.**
 
 Streaming services recommend well because they watch millions of listeners. If your music
 sits in a folder on your laptop, none of that applies: local players search filenames and
 genre tags, and nothing lets you ask for *"something quiet and bittersweet"* or *"like this,
 but dreamier"*.
 
-`aux` builds that recommender from the audio itself. No tags, no play counts, no listening
-history.
+`aux` answers those from the audio and the lyrics themselves. It is content-based: it models
+the music, not the listener. There is no play history, no collaborative filtering and no
+personalisation, by design and not yet by omission.
 
 **Live demo:** https://aux-339224224982.us-central1.run.app
 The first search takes about a minute while the model loads.
@@ -107,9 +109,11 @@ asked.
 | 0.50 | 0.802 | 0.671 |
 | 1.00, sound only | **0.832** | 0.367 |
 
-Genre and artist are audible, so lyrics add nothing when matching on those. Ask what a song
-is *about* and the lyrics score twice what sound does, winning 8 of the 9 subjects tested.
-The one exception is *heartbreak*, where sound wins: sad songs sound sad.
+Genre and artist are audible, so lyrics add nothing when matching on those. On a private
+160-track benchmark of "songs about X" queries, the lyrics score twice what sound does and
+win 8 of the 9 subjects tested. The one exception is *heartbreak*, where sound wins: sad
+songs sound sad. That benchmark is small and its labels are model-generated with a validated
+sample, so it shows the effect on this collection rather than a general fact about lyrics.
 
 Set the weight wrong for the question being asked and the system loses **a third to a half**
 of its accuracy. No single setting is right for both.
@@ -124,16 +128,22 @@ comparing the query to example queries, and asking an LLM.
 |---|---:|---:|
 | fixed weight, no detection | 0.552 | instant |
 | keyword matching | 0.500 | instant |
-| compare to example queries | 0.570 | 2 ms |
-| ask an LLM | 0.571 | 1.7 s |
-| *perfect detection (upper bound)* | *0.670* | n/a |
+| compare to example queries | 0.580 | 2 ms |
+| ask an LLM | 0.567 | 1.8 s |
+| *perfect detection (upper bound)* | *0.688* | n/a |
 
-The last row is the score if every question were classified correctly, so it is the most any
-method of this kind could be worth. None of the three got close, and none beat simply fixing
-the weight by enough to be statistically significant over 96 queries.
+The last row is the score if every question were classified correctly, so it bounds what any
+such method could be worth. None of the three came close, and none beat a fixed weight by
+enough to be significant over 96 queries.
 
-**The app therefore exposes the weight as a control rather than guessing it.** Someone
-searching already knows whether they are asking about sound or about meaning.
+**So the app exposes the weight as a control rather than guessing it.** Someone searching
+already knows whether they are asking about sound or about meaning.
+
+Knowing the question *would* help, though. Choosing one weight per query family, with the
+weights fitted on training folds and scored on held-out queries, gains **+0.044 NDCG@10**
+(95% CI +0.015 to +0.072, paired permutation p = 0.004, n = 96). Selecting and scoring on
+the same queries, as an earlier version of this analysis did, reported +0.061; the gap
+between those two numbers is what that shortcut was worth.
 
 Keyword matching looked like the winner until the test set changed. Its rules and the test
 queries had been written by the same person, so it was rewarded for recognising familiar
@@ -163,7 +173,14 @@ learn from the person using it. Three planned stages, in order:
 
 ---
 
-## Limitations
+## Scope and limitations
+
+What this is: content-based retrieval and ranking. It models tracks, not listeners.
+
+It does **not** do personalised recommendation from listening behaviour, collaborative
+filtering, user-item interaction modelling, sequence models over listening history, or
+learning from user feedback. None of those is implemented or claimed, and the
+[What's next](#whats-next) section is a plan rather than a result.
 
 - **Relevance labels are proxies.** Genre, artist and album are not musical similarity. They
   are used because they are objective and complete, and reported together because they fail

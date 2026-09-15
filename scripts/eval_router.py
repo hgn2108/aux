@@ -36,7 +36,13 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from aux.data import load_personal_tracks  # noqa: E402
-from aux.eval import bonferroni_threshold, ndcg_at_k, permutation_test  # noqa: E402
+from aux.eval import (  # noqa: E402
+    bonferroni_threshold,
+    bootstrap_ci,
+    cross_validate_routing,
+    ndcg_at_k,
+    permutation_test,
+)
 from aux.index import build_index  # noqa: E402
 from aux.ingest.asset import content_hash  # noqa: E402
 from aux.lyrics import load_lyric_vectors  # noqa: E402
@@ -67,6 +73,11 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Compare fusion-weight routers")
     ap.add_argument("--normaliser", default="zscore", choices=sorted(NORMALISERS))
     ap.add_argument("--no-claude", action="store_true", help="skip the paid arm")
+    ap.add_argument("--folds", type=int, default=5,
+                    help="cross-validation folds for the routing comparison")
+    ap.add_argument("--seed", type=int, default=0, help="fold assignment seed")
+    ap.add_argument("--stability-seeds", type=int, default=20,
+                    help="how many fold assignments to repeat for the stability check")
     ap.add_argument("--queries", default="routing_queries_expanded.json",
                     help="query set under queries/; the expanded set has the statistical "
                          "power the 24-query original lacked")
@@ -217,29 +228,58 @@ def main() -> int:
         print(f"{family:12}{len(idx):>4}" + "".join(f"{cells[n]:>12.3f}" for n in routers)
               + f"{bf:>12.3f}{orc:>9.3f}")
 
-    # --- family-level routing -----------------------------------------------------------
-    # The routers above choose per query and mostly fail. This asks the prior question:
-    # is the decision worth making at all? One weight per family, fitted on that family,
-    # is what a perfect family classifier would achieve: above any per-query router, and below
-    # the per-query oracle. If this is significant while the routers are not, the gap is an
-    # implementation problem rather than a missing effect.
-    global_col = int(np.argmax(table.mean(axis=0)))
-    baseline_per_query = table[:, global_col]
-    routed_per_query = np.zeros(len(queries))
-    family_alpha = {}
+    # --- family-level routing, cross-validated ------------------------------------------
+    # The routers above choose per query and mostly fail. This asks the prior question: is
+    # the decision worth making at all?
+    #
+    # Weights are chosen on training folds and applied unchanged to held-out ones, because
+    # the earlier version of this picked both the global weight and each family's weight on
+    # the same queries it then scored. Routing fits one weight per family against the
+    # baseline's one overall, so on shared data it wins partly by having more freedom.
+    cv = cross_validate_routing(table, grid, families, n_splits=args.folds, seed=args.seed)
+    cv_test = permutation_test(cv.routed, cv.fixed)
+    lo, hi = bootstrap_ci(list(cv.delta), seed=args.seed)
+    rel = cv_test["observed"] / cv.fixed.mean() if cv.fixed.mean() else float("nan")
+
+    print(f"\n=== family-conditioned routing, {args.folds}-fold cross-validated ===")
+    print(f"  held-out queries          {cv.fixed.size}")
+    print(f"  fixed global weight       {cv.fixed.mean():.3f}")
+    print(f"  family-conditioned        {cv.routed.mean():.3f}")
+    print(f"  difference                {cv_test['observed']:+.3f}  ({rel:+.1%})")
+    print(f"  95% CI on the difference  [{lo:+.3f}, {hi:+.3f}]")
+    print(f"  paired permutation p      {cv_test['p_value']:.4f}")
+    verdict = "significant" if cv_test["p_value"] < 0.05 else "not significant"
+    print(f"  verdict                   {verdict} at 0.05")
+    print("  weights chosen per fold:")
+    for i, (g, fam) in enumerate(zip(cv.fixed_alpha, cv.family_alpha)):
+        picks = " ".join(f"{k}={v:.2f}" for k, v in sorted(fam.items()))
+        print(f"    fold {i}: global={g:.2f}  {picks}")
+
+    # One split could be lucky. Seed 0 stays the headline because it was fixed in advance;
+    # the spread across seeds says whether that headline is stable, and is reported whatever
+    # it shows rather than used to pick a seed.
+    spread = []
+    for s_ in range(args.stability_seeds):
+        c = cross_validate_routing(table, grid, families, n_splits=args.folds, seed=s_)
+        spread.append((float(c.delta.mean()), permutation_test(c.routed, c.fixed)["p_value"]))
+    deltas = np.array([d for d, _ in spread])
+    pvals = np.array([p_ for _, p_ in spread])
+    print(f"\n  across {args.stability_seeds} fold assignments: difference "
+          f"{deltas.min():+.3f} to {deltas.max():+.3f} (median {np.median(deltas):+.3f}), "
+          f"p<0.05 in {(pvals < 0.05).sum()}/{len(pvals)}")
+
+    # Kept for contrast, and labelled: this is the number the old analysis reported, with
+    # selection and scoring on the same queries. The gap between it and the held-out figure
+    # above is the size of the optimism that procedure introduced.
+    in_sample_global = int(np.argmax(table.mean(axis=0)))
+    in_sample_fixed = table[:, in_sample_global]
+    in_sample_routed = np.zeros(len(queries))
     for family in sorted(set(families)):
         idx = np.flatnonzero(families == family)
-        col = int(np.argmax(table[idx].mean(axis=0)))
-        routed_per_query[idx] = table[idx, col]
-        family_alpha[family] = float(grid[col])
-    family_test = permutation_test(routed_per_query, baseline_per_query)
-
-    print(f"\n=== family-level routing (one weight per family) ===")
-    for family, alpha in family_alpha.items():
-        print(f"  {family:12} alpha={alpha:.2f}")
-    print(f"  routed {routed_per_query.mean():.3f} vs fixed alpha="
-          f"{grid[global_col]:.2f} {baseline_per_query.mean():.3f}   "
-          f"{family_test['observed']:+.3f}  p={family_test['p_value']:.4f}")
+        in_sample_routed[idx] = table[idx, int(np.argmax(table[idx].mean(axis=0)))]
+    in_sample_delta = float(in_sample_routed.mean() - in_sample_fixed.mean())
+    print(f"\n  for contrast, selecting and scoring on the same queries: "
+          f"{in_sample_delta:+.3f}")
 
     print(f"\n=== chosen weights ===")
     print(f"{'query':52}" + "".join(f"{n:>11}" for n in routers) + f"{'best':>7}")
@@ -261,10 +301,26 @@ def main() -> int:
         "best_fixed_alpha": best_alpha, "oracle": oracle,
         "routers": rows, "per_family": per_family,
         "significance": significance, "significance_threshold": threshold,
-        "family_routing": {"alpha_by_family": family_alpha,
-                           "routed": float(routed_per_query.mean()),
-                           "fixed": float(baseline_per_query.mean()),
-                           **family_test},
+        "family_routing_cv": {
+            "folds": args.folds, "seed": args.seed,
+            "held_out_queries": int(cv.fixed.size),
+            "fixed": float(cv.fixed.mean()),
+            "routed": float(cv.routed.mean()),
+            "difference": cv_test["observed"],
+            "relative": float(rel),
+            "ci95": [lo, hi],
+            "p_value": cv_test["p_value"],
+            "significant": bool(cv_test["p_value"] < 0.05),
+            "alpha_by_fold": [{"global": g, "family": f}
+                              for g, f in zip(cv.fixed_alpha, cv.family_alpha)],
+            "in_sample_difference": in_sample_delta,
+            "stability": {
+                "seeds": args.stability_seeds,
+                "delta_min": float(deltas.min()), "delta_max": float(deltas.max()),
+                "delta_median": float(np.median(deltas)),
+                "significant_at_05": int((pvals < 0.05).sum()),
+            },
+        },
     }, indent=2))
     print(f"\nwrote {out.relative_to(ROOT)}", file=sys.stderr)
     return 0

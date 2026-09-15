@@ -472,8 +472,9 @@ def page_findings() -> None:
         st.caption("Left of the scale is lyrics only; right is sound only.")
         st.caption(
             f"The best compromise setting scores {crossover['best_fixed_mean']:.3f} across "
-            f"both kinds of question. Choosing the right setting for each kind scores "
-            f"{crossover['routed_mean']:.3f}."
+            f"both kinds of question; the best setting for each kind scores "
+            f"{crossover['routed_mean']:.3f}. Both are read off these same numbers, so that "
+            "gap is descriptive. Section 3 gives the held-out version."
         )
 
     rec = next((v for k, v in results.items() if k.startswith("recommendation_fma")), None)
@@ -534,6 +535,19 @@ def page_findings() -> None:
             "and none came close. **The app therefore gives you the control instead of "
             "guessing.**"
         )
+        cv = router.get("family_routing_cv")
+        if cv:
+            st.markdown(
+                f"Knowing which kind of question it is would help, though. Setting one "
+                f"weight per kind, chosen on {cv['folds']} training folds and scored on the "
+                f"queries each fold held back, gains "
+                f"**{cv['difference']:+.3f}** ({cv['relative']:+.1%}) over one fixed weight, "
+                f"95% CI {cv['ci95'][0]:+.3f} to {cv['ci95'][1]:+.3f}, p = "
+                f"{cv['p_value']:.3f}, {cv['held_out_queries']} queries. Choosing and "
+                f"scoring on the same queries, as an earlier version of this did, reported "
+                f"{cv['in_sample_difference']:+.3f} instead."
+            )
+
         st.markdown(
             "Matching keywords looked like the winner until the test set changed. Its rules "
             "and the test queries had the same author, so it was being rewarded for "
