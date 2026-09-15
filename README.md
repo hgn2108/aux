@@ -13,8 +13,7 @@ genre tags, and nothing lets you ask for *"something quiet and bittersweet"* or 
 but dreamier"*.
 
 `aux` answers those from the audio and the lyrics themselves. It is content-based: it models
-the music, not the listener. There is no play history, no collaborative filtering and no
-personalisation, by design and not yet by omission.
+the music, not the listener. No play history, no collaborative filtering, no personalisation.
 
 **Live demo:** https://aux-339224224982.us-central1.run.app
 The first search takes about a minute while the model loads.
@@ -158,8 +157,8 @@ Full tables, ablations and significance tests: **[EVALUATION.md](EVALUATION.md)*
 
 ## What's next
 
-The system ranks purely on what a track sounds like and what its words say. It does not yet
-learn from the person using it. Three planned stages, in order:
+Not built yet. The system ranks on content alone and learns nothing from the person using
+it. Three planned stages, in the order their dependencies force:
 
 1. **Learn from plays.** Results play inside the app, so each play, skip or replay can be
    recorded against the query and position that produced it. That produces preference data
