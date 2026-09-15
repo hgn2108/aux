@@ -45,11 +45,12 @@ evals/*.private.json
 .cache/transcripts_*.json
 
 # ---------------------------------------------------------------------------
-# Internal working documents — local only, not part of the public repository.
-# README.md is the only public document; everything below is for local reference.
-# INTERVIEW.md is preparation notes about this work, not documentation of it.
+# Internal working documents. Local only, not part of the public repository.
+# INTERVIEW.md and STUDY.md are preparation notes about this work rather than
+# documentation of it, so they stay out of the repository too.
 # ---------------------------------------------------------------------------
 INTERVIEW.md
+STUDY.md
 PROJECT.md
 DESIGN.md
 STATUS.md
