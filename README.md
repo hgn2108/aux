@@ -155,46 +155,41 @@ Full tables, ablations and significance tests: **[EVALUATION.md](EVALUATION.md)*
 
 ---
 
-## What's next: a taste layer, opt in
+## What's next
 
-Not built, and second on purpose. Content ranking answers *"find me this"*; it cannot answer
-*"and I would like it"*. A listener model closes that gap, and doing it second means it can be
-something a user switches on rather than something that happens to them.
+Not built. The system ranks tracks; it knows nothing about the person searching. A listener
+model would close that, and the data it needs does not exist yet.
 
-The groundwork is the useful half. Every track already has a vector, so a listener is a point
-in that same space that their plays pull around. No second encoder, no retraining, and a track
-nobody has ever played still ranks, which is the failure collaborative filtering is known for.
+**The input is listening events, not more audio.** One row per play: which track, when, how
+long it ran, what ended it. The last two are the labels. A track played to the end and one
+dropped at nine seconds are a positive and a negative, and both come out of ordinary listening
+without anyone rating anything.
 
-**That layer needs listening events, not more audio.** One row per play: which track, when,
-how long it ran, what ended it. The last two are the labels. A track played to the end and one
-abandoned at nine seconds are a positive and a negative, and both fall out of ordinary
-listening without anyone rating anything.
-
-| where the rows come from | what they give | what it costs |
+| source | gives | costs |
 |---|---|---|
-| plays inside this app | the query, the results, and the play or skip that followed: the only source that ties a preference to a *question* | the player has to exist first |
-| a Spotify account export | years of history, with `ms_played` and `reason_end` on every play | a privacy data request, up to 30 days to arrive |
-| Last.fm or ListenBrainz | scrobbles through a public API, continuously | start times and track identity only, no skips |
+| a Spotify account export | years of history, with `ms_played` and `reason_end` on every play | a privacy request, up to 30 days to arrive |
+| Last.fm or ListenBrainz | scrobbles through a public API, continuously | start times only, no skips |
+| plays inside this app | ties a play to the query that produced it, which no export does | the player has to be built, and one user generates little |
 
-Syncing live from Spotify's API is not the route. Recommendations, related artists and audio
-features were closed to apps registered after November 2024, and what is left
-(`recently-played`, `top/tracks`) is a short window rather than a history. The export carries
-more anyway, and it is a file, which suits a system that already runs offline.
+Spotify's API is not a route. Recommendations, related artists and audio features closed to
+apps registered after November 2024, and what is left is a recent window rather than a history.
+Events also arrive as track names, so matching them to files on disk is the first piece of
+work, and preference is only learnable for music actually present.
 
-Either way the events arrive as track names and have to be matched to files on disk before
-they mean anything, and preference is only learnable for music actually present. That matching
-is the first piece of work, not the model.
+Three steps, in this order:
 
-Then three stages, in the order their dependencies force:
-
-1. **Learn from plays.** Results play in the app, so each play, skip or replay is recorded
-   against the query and position that produced it.
-2. **Keep preference specific to the request.** The finding above is that what counts as a good
-   match changes with the question. Taste likely behaves the same way, so what is learned from
-   *"music for running"* should not move results for *"music for studying"*.
-3. **Balance familiarity against discovery.** Ranking on similarity alone returns more of what
-   a listener already knows. Measuring that trade-off needs preference data to measure against,
-   which is why it comes last.
+1. **Check the premise.** Relevance here is a proxy: genre, artist, album. Real play history is
+   not. Swapping it in as the label costs one script, since the metrics take any binary
+   relevance vector, and answers a question the project cannot currently answer: does content
+   similarity predict what someone actually finishes?
+2. **Then a preference vector.** The mean of the tracks played, weighted by how much of each
+   one ran, blended against the query score. No new model, since it is the same space and the
+   same blend. Plays split by date rather than at random, because a random split lets later
+   listening inform earlier predictions. It has to beat simply boosting the person's most
+   played artists, or it is a popularity prior with extra steps.
+3. **Then measure what it costs.** A preference vector pulls results toward what is already
+   played. If the personalised ranking only reorders someone's usual artists it is working as
+   specified and is useless, so drift toward the familiar gets tracked next to accuracy.
 
 ---
 
@@ -205,7 +200,7 @@ What this is: content-based retrieval and ranking. It models tracks, not listene
 It does **not** do personalised recommendation from listening behaviour, collaborative
 filtering, user-item interaction modelling, sequence models over listening history, or
 learning from user feedback. None of those is implemented or claimed, and the
-[What's next](#whats-next-a-taste-layer-opt-in) section is a plan rather than a result.
+[What's next](#whats-next) section is a plan rather than a result.
 
 - **Relevance labels are proxies.** Genre, artist and album are not musical similarity. They
   are used because they are objective and complete, and reported together because they fail
