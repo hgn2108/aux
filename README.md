@@ -12,11 +12,8 @@ sits in a folder on your laptop, none of that applies: local players search file
 genre tags, and nothing lets you ask for *"something quiet and bittersweet"* or *"like this,
 but dreamier"*.
 
-`aux` answers those from the audio and the lyrics themselves. It models the music, not the
-listener: there is no profile accumulating and no feedback loop narrowing, so a track nobody
-has ever played competes on equal terms with a popular one, and the same query gives the same
-answer a year from now. The taste stays with you. The system only has to be good at finding
-things.
+`aux` answers those from the audio and the lyrics themselves. It ranks on what a track is, not
+on who played it, so nothing has to be popular to be found and no profile of you is built.
 
 **Live demo:** https://aux-339224224982.us-central1.run.app
 The first search takes about a minute while the model loads.
