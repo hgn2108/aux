@@ -16,7 +16,7 @@ import numpy as np
 SUPPORTED_EXTENSIONS: frozenset[str] = frozenset(
     {".mp3", ".wav", ".flac", ".m4a", ".mp4"}
 )
-"""Formats the project claims to support (PROJECT.md, STATUS.md Slice 0 contract).
+"""Formats the ingestion layer claims to support.
 
 ``.mp4`` is present because DESIGN.md treats video as a container: extract and decode the
 audio stream, then run the identical downstream pipeline.

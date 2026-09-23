@@ -43,7 +43,7 @@ class ClaudePlanner(Planner):
         if not key:
             raise RuntimeError(
                 "no ANTHROPIC_API_KEY in the environment or .env; "
-                "see STATUS.md for how Slice 2 rung 2 is configured"
+                "the planner is optional and off by default"
             )
         self.name = "claude"
         self.version = model
